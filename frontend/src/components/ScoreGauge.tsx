@@ -11,7 +11,7 @@ export function ScoreGauge({ score, tier, label, outlook }: ScoreGaugeProps) {
   const colorClass = shieldColor(tier)
 
   return (
-    <div className="card p-6">
+    <div className="glass-card p-6">
       <div className="flex items-center gap-6">
         <div className={colorClass}>
           <Shield tier={tier} size="xl" />

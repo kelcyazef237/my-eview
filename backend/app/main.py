@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import public, owner, ops, auth, verified, reports
+from app.api import admin, auth, ops, owner, public, reports, verified
 from app.config import get_settings
 
 settings = get_settings()
@@ -29,6 +29,7 @@ def create_app() -> FastAPI:
     app.include_router(ops.router, prefix="/api/ops", tags=["ops"])
     app.include_router(verified.router, prefix="/api/verified", tags=["verified"])
     app.include_router(reports.router, prefix="/api/reports", tags=["reports"])
+    app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 
     @app.get("/health")
     def health():

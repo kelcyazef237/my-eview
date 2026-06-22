@@ -4,28 +4,28 @@ interface TechnicalTableProps {
   vectors: VectorFinding[]
 }
 
-function stateBadge(state: string): string {
+function stateBadgeClass(state: string): string {
   switch (state) {
     case 'PASS':
-      return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
+      return 'badge badge-pass'
     case 'WARN':
-      return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+      return 'badge badge-warn'
     case 'FAIL':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+      return 'badge badge-fail'
     case 'NOT_APPLICABLE':
-      return 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+      return 'badge badge-neutral'
     case 'NOT_OBSERVED':
     default:
-      return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+      return 'badge badge-neutral'
   }
 }
 
 export function TechnicalTable({ vectors }: TechnicalTableProps) {
   return (
-    <div className="card overflow-hidden">
+    <div className="glass-card overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="bg-[var(--bg-secondary)]">
+          <thead className="bg-[var(--glass-bg)]">
             <tr>
               <th className="px-4 py-3 font-mono text-xs font-semibold text-[var(--text-muted)]">Vector</th>
               <th className="px-4 py-3 font-mono text-xs font-semibold text-[var(--text-muted)]">Category</th>
@@ -33,15 +33,13 @@ export function TechnicalTable({ vectors }: TechnicalTableProps) {
               <th className="px-4 py-3 font-mono text-xs font-semibold text-[var(--text-muted)]">Evidence</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[var(--border-color)]">
+          <tbody className="divide-y divide-[var(--glass-border-subtle)]">
             {vectors.map((vf) => (
-              <tr key={vf.vector_key} className="hover:bg-[var(--bg-secondary)]/50">
+              <tr key={vf.vector_key} className="transition-colors hover:bg-[var(--glass-bg)]">
                 <td className="px-4 py-3 font-medium">{vf.vector_name}</td>
                 <td className="px-4 py-3 text-[var(--text-secondary)]">{vf.category_key}</td>
                 <td className="px-4 py-3">
-                  <span
-                    className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${stateBadge(vf.state)}`}
-                  >
+                  <span className={stateBadgeClass(vf.state)}>
                     {vf.state}
                   </span>
                 </td>

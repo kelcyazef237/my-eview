@@ -30,10 +30,10 @@ def get_current_user(
 
 
 def resolve_org_id(user: User, db: Session) -> str:
-    """Get the org_id for a user. Ops users without org_id get the most recently scanned org."""
+    """Get the org_id for a user. Ops/global_admin users without org_id get the most recently scanned org."""
     if user.org_id:
         return str(user.org_id)
-    if user.role == "ops":
+    if user.role in (UserRole.OPS.value, UserRole.GLOBAL_ADMIN.value):
         latest_score = db.query(Score).order_by(Score.computed_at.desc()).first()
         if latest_score:
             return str(latest_score.org_id)
@@ -47,6 +47,9 @@ def require_role(*roles: UserRole):
     def _checker(user: User | None = Depends(get_current_user)) -> User:
         if not user:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+        # Global admin bypasses all role checks — superset of every role.
+        if user.role == UserRole.GLOBAL_ADMIN.value:
+            return user
         if user.role not in roles:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
         return user
@@ -56,3 +59,4 @@ def require_role(*roles: UserRole):
 require_owner = require_role(UserRole.OWNER, UserRole.OWNER_TECHNICAL, UserRole.OPS)
 require_owner_technical = require_role(UserRole.OWNER_TECHNICAL, UserRole.OPS)
 require_ops = require_role(UserRole.OPS)
+require_global_admin = require_role(UserRole.GLOBAL_ADMIN)

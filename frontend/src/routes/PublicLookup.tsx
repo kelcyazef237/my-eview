@@ -63,14 +63,16 @@ export function PublicLookup() {
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-8 text-center">
-        <h1 className="mb-2 text-3xl font-bold">External Digital Trust Score</h1>
+        <h1 className="mb-2 text-3xl font-bold">
+          <span className="gradient-text">External Digital Trust Score</span>
+        </h1>
         <p className="text-[var(--text-secondary)]">
           Enter a Cameroonian domain to see its public MYEVIEW score, shield tier, and trend.
         </p>
       </div>
 
       {showDevLogin && (
-        <div className="mb-6 rounded-lg border border-[var(--border-color)] bg-[var(--bg-elevated)] p-4">
+        <div className="glass-card mb-6 p-4">
           <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-secondary)]">
             <LogIn size={16} /> Dev Login — access dashboard, technical view, reports
           </div>
@@ -82,7 +84,7 @@ export function PublicLookup() {
                 value={devDomain}
                 onChange={(e) => setDevDomain(e.target.value)}
                 placeholder="matrixtelecoms.com"
-                className="w-full rounded-lg border border-[var(--border-color)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none"
+                className="glass-input w-full px-3 py-2 text-sm"
               />
             </div>
             <div>
@@ -90,7 +92,7 @@ export function PublicLookup() {
               <select
                 value={devRole}
                 onChange={(e) => setDevRole(e.target.value as 'owner' | 'owner_technical' | 'ops')}
-                className="rounded-lg border border-[var(--border-color)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none"
+                className="glass-input px-3 py-2 text-sm"
               >
                 <option value="owner">Owner</option>
                 <option value="owner_technical">Technical</option>
@@ -100,14 +102,15 @@ export function PublicLookup() {
             <button
               onClick={devLogin}
               disabled={devLoading}
-              className="flex items-center justify-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--accent)]/90 disabled:opacity-50"
+              className="flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+              style={{ background: 'var(--gradient-accent)' }}
             >
               {devLoading ? <Loader2 className="animate-spin" size={16} /> : <LogIn size={16} />}
               Login
             </button>
           </div>
           {devError && (
-            <div className="mt-2 text-sm text-red-500">{devError}</div>
+            <div className="mt-2 text-sm text-[var(--danger)]">{devError}</div>
           )}
         </div>
       )}
@@ -119,12 +122,13 @@ export function PublicLookup() {
             value={domain}
             onChange={(e) => setDomain(e.target.value)}
             placeholder="example.cm"
-            className="flex-1 rounded-lg border border-[var(--border-color)] bg-[var(--bg-elevated)] px-4 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none"
+            className="glass-input flex-1 px-4 py-3"
           />
           <button
             type="submit"
             disabled={loading || !domain}
-            className="flex items-center gap-2 rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-white hover:bg-[var(--accent)]/90 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl px-6 py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{ background: 'var(--gradient-accent)' }}
           >
             {loading ? <Loader2 className="animate-spin" size={18} /> : <Search size={18} />}
             Lookup
@@ -133,7 +137,7 @@ export function PublicLookup() {
       </form>
 
       {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300">
+        <div className="mb-6 rounded-lg border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-4 text-sm text-[var(--danger)]">
           {error}
           <button
             onClick={handleTrigger}
@@ -154,7 +158,7 @@ export function PublicLookup() {
             outlook={score.outlook}
           />
 
-          <div className="card p-5">
+          <div className="glass-card p-5">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <div className="text-sm text-[var(--text-secondary)]">Domain</div>
@@ -166,19 +170,19 @@ export function PublicLookup() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="rounded-lg bg-[var(--bg-secondary)] p-3">
+              <div className="rounded-lg bg-[var(--glass-bg)] p-3">
                 <div className="text-[var(--text-muted)]">Band</div>
                 <div className="font-medium">{score.band}</div>
               </div>
-              <div className="rounded-lg bg-[var(--bg-secondary)] p-3">
+              <div className="rounded-lg bg-[var(--glass-bg)] p-3">
                 <div className="text-[var(--text-muted)]">Ruleset</div>
                 <div className="font-medium">{score.ruleset_version}</div>
               </div>
-              <div className="rounded-lg bg-[var(--bg-secondary)] p-3">
+              <div className="rounded-lg bg-[var(--glass-bg)] p-3">
                 <div className="text-[var(--text-muted)]">Sector Benchmark</div>
                 <div className="font-medium">{score.sector_benchmark ?? '—'}</div>
               </div>
-              <div className="rounded-lg bg-[var(--bg-secondary)] p-3">
+              <div className="rounded-lg bg-[var(--glass-bg)] p-3">
                 <div className="text-[var(--text-muted)]">Computed</div>
                 <div className="font-medium">{new Date(score.computed_at).toLocaleString()}</div>
               </div>

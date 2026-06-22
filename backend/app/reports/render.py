@@ -127,10 +127,10 @@ def build_report_context(
             "key": cs.category.key,
             "name": cs.category.name,
             "parent_group": cs.category.parent_group,
-            "points_total": cs.points_total,
+            "points_total": cs.category.points_total,
             "points_lost": cs.points_lost,
             "points_remaining": cs.points_remaining,
-            "severity": _severity_for_category(cs.points_lost, cs.points_total),
+            "severity": _severity_for_category(cs.points_lost, cs.category.points_total),
         }
         for cs in category_scores
         if cs.category.scored

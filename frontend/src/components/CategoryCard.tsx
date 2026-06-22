@@ -14,7 +14,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
         : 'bg-red-500'
 
   return (
-    <div className="card p-5">
+    <div className="glass-card glass-card-hover p-5">
       <div className="mb-2 flex items-start justify-between">
         <div>
           <div className="text-sm font-medium text-[var(--text-secondary)]">
@@ -32,9 +32,9 @@ export function CategoryCard({ category }: CategoryCardProps) {
         </div>
       </div>
 
-      <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--bg-secondary)]">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--glass-bg)]">
         <div
-          className={`h-full rounded-full ${statusColor}`}
+          className={`h-full rounded-full transition-all ${statusColor}`}
           style={{
             width: `${(category.points_remaining / category.points_total) * 100}%`,
           }}

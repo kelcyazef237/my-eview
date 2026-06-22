@@ -71,16 +71,16 @@ export function OwnerDashboard() {
 
   if (error || !data) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-800 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300">
+      <div className="rounded-lg border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-6 text-[var(--danger)]">
         {error || 'No dashboard data available'}
       </div>
     )
   }
 
-  const canSeeTechnical = data.user_role === 'owner_technical' || data.user_role === 'ops'
+  const canSeeTechnical = data.user_role === 'owner_technical' || data.user_role === 'ops' || data.user_role === 'global_admin'
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">{data.org.name}</h1>
@@ -88,18 +88,19 @@ export function OwnerDashboard() {
         </div>
         <div className="flex items-center gap-3">
           {data.org.ownership_verified ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+            <span className="badge badge-pass">
               <CheckCircle2 size={14} /> Verified
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+            <span className="badge badge-warn">
               <AlertTriangle size={14} /> Unverified
             </span>
           )}
           <button
             onClick={handleRescan}
             disabled={rescanning}
-            className="flex items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--accent)]/90 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{ background: 'var(--gradient-accent)' }}
           >
             {rescanning ? (
               <Loader2 className="animate-spin" size={16} />
@@ -144,11 +145,9 @@ export function OwnerDashboard() {
         <div>
           <div className="mb-4 flex items-center gap-3">
             <div className="section-title">Entity Intelligence</div>
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-              Not Scored
-            </span>
+            <span className="badge badge-neutral">Not Scored</span>
           </div>
-          <div className="card grid gap-4 p-5 sm:grid-cols-2">
+          <div className="glass-card grid gap-4 p-5 sm:grid-cols-2">
             <div>
               <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
                 Related Domains

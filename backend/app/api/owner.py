@@ -118,7 +118,7 @@ async def dashboard(user: User = Depends(require_owner), db: Session = Depends(g
                 "category_id": str(cs.category.id),
                 "category_key": cs.category.key,
                 "category_name": cs.category.name,
-                "points_total": cs.points_total,
+                "points_total": cs.category.points_total,
                 "points_lost": cs.points_lost,
                 "points_remaining": cs.points_remaining,
                 "parent_group": cs.category.parent_group,

@@ -48,18 +48,18 @@ export function VerifyPage() {
       <h1 className="text-2xl font-bold">Verify Domain Ownership</h1>
 
       {status?.ownership_verified && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-900/20 dark:text-emerald-400">
+        <div className="rounded-lg border border-[var(--success)]/30 bg-[var(--success)]/10 p-4 text-[var(--success)]">
           Ownership verified. {status.just_verified && 'Just verified now.'}
         </div>
       )}
 
-      <div className="card p-5">
+      <div className="glass-card p-5">
         <div className="mb-4">
           <label className="mb-2 block text-sm font-medium">Verification Method</label>
           <select
             value={method}
             onChange={(e) => setMethod(e.target.value as 'dns_txt' | 'email')}
-            className="w-full rounded-lg border border-[var(--border-color)] bg-[var(--bg-elevated)] px-3 py-2 text-[var(--text-primary)]"
+            className="glass-input w-full px-3 py-2"
           >
             <option value="dns_txt">DNS TXT Record</option>
             <option value="email">Email to admin@ / security@</option>
@@ -69,14 +69,15 @@ export function VerifyPage() {
           <button
             onClick={start}
             disabled={loading}
-            className="flex-1 rounded-lg bg-[var(--accent)] px-4 py-2 font-semibold text-white hover:bg-[var(--accent)]/90 disabled:opacity-50"
+            className="flex-1 rounded-lg px-4 py-2 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{ background: 'var(--gradient-accent)' }}
           >
             {loading ? <Loader2 className="mx-auto animate-spin" size={18} /> : 'Start Verification'}
           </button>
           <button
             onClick={check}
             disabled={checking}
-            className="rounded-lg border border-[var(--border-color)] px-4 py-2 font-medium hover:bg-[var(--bg-secondary)] disabled:opacity-50"
+            className="rounded-lg border border-[var(--glass-border)] px-4 py-2 font-medium transition-colors hover:bg-[var(--glass-bg)] disabled:opacity-50"
           >
             {checking ? <Loader2 className="animate-spin" size={18} /> : 'Check Status'}
           </button>
@@ -84,7 +85,7 @@ export function VerifyPage() {
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300">
+        <div className="rounded-lg border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-4 text-sm text-[var(--danger)]">
           {error}
         </div>
       )}

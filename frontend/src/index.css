@@ -16,6 +16,21 @@
     --danger: #9f4a4a;
     --warning: #c67a2e;
     --success: #1d5c3f;
+
+    /* Glassmorphism tokens — light */
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --glass-bg-strong: rgba(255, 255, 255, 0.78);
+    --glass-border: rgba(255, 255, 255, 0.55);
+    --glass-border-subtle: rgba(15, 23, 42, 0.08);
+    --glass-blur: 20px;
+    --glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.06), 0 2px 8px rgba(15, 23, 42, 0.04);
+    --glass-shadow-hover: 0 12px 40px rgba(15, 23, 42, 0.1), 0 4px 12px rgba(15, 23, 42, 0.06);
+    --gradient-accent: linear-gradient(135deg, #0f4c81 0%, #1a6ca8 50%, #2a8dd6 100%);
+    --gradient-accent-soft: linear-gradient(135deg, rgba(15, 76, 129, 0.08) 0%, rgba(42, 141, 214, 0.04) 100%);
+    --bg-mesh:
+      radial-gradient(ellipse 80% 60% at 20% 0%, rgba(15, 76, 129, 0.06), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 10%, rgba(42, 141, 214, 0.05), transparent 55%),
+      #f8fafc;
   }
 
   .dark {
@@ -31,20 +46,156 @@
     --danger: #ef4444;
     --warning: #f59e0b;
     --success: #22c55e;
+
+    /* Glassmorphism tokens — dark */
+    --glass-bg: rgba(17, 24, 39, 0.55);
+    --glass-bg-strong: rgba(30, 41, 59, 0.72);
+    --glass-border: rgba(148, 163, 184, 0.14);
+    --glass-border-subtle: rgba(148, 163, 184, 0.08);
+    --glass-blur: 20px;
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+    --glass-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.25);
+    --gradient-accent: linear-gradient(135deg, #60a5fa 0%, #818cf8 50%, #a78bfa 100%);
+    --gradient-accent-soft: linear-gradient(135deg, rgba(96, 165, 250, 0.12) 0%, rgba(167, 139, 250, 0.06) 100%);
+    --bg-mesh:
+      radial-gradient(ellipse 80% 60% at 20% 0%, rgba(96, 165, 250, 0.08), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 10%, rgba(167, 139, 250, 0.06), transparent 55%),
+      #0b1120;
   }
 
   body {
-    @apply bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased;
+    @apply text-[var(--text-primary)] antialiased;
     font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg-mesh);
+    background-attachment: fixed;
+    min-height: 100vh;
   }
 }
 
 @layer components {
+  /* Glass card — the primary surface for all content blocks */
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem;
+    box-shadow: var(--glass-shadow);
+    transition: box-shadow 0.3s ease, transform 0.2s ease, border-color 0.3s ease;
+  }
+
+  .glass-card-hover:hover {
+    box-shadow: var(--glass-shadow-hover);
+    border-color: var(--accent);
+  }
+
+  /* Stronger glass for elevated panels (tables, forms over gradient) */
+  .glass-card-strong {
+    background: var(--glass-bg-strong);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem;
+    box-shadow: var(--glass-shadow);
+  }
+
+  /* Glass input — form fields */
+  .glass-input {
+    background: var(--glass-bg-strong);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    border-radius: 0.75rem;
+    color: var(--text-primary);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .glass-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .glass-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.12);
+  }
+
+  .dark .glass-input:focus {
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.18);
+  }
+
+  /* Gradient text for headings and accents */
+  .gradient-text {
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  /* Gradient surface for hero areas */
+  .gradient-surface {
+    background: var(--gradient-accent-soft);
+  }
+
+  /* Backward-compat: .card now uses glass tokens */
   .card {
-    @apply rounded-xl border border-[var(--border-color)] bg-[var(--bg-elevated)] shadow-sm;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem;
+    box-shadow: var(--glass-shadow);
   }
 
   .section-title {
     @apply text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] font-mono;
+  }
+
+  /* Badge helpers (kept as classes for state pills) */
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+  .badge-pass {
+    @apply bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400;
+  }
+  .badge-warn {
+    @apply bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400;
+  }
+  .badge-fail {
+    @apply bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400;
+  }
+  .badge-neutral {
+    @apply bg-slate-100 text-slate-600 dark:bg-slate-600/20 dark:text-slate-400;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  .animate-pulse-soft {
+    animation: pulseSoft 2.5s ease-in-out infinite;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulseSoft {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
   }
 }

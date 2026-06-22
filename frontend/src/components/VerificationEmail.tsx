@@ -8,7 +8,7 @@ interface VerificationEmailProps {
 
 export function VerificationEmail({ email, sent, verified }: VerificationEmailProps) {
   return (
-    <div className="card p-5">
+    <div className="glass-card p-5">
       <h3 className="mb-2 text-base font-semibold">Email Verification</h3>
       <p className="mb-4 text-sm text-[var(--text-secondary)]">
         A verification link has been sent to{' '}
@@ -22,7 +22,7 @@ export function VerificationEmail({ email, sent, verified }: VerificationEmailPr
       )}
 
       {verified && (
-        <div className="flex items-center gap-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+        <div className="flex items-center gap-2 text-sm font-semibold text-[var(--success)]">
           <Check size={16} /> Verified
         </div>
       )}

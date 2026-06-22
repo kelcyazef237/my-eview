@@ -30,7 +30,7 @@ export function ReportPage() {
 
   if (error || !data) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-800 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300">
+      <div className="rounded-lg border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-6 text-[var(--danger)]">
         {error || 'No report data available'}
       </div>
     )
@@ -39,10 +39,12 @@ export function ReportPage() {
   const scanRunId = data.score.scan_run_id
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Report Center</h1>
+          <h1 className="text-2xl font-bold">
+            <span className="gradient-text">Report Center</span>
+          </h1>
           <p className="text-[var(--text-secondary)]">{data.org.name} · {data.org.domain}</p>
         </div>
         <div className="flex gap-2">
@@ -50,13 +52,14 @@ export function ReportPage() {
             href={api.reportHtml(scanRunId)}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-2 rounded-lg border border-[var(--border-color)] px-4 py-2 text-sm font-medium hover:bg-[var(--bg-secondary)]"
+            className="flex items-center gap-2 rounded-lg border border-[var(--glass-border)] px-4 py-2 text-sm font-medium transition-colors hover:bg-[var(--glass-bg)]"
           >
             <ExternalLink size={16} /> Web View
           </a>
           <a
             href={api.reportPdf(scanRunId)}
-            className="flex items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--accent)]/90"
+            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            style={{ background: 'var(--gradient-accent)' }}
           >
             <Download size={16} /> PDF
           </a>
@@ -65,18 +68,18 @@ export function ReportPage() {
 
       <ScoreHistoryChart data={history} />
 
-      <div className="card p-5">
+      <div className="glass-card p-5">
         <div className="section-title mb-3">Latest Snapshot</div>
         <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-lg bg-[var(--bg-secondary)] p-4">
+          <div className="rounded-lg bg-[var(--glass-bg)] p-4">
             <div className="text-sm text-[var(--text-muted)]">Score</div>
             <div className="text-2xl font-bold">{data.score.overall}</div>
           </div>
-          <div className="rounded-lg bg-[var(--bg-secondary)] p-4">
+          <div className="rounded-lg bg-[var(--glass-bg)] p-4">
             <div className="text-sm text-[var(--text-muted)]">Shield Tier</div>
             <div className="text-2xl font-bold">{data.score.shield_tier}</div>
           </div>
-          <div className="rounded-lg bg-[var(--bg-secondary)] p-4">
+          <div className="rounded-lg bg-[var(--glass-bg)] p-4">
             <div className="text-sm text-[var(--text-muted)]">Outlook</div>
             <div className="text-lg font-semibold">{data.score.outlook}</div>
           </div>

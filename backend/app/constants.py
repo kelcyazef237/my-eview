@@ -28,6 +28,7 @@ class UserRole(str, Enum):
     OWNER = "owner"
     OWNER_TECHNICAL = "owner_technical"
     OPS = "ops"
+    GLOBAL_ADMIN = "global_admin"
 
 
 class VerificationMethod(str, Enum):

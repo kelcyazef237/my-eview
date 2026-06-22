@@ -99,7 +99,76 @@ export interface VerificationStatus {
 
 export interface User {
   id: string
-  email: string
+  email: string | null
+  username: string | null
+  full_name: string | null
   role: string
+  registration_status: string
   org_id: string | null
+}
+
+export interface RegistrationRequest {
+  full_name: string
+  organization_domain: string
+  password: string
+  password_repeat: string
+}
+
+export interface RegistrationResponse {
+  status: string
+  username: string
+  message: string
+}
+
+export interface AdminMetrics {
+  total_orgs: number
+  total_users: number
+  total_scans: number
+  pending_registrations: number
+}
+
+export interface PendingRegistration {
+  id: string
+  full_name: string | null
+  username: string | null
+  email: string | null
+  organization_domain: string | null
+  organization_name: string | null
+  created_at: string
+}
+
+export interface AdminUser {
+  id: string
+  username: string | null
+  email: string | null
+  full_name: string | null
+  role: string
+  registration_status: string
+  is_active: boolean
+  organization_domain: string | null
+  last_login_at: string | null
+  created_at: string
+}
+
+export interface AdminOrg {
+  id: string
+  name: string
+  domain: string
+  ownership_verified: boolean
+  latest_score: number | null
+  latest_shield_tier: number | null
+  latest_computed_at: string | null
+  created_at: string
+}
+
+export interface AdminScanRun {
+  id: string
+  org_id: string
+  domain: string
+  status: string
+  is_full_report: boolean
+  overall_score: number | null
+  shield_tier: number | null
+  started_at: string
+  finished_at: string | null
 }

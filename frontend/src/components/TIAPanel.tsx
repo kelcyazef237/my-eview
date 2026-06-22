@@ -22,7 +22,7 @@ const slotLabels: Record<string, string> = {
 
 export function TIAPanel({ tia }: TIAPanelProps) {
   return (
-    <div className="card p-5">
+    <div className="glass-card p-5">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-base font-semibold">{tia.category_key}</h3>
         <span className="font-mono text-xs text-[var(--text-muted)]">

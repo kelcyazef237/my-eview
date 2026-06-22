@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { LogIn, Loader2 } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { LogIn, Loader2, UserCircle } from 'lucide-react'
 import { api } from '@/api/client'
 
 export function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -15,10 +15,12 @@ export function LoginPage() {
     setLoading(true)
     setError('')
     try {
-      const data = await api.login(email, password)
+      const data = await api.login(identifier, password)
       localStorage.setItem('myeview_token', data.access_token)
       // Redirect based on role
-      if (data.role === 'owner_technical') {
+      if (data.role === 'global_admin') {
+        navigate('/admin')
+      } else if (data.role === 'owner_technical') {
         navigate('/technical')
       } else {
         navigate('/dashboard')
@@ -32,31 +34,34 @@ export function LoginPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-md animate-fade-in">
       <div className="mb-8 text-center">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl gradient-surface">
+          <UserCircle className="h-7 w-7 text-[var(--accent)]" />
+        </div>
         <h1 className="mb-2 text-3xl font-bold">MYEVIEW Login</h1>
         <p className="text-[var(--text-secondary)]">
           Sign in to access your dashboard, reports, and settings.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="glass-card space-y-4 p-6">
         <div>
-          <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
-            Email
+          <label className="mb-1.5 block text-sm font-medium text-[var(--text-secondary)]">
+            Username or Email
           </label>
           <input
             type="text"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            placeholder="Kelcy or you@example.com"
             autoFocus
-            className="w-full rounded-lg border border-[var(--border-color)] bg-[var(--bg-elevated)] px-4 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none"
+            className="glass-input w-full px-4 py-3"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
+          <label className="mb-1.5 block text-sm font-medium text-[var(--text-secondary)]">
             Password
           </label>
           <input
@@ -64,20 +69,21 @@ export function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
-            className="w-full rounded-lg border border-[var(--border-color)] bg-[var(--bg-elevated)] px-4 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none"
+            className="glass-input w-full px-4 py-3"
           />
         </div>
 
         {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300">
+          <div className="rounded-lg border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-3 text-sm text-[var(--danger)]">
             {error}
           </div>
         )}
 
         <button
           type="submit"
-          disabled={loading || !email || !password}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-white hover:bg-[var(--accent)]/90 disabled:opacity-50"
+          disabled={loading || !identifier || !password}
+          className="flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          style={{ background: 'var(--gradient-accent)' }}
         >
           {loading ? <Loader2 className="animate-spin" size={18} /> : <LogIn size={18} />}
           Sign In
@@ -85,7 +91,10 @@ export function LoginPage() {
       </form>
 
       <div className="mt-6 text-center text-sm text-[var(--text-muted)]">
-        Don't have an account? Contact your administrator.
+        Want to access your organization's details?{' '}
+        <Link to="/register" className="text-[var(--accent)] hover:underline">
+          Register here
+        </Link>
       </div>
     </div>
   )

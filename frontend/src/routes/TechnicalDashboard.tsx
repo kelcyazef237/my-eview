@@ -28,16 +28,18 @@ export function TechnicalDashboard() {
 
   if (error || !data) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-800 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300">
+      <div className="rounded-lg border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-6 text-[var(--danger)]">
         {error || 'No technical data available'}
       </div>
     )
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Technical Vector Drill-Down</h1>
+        <h1 className="text-2xl font-bold">
+          <span className="gradient-text">Technical Vector Drill-Down</span>
+        </h1>
         <span className="font-mono text-xs text-[var(--text-muted)]">Run {data.scan_run_id}</span>
       </div>
 
