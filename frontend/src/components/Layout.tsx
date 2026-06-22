@@ -38,7 +38,6 @@ export function Layout({ children }: LayoutProps) {
     : [
         ...(isAdmin ? [{ label: 'Admin', path: '/admin' }] : []),
         { label: 'Dashboard', path: '/dashboard' },
-        { label: 'Verify', path: '/verify' },
         { label: 'Report', path: '/report' },
         { label: 'Settings', path: '/settings' },
       ]

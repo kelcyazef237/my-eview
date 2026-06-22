@@ -8,7 +8,6 @@ import { WaitingPage } from '@/routes/WaitingPage'
 import { AdminDashboard } from '@/routes/AdminDashboard'
 import { OwnerDashboard } from '@/routes/OwnerDashboard'
 import { TechnicalDashboard } from '@/routes/TechnicalDashboard'
-import { VerifyPage } from '@/routes/VerifyPage'
 import { ReportPage } from '@/routes/ReportPage'
 import { SettingsPage } from '@/routes/SettingsPage'
 import { api } from '@/api/client'
@@ -81,14 +80,6 @@ export default function App() {
           element={
             <PrivateRoute>
               <TechnicalDashboard />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/verify"
-          element={
-            <PrivateRoute>
-              <VerifyPage />
             </PrivateRoute>
           }
         />

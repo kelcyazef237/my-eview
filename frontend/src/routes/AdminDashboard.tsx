@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Building2,
   Users,
@@ -12,6 +13,9 @@ import {
   ShieldAlert,
   Ban,
   Power,
+  Trash2,
+  Pencil,
+  Radar,
 } from 'lucide-react'
 import { api } from '@/api/client'
 import type {
@@ -52,6 +56,7 @@ function MetricTile({ icon: Icon, label, value, accent }: { icon: React.ElementT
 }
 
 export function AdminDashboard() {
+  const navigate = useNavigate()
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null)
   const [pending, setPending] = useState<PendingRegistration[]>([])
   const [users, setUsers] = useState<AdminUser[]>([])
@@ -62,6 +67,8 @@ export function AdminDashboard() {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({})
   const [rescanning, setRescanning] = useState<string | null>(null)
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
+  const [editForm, setEditForm] = useState({ full_name: '', username: '', email: '' })
 
   const refreshAll = useCallback(async () => {
     try {
@@ -77,7 +84,6 @@ export function AdminDashboard() {
       setUsers(u)
       setOrgs(o)
       setScanRuns(s)
-      // Default role selections for pending registrations
       const defaults: Record<string, string> = {}
       for (const reg of p) defaults[reg.id] = 'owner'
       setSelectedRoles(defaults)
@@ -145,6 +151,44 @@ export function AdminDashboard() {
     }
   }
 
+  const handleDeleteUser = async (userId: string, name: string) => {
+    if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return
+    setBusyId(userId)
+    setActionError('')
+    try {
+      await api.admin.deleteUser(userId)
+      await refreshAll()
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Delete failed')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  const startEdit = (u: AdminUser) => {
+    setEditingUser(u)
+    setEditForm({
+      full_name: u.full_name || '',
+      username: u.username || '',
+      email: u.email || '',
+    })
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editingUser) return
+    setBusyId(editingUser.id)
+    setActionError('')
+    try {
+      await api.admin.updateUser(editingUser.id, editForm)
+      setEditingUser(null)
+      await refreshAll()
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Edit failed')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   const handleRescan = async (orgId: string) => {
     setRescanning(orgId)
     setActionError('')
@@ -156,6 +200,23 @@ export function AdminDashboard() {
     } finally {
       setRescanning(null)
     }
+  }
+
+  const handleTogglePortscan = async (orgId: string, current: boolean) => {
+    setBusyId(orgId)
+    setActionError('')
+    try {
+      await api.admin.authorizePortscan(orgId, !current)
+      await refreshAll()
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Port scan auth failed')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  const goToOrgDashboard = (orgId: string) => {
+    navigate(`/dashboard?org_id=${orgId}`)
   }
 
   if (loading) {
@@ -286,10 +347,35 @@ export function AdminDashboard() {
               {users.map((u) => (
                 <tr key={u.id} className="border-b border-[var(--glass-border-subtle)] last:border-0">
                   <td className="px-5 py-3">
-                    <div className="font-medium">{u.full_name || u.username || u.email || 'Unnamed'}</div>
-                    <div className="text-xs text-[var(--text-muted)]">
-                      {u.email ? `📧 ${u.email}` : u.username ? `@${u.username}` : ''}
-                    </div>
+                    {editingUser?.id === u.id ? (
+                      <div className="flex flex-col gap-1">
+                        <input
+                          className="glass-input rounded px-2 py-1 text-xs"
+                          placeholder="Full name"
+                          value={editForm.full_name}
+                          onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
+                        />
+                        <input
+                          className="glass-input rounded px-2 py-1 text-xs"
+                          placeholder="Username"
+                          value={editForm.username}
+                          onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                        />
+                        <input
+                          className="glass-input rounded px-2 py-1 text-xs"
+                          placeholder="Email"
+                          value={editForm.email}
+                          onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        <div className="font-medium">{u.full_name || u.username || u.email || 'Unnamed'}</div>
+                        <div className="text-xs text-[var(--text-muted)]">
+                          {u.email ? `\u{1F4E7} ${u.email}` : u.username ? `@${u.username}` : ''}
+                        </div>
+                      </>
+                    )}
                   </td>
                   <td className="px-5 py-3">
                     {u.role === 'global_admin' ? (
@@ -298,7 +384,7 @@ export function AdminDashboard() {
                       <select
                         value={u.role}
                         onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                        disabled={busyId === u.id || u.role === 'global_admin'}
+                        disabled={busyId === u.id || u.role === 'global_admin' || editingUser?.id === u.id}
                         className="glass-input rounded-lg px-2 py-1 text-xs"
                       >
                         {ROLE_OPTIONS.map((r) => (
@@ -316,25 +402,63 @@ export function AdminDashboard() {
                       <span className="ml-1 badge badge-neutral">disabled</span>
                     )}
                   </td>
-                  <td className="px-5 py-3 text-[var(--text-secondary)]">{u.organization_domain || '—'}</td>
+                  <td className="px-5 py-3 text-[var(--text-secondary)]">{u.organization_domain || '\u2014'}</td>
                   <td className="px-5 py-3 text-[var(--text-muted)]">
                     {u.last_login_at ? new Date(u.last_login_at).toLocaleString() : 'never'}
                   </td>
                   <td className="px-5 py-3">
                     {u.role !== 'global_admin' && (
-                      <button
-                        onClick={() => handleToggleActive(u.id, u.is_active)}
-                        disabled={busyId === u.id}
-                        title={u.is_active ? 'Disable user' : 'Enable user'}
-                        className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-opacity hover:opacity-90 disabled:opacity-50 ${
-                          u.is_active
-                            ? 'border border-[var(--danger)]/40 text-[var(--danger)]'
-                            : 'bg-emerald-600 text-white'
-                        }`}
-                      >
-                        {busyId === u.id ? <Loader2 className="animate-spin" size={13} /> : u.is_active ? <Ban size={13} /> : <Power size={13} />}
-                        {u.is_active ? 'Disable' : 'Enable'}
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        {editingUser?.id === u.id ? (
+                          <>
+                            <button
+                              onClick={handleSaveEdit}
+                              disabled={busyId === u.id}
+                              className="flex items-center gap-1 rounded-lg bg-emerald-600 px-2 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                            >
+                              {busyId === u.id ? <Loader2 className="animate-spin" size={13} /> : <Check size={13} />}
+                              Save
+                            </button>
+                            <button
+                              onClick={() => setEditingUser(null)}
+                              className="rounded-lg border border-[var(--glass-border)] px-2 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--glass-bg)]"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => startEdit(u)}
+                              disabled={busyId === u.id}
+                              title="Edit user"
+                              className="flex items-center gap-1 rounded-lg border border-[var(--glass-border)] px-2 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--glass-bg)] disabled:opacity-50"
+                            >
+                              <Pencil size={13} />
+                            </button>
+                            <button
+                              onClick={() => handleToggleActive(u.id, u.is_active)}
+                              disabled={busyId === u.id}
+                              title={u.is_active ? 'Disable user' : 'Enable user'}
+                              className={`flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium transition-opacity hover:opacity-90 disabled:opacity-50 ${
+                                u.is_active
+                                  ? 'border border-[var(--danger)]/40 text-[var(--danger)]'
+                                  : 'bg-emerald-600 text-white'
+                              }`}
+                            >
+                              {busyId === u.id ? <Loader2 className="animate-spin" size={13} /> : u.is_active ? <Ban size={13} /> : <Power size={13} />}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(u.id, u.full_name || u.username || u.email || 'Unnamed')}
+                              disabled={busyId === u.id}
+                              title="Delete user"
+                              className="flex items-center gap-1 rounded-lg bg-red-600 px-2 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -350,7 +474,7 @@ export function AdminDashboard() {
         <div className="glass-card overflow-hidden">
           <div className="flex items-center justify-between border-b border-[var(--glass-border)] px-5 py-3">
             <h2 className="font-semibold">Organizations</h2>
-            <span className="text-xs text-[var(--text-muted)]">{orgs.length} total</span>
+            <span className="text-xs text-[var(--text-muted)]">{orgs.length} total · click row to view dashboard</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -359,17 +483,21 @@ export function AdminDashboard() {
                   <th className="px-5 py-2 font-medium">Domain</th>
                   <th className="px-5 py-2 font-medium">Verified</th>
                   <th className="px-5 py-2 font-medium">Score</th>
-                  <th className="px-5 py-2 font-medium"></th>
+                  <th className="px-5 py-2 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {orgs.map((o) => (
-                  <tr key={o.id} className="border-b border-[var(--glass-border-subtle)] last:border-0">
+                  <tr
+                    key={o.id}
+                    className="cursor-pointer border-b border-[var(--glass-border-subtle)] last:border-0 transition-colors hover:bg-[var(--glass-bg)]"
+                    onClick={() => goToOrgDashboard(o.id)}
+                  >
                     <td className="px-5 py-3">
                       <div className="font-medium">{o.domain}</div>
                       <div className="text-xs text-[var(--text-muted)]">{o.name}</div>
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
                       {o.ownership_verified ? (
                         <span className="badge badge-pass"><ShieldCheck size={12} /> Yes</span>
                       ) : (
@@ -380,18 +508,31 @@ export function AdminDashboard() {
                       {o.latest_score !== null ? (
                         <span className="font-mono font-semibold">{o.latest_score}</span>
                       ) : (
-                        <span className="text-[var(--text-muted)]">—</span>
+                        <span className="text-[var(--text-muted)]">{'\u2014'}</span>
                       )}
                     </td>
-                    <td className="px-5 py-3">
-                      <button
-                        onClick={() => handleRescan(o.id)}
-                        disabled={rescanning === o.id}
-                        className="flex items-center gap-1 rounded-lg border border-[var(--glass-border)] px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--glass-bg)] disabled:opacity-50"
-                      >
-                        {rescanning === o.id ? <Loader2 className="animate-spin" size={13} /> : <RefreshCw size={13} />}
-                        Rescan
-                      </button>
+                    <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleTogglePortscan(o.id, o.verified_portscan_authorized)}
+                          disabled={busyId === o.id}
+                          title={o.verified_portscan_authorized ? 'Revoke port scan' : 'Authorize port scan'}
+                          className={`flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium transition-opacity hover:opacity-90 disabled:opacity-50 ${
+                            o.verified_portscan_authorized
+                              ? 'bg-cyan-600 text-white'
+                              : 'border border-[var(--glass-border)] text-[var(--text-secondary)]'
+                          }`}
+                        >
+                          {busyId === o.id ? <Loader2 className="animate-spin" size={13} /> : <Radar size={13} />}
+                        </button>
+                        <button
+                          onClick={() => handleRescan(o.id)}
+                          disabled={rescanning === o.id}
+                          className="flex items-center gap-1 rounded-lg border border-[var(--glass-border)] px-2 py-1.5 text-xs font-medium transition-colors hover:bg-[var(--glass-bg)] disabled:opacity-50"
+                        >
+                          {rescanning === o.id ? <Loader2 className="animate-spin" size={13} /> : <RefreshCw size={13} />}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -404,7 +545,7 @@ export function AdminDashboard() {
         <div className="glass-card overflow-hidden">
           <div className="flex items-center justify-between border-b border-[var(--glass-border)] px-5 py-3">
             <h2 className="font-semibold">Recent Scan Runs</h2>
-            <span className="text-xs text-[var(--text-muted)]">last 50</span>
+            <span className="text-xs text-[var(--text-muted)]">last 50 · click to view dashboard</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -421,7 +562,11 @@ export function AdminDashboard() {
                   <tr><td colSpan={4} className="px-5 py-8 text-center text-[var(--text-muted)]">No scans yet.</td></tr>
                 ) : (
                   scanRuns.map((r) => (
-                    <tr key={r.id} className="border-b border-[var(--glass-border-subtle)] last:border-0">
+                    <tr
+                      key={r.id}
+                      className="cursor-pointer border-b border-[var(--glass-border-subtle)] last:border-0 transition-colors hover:bg-[var(--glass-bg)]"
+                      onClick={() => goToOrgDashboard(r.org_id)}
+                    >
                       <td className="px-5 py-3 font-medium">{r.domain}</td>
                       <td className="px-5 py-3">
                         <span className={
@@ -433,7 +578,7 @@ export function AdminDashboard() {
                         </span>
                       </td>
                       <td className="px-5 py-3 font-mono">
-                        {r.overall_score !== null ? r.overall_score : '—'}
+                        {r.overall_score !== null ? r.overall_score : '\u2014'}
                       </td>
                       <td className="px-5 py-3 text-[var(--text-muted)]">
                         {new Date(r.started_at).toLocaleString()}

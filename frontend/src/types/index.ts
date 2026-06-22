@@ -155,6 +155,7 @@ export interface AdminOrg {
   name: string
   domain: string
   ownership_verified: boolean
+  verified_portscan_authorized: boolean
   latest_score: number | null
   latest_shield_tier: number | null
   latest_computed_at: string | null

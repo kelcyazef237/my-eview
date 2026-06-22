@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import require_owner_technical, resolve_org_id
+from app.api.dependencies import require_owner, resolve_org_id
 from app.database import get_db
 from app.models.organization import Organization
 from app.models.scan_run import ScanRun
@@ -21,28 +21,23 @@ class PortscanResponse(BaseModel):
 
 @router.post("/portscan", response_model=PortscanResponse)
 async def trigger_verified_portscan(
-    user: User = Depends(require_owner_technical),
+    org_id: str | None = Query(None),
+    user: User = Depends(require_owner),
     db: Session = Depends(get_db),
 ):
-    """Trigger the gated verified-tier port-scan for the current organization.
+    """Trigger the verified-tier port-scan for the current (or specified) organization.
 
-    The organization must have ``verified_portscan_authorized`` set to ``True``.
+    Accessible to owner, owner_technical, ops, and global_admin.
     The task runs on the dedicated ``verified`` Celery queue and re-scores the
     most recent scan run once the port-scan evidence is collected.
     """
-    user_org_id = resolve_org_id(user, db)
+    user_org_id = resolve_org_id(user, db, org_id=org_id)
 
     org = db.query(Organization).filter(Organization.id == user_org_id).first()
     if not org:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Organization not found",
-        )
-
-    if not org.verified_portscan_authorized:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Verified port-scan not authorized for this organization",
         )
 
     scan_run = (

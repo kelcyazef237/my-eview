@@ -71,14 +71,16 @@ export const api = {
   },
 
   // Owner
-  dashboard: () => fetchJson<OwnerDashboardData>('/owner/dashboard'),
-  rescan: () =>
-    fetchJson<{ scan_run_id: string; status: string }>('/owner/rescan', {
+  dashboard: (orgId?: string) =>
+    fetchJson<OwnerDashboardData>(`/owner/dashboard${orgId ? `?org_id=${orgId}` : ''}`),
+  rescan: (orgId?: string) =>
+    fetchJson<{ scan_run_id: string; status: string }>(`/owner/rescan${orgId ? `?org_id=${orgId}` : ''}`, {
       method: 'POST',
     }),
 
   // Technical
-  technical: () => fetchJson<TechnicalDashboardData>('/owner/technical'),
+  technical: (orgId?: string) =>
+    fetchJson<TechnicalDashboardData>(`/owner/technical${orgId ? `?org_id=${orgId}` : ''}`),
 
   // Verification
   startVerification: (method: 'dns_txt' | 'email') =>
@@ -88,19 +90,26 @@ export const api = {
     }),
   verificationStatus: () => fetchJson<VerificationStatus>('/owner/verify/status'),
 
-  // Verified portscan (owner/technical)
-  triggerPortscan: () =>
+  // Verified portscan (owner/owner_technical/ops/global_admin)
+  triggerPortscan: (orgId?: string) =>
     fetchJson<{ status: string; scan_run_id: string; task_id: string | null }>(
-      '/verified/portscan',
+      `/verified/portscan${orgId ? `?org_id=${orgId}` : ''}`,
       { method: 'POST' },
     ),
 
   // History
-  history: () => fetchJson<ScoreHistoryPoint[]>('/owner/history'),
+  history: (orgId?: string) =>
+    fetchJson<ScoreHistoryPoint[]>(`/owner/history${orgId ? `?org_id=${orgId}` : ''}`),
 
-  // Reports
-  reportHtml: (scanRunId: string) => `${API_BASE}/reports/${scanRunId}`,
-  reportPdf: (scanRunId: string) => `${API_BASE}/reports/${scanRunId}/pdf`,
+  // Reports — token appended as query param so browser <a>/iframe links work
+  reportHtml: (scanRunId: string) => {
+    const token = localStorage.getItem('myeview_token')
+    return `${API_BASE}/reports/${scanRunId}${token ? `?token=${encodeURIComponent(token)}` : ''}`
+  },
+  reportPdf: (scanRunId: string) => {
+    const token = localStorage.getItem('myeview_token')
+    return `${API_BASE}/reports/${scanRunId}/pdf${token ? `?token=${encodeURIComponent(token)}` : ''}`
+  },
 
   // Admin (global_admin only)
   admin: {
@@ -122,10 +131,14 @@ export const api = {
       const q = qs.toString()
       return fetchJson<AdminUser[]>(`/admin/users${q ? `?${q}` : ''}`)
     },
-    updateUser: (userId: string, patch: { is_active?: boolean; role?: string }) =>
+    updateUser: (userId: string, patch: { is_active?: boolean; role?: string; full_name?: string; username?: string; email?: string }) =>
       fetchJson<{ id: string; role: string; is_active: boolean }>(`/admin/users/${userId}`, {
         method: 'PATCH',
         body: JSON.stringify(patch),
+      }),
+    deleteUser: (userId: string) =>
+      fetchJson<{ id: string; deleted: boolean }>(`/admin/users/${userId}`, {
+        method: 'DELETE',
       }),
     orgs: () => fetchJson<AdminOrg[]>('/admin/orgs'),
     scanRuns: () => fetchJson<AdminScanRun[]>('/admin/scan-runs'),
@@ -133,5 +146,10 @@ export const api = {
       fetchJson<{ scan_run_id: string; status: string; domain: string }>(`/admin/rescan/${orgId}`, {
         method: 'POST',
       }),
+    authorizePortscan: (orgId: string, authorized: boolean) =>
+      fetchJson<{ id: string; domain: string; verified_portscan_authorized: boolean }>(
+        `/admin/orgs/${orgId}/portscan-auth`,
+        { method: 'PATCH', body: JSON.stringify({ authorized }) },
+      ),
   },
 }

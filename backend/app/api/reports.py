@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import require_owner, resolve_org_id
+from app.api.dependencies import get_current_user, resolve_org_id
 from app.database import get_db
 from app.models.category_score import CategoryScore
 from app.models.organization import Organization
@@ -11,8 +11,30 @@ from app.models.tia_entry import TiaEntry
 from app.models.user import User
 from app.models.vector_finding import VectorFinding
 from app.reports.render import build_report_context, render_html, render_pdf
+from app.services.jwt import decode_access_token
 
 router = APIRouter()
+
+
+def _resolve_user_for_report(
+    token: str | None,
+    user: User | None,
+    db: Session,
+) -> User:
+    """Resolve the user for a report request.
+
+    Browser links (<a href>, iframes) don't send the Authorization header, so
+    we also accept a ``token`` query parameter as a fallback.
+    """
+    if user:
+        return user
+    if token:
+        payload = decode_access_token(token)
+        if payload and payload.get("sub"):
+            token_user = db.query(User).filter(User.id == payload["sub"]).first()
+            if token_user and token_user.is_active:
+                return token_user
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
 
 
 def _latest_score_for_org(db: Session, org_id: str) -> Score:
@@ -30,8 +52,8 @@ def _latest_score_for_org(db: Session, org_id: str) -> Score:
     return score
 
 
-def _score_context(db: Session, user: User, scan_run_id: str | None = None) -> dict:
-    user_org_id = resolve_org_id(user, db)
+def _score_context(db: Session, user: User, scan_run_id: str | None = None, org_id: str | None = None) -> dict:
+    user_org_id = resolve_org_id(user, db, org_id=org_id)
 
     org = db.query(Organization).filter(Organization.id == user_org_id).first()
     if not org:
@@ -96,17 +118,33 @@ def _score_context(db: Session, user: User, scan_run_id: str | None = None) -> d
 
 
 @router.get("/{scan_run_id}")
-def report_html(scan_run_id: str, user: User = Depends(require_owner), db: Session = Depends(get_db)):
-    """Render the HTML report for a specific scan run."""
-    context = _score_context(db, user, scan_run_id)
+def report_html(
+    scan_run_id: str,
+    token: str | None = Query(None),
+    user: User | None = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Render the HTML report for a specific scan run.
+
+    Accepts a ``token`` query parameter as fallback when the Authorization
+    header isn't sent (e.g. browser <a> links, iframes).
+    """
+    resolved_user = _resolve_user_for_report(token, user, db)
+    context = _score_context(db, resolved_user, scan_run_id)
     html = render_html(context)
     return Response(content=html, media_type="text/html")
 
 
 @router.get("/{scan_run_id}/pdf")
-def report_pdf(scan_run_id: str, user: User = Depends(require_owner), db: Session = Depends(get_db)):
+def report_pdf(
+    scan_run_id: str,
+    token: str | None = Query(None),
+    user: User | None = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """Render the PDF report for a specific scan run."""
-    context = _score_context(db, user, scan_run_id)
+    resolved_user = _resolve_user_for_report(token, user, db)
+    context = _score_context(db, resolved_user, scan_run_id)
     pdf_bytes = render_pdf(context)
     filename = f"myeview-report-{context['org']['domain']}-{scan_run_id}.pdf"
     return Response(

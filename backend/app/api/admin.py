@@ -32,6 +32,9 @@ class ApproveRequest(BaseModel):
 class UserPatchRequest(BaseModel):
     is_active: bool | None = None
     role: str | None = None
+    full_name: str | None = None
+    username: str | None = None
+    email: str | None = None
 
 
 @router.get("/metrics")
@@ -158,7 +161,7 @@ def update_user(
     user: User = Depends(require_global_admin),
     db: Session = Depends(get_db),
 ):
-    """Toggle is_active or change a user's role."""
+    """Toggle is_active, change role, or edit profile fields."""
     target = db.query(User).filter(User.id == user_id).first()
     if not target:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
@@ -174,15 +177,59 @@ def update_user(
         target.role = payload.role
     if payload.is_active is not None:
         target.is_active = payload.is_active
+    if payload.full_name is not None:
+        target.full_name = payload.full_name.strip() or None
+    if payload.username is not None:
+        new_username = payload.username.strip()
+        if new_username:
+            existing = db.query(User).filter(
+                User.username == new_username,
+                User.id != target.id,
+            ).first()
+            if existing:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
+            target.username = new_username
+    if payload.email is not None:
+        new_email = payload.email.strip().lower()
+        if new_email:
+            existing = db.query(User).filter(
+                User.email == new_email,
+                User.id != target.id,
+            ).first()
+            if existing:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already in use")
+            target.email = new_email
+        else:
+            target.email = None
 
     db.commit()
     return {
         "id": str(target.id),
         "username": target.username,
+        "email": target.email,
+        "full_name": target.full_name,
         "role": target.role,
         "is_active": target.is_active,
         "registration_status": target.registration_status,
     }
+
+
+@router.delete("/users/{user_id}")
+def delete_user(
+    user_id: str,
+    user: User = Depends(require_global_admin),
+    db: Session = Depends(get_db),
+):
+    """Permanently delete a user."""
+    target = db.query(User).filter(User.id == user_id).first()
+    if not target:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    if target.role == UserRole.GLOBAL_ADMIN.value:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot delete the global admin")
+
+    db.delete(target)
+    db.commit()
+    return {"id": user_id, "deleted": True}
 
 
 @router.get("/orgs")
@@ -203,6 +250,7 @@ def list_orgs(user: User = Depends(require_global_admin), db: Session = Depends(
                 "name": o.name,
                 "domain": o.primary_domain,
                 "ownership_verified": o.ownership_verified,
+                "verified_portscan_authorized": o.verified_portscan_authorized,
                 "latest_score": latest_score.overall_score if latest_score else None,
                 "latest_shield_tier": latest_score.shield_tier if latest_score else None,
                 "latest_computed_at": latest_score.computed_at.isoformat() if latest_score else None,
@@ -244,3 +292,29 @@ async def admin_rescan(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
     scan_run = await run_scan(db, org.primary_domain, is_full_report=False)
     return {"scan_run_id": str(scan_run.id), "status": scan_run.status, "domain": org.primary_domain}
+
+
+class PortscanAuthRequest(BaseModel):
+    authorized: bool
+
+
+@router.patch("/orgs/{org_id}/portscan-auth")
+def toggle_portscan_auth(
+    org_id: str,
+    payload: PortscanAuthRequest,
+    user: User = Depends(require_global_admin),
+    db: Session = Depends(get_db),
+):
+    """Authorize or revoke verified port-scan access for an organization."""
+    from datetime import datetime, timezone
+    org = db.query(Organization).filter(Organization.id == org_id).first()
+    if not org:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
+    org.verified_portscan_authorized = payload.authorized
+    org.verified_portscan_authorized_at = datetime.now(timezone.utc) if payload.authorized else None
+    db.commit()
+    return {
+        "id": str(org.id),
+        "domain": org.primary_domain,
+        "verified_portscan_authorized": org.verified_portscan_authorized,
+    }

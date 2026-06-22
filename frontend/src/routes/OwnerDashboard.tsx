@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Loader2, RefreshCw, AlertTriangle, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
+import { Loader2, RefreshCw, AlertTriangle, CheckCircle2, ChevronDown, ChevronUp, Radar } from 'lucide-react'
 import { api } from '@/api/client'
 import { CategoryCard } from '@/components/CategoryCard'
 import { ScoreGauge } from '@/components/ScoreGauge'
@@ -9,10 +10,13 @@ import { TechnicalTable } from '@/components/TechnicalTable'
 import type { OwnerDashboardData, VectorFinding } from '@/types'
 
 export function OwnerDashboard() {
+  const [searchParams] = useSearchParams()
+  const orgId = searchParams.get('org_id') || undefined
   const [data, setData] = useState<OwnerDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [rescanning, setRescanning] = useState(false)
+  const [scanning, setScanning] = useState(false)
   const [showTechnical, setShowTechnical] = useState(false)
   const [vectors, setVectors] = useState<VectorFinding[]>([])
   const [loadingVectors, setLoadingVectors] = useState(false)
@@ -20,7 +24,7 @@ export function OwnerDashboard() {
   const load = async () => {
     setLoading(true)
     try {
-      const d = await api.dashboard()
+      const d = await api.dashboard(orgId)
       setData(d)
       setError('')
     } catch (err) {
@@ -33,7 +37,7 @@ export function OwnerDashboard() {
   const handleRescan = async () => {
     setRescanning(true)
     try {
-      await api.rescan()
+      await api.rescan(orgId)
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Rescan failed')
@@ -42,11 +46,25 @@ export function OwnerDashboard() {
     }
   }
 
+  const handlePortscan = async () => {
+    setScanning(true)
+    setError('')
+    try {
+      await api.triggerPortscan(orgId)
+      setError('')
+      setTimeout(() => load(), 3000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Port scan failed to start')
+    } finally {
+      setScanning(false)
+    }
+  }
+
   const handleTechnicalToggle = async () => {
     if (!showTechnical && vectors.length === 0) {
       setLoadingVectors(true)
       try {
-        const techData = await api.technical()
+        const techData = await api.technical(orgId)
         setVectors(techData.vectors)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load technical data')
@@ -59,7 +77,7 @@ export function OwnerDashboard() {
 
   useEffect(() => {
     load()
-  }, [])
+  }, [orgId])
 
   if (loading) {
     return (
@@ -96,6 +114,19 @@ export function OwnerDashboard() {
               <AlertTriangle size={14} /> Unverified
             </span>
           )}
+          <button
+            onClick={handlePortscan}
+            disabled={scanning}
+            className="flex items-center gap-2 rounded-lg border border-[var(--glass-border)] px-4 py-2 text-sm font-medium transition-colors hover:bg-[var(--glass-bg)] disabled:opacity-50"
+            title="Run verified port scan"
+          >
+            {scanning ? (
+              <Loader2 className="animate-spin" size={16} />
+            ) : (
+              <Radar size={16} />
+            )}
+            Port Scan
+          </button>
           <button
             onClick={handleRescan}
             disabled={rescanning}

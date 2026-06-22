@@ -1,24 +1,27 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Download, Loader2, ExternalLink } from 'lucide-react'
 import { api } from '@/api/client'
 import { ScoreHistoryChart } from '@/components/ScoreHistoryChart'
 import type { OwnerDashboardData, ScoreHistoryPoint } from '@/types'
 
 export function ReportPage() {
+  const [searchParams] = useSearchParams()
+  const orgId = searchParams.get('org_id') || undefined
   const [data, setData] = useState<OwnerDashboardData | null>(null)
   const [history, setHistory] = useState<ScoreHistoryPoint[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    Promise.all([api.dashboard(), api.history()])
+    Promise.all([api.dashboard(orgId), api.history(orgId)])
       .then(([dash, hist]) => {
         setData(dash)
         setHistory(hist)
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load report'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [orgId])
 
   if (loading) {
     return (

@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -63,8 +63,12 @@ def _build_entity_intelligence(db: Session, scan_run_id: str, org_id: str) -> di
 
 
 @router.get("/dashboard")
-async def dashboard(user: User = Depends(require_owner), db: Session = Depends(get_db)):
-    user_org_id = resolve_org_id(user, db)
+async def dashboard(
+    org_id: str | None = Query(None),
+    user: User = Depends(require_owner),
+    db: Session = Depends(get_db),
+):
+    user_org_id = resolve_org_id(user, db, org_id=org_id)
 
     score = (
         db.query(Score)
@@ -149,8 +153,12 @@ async def dashboard(user: User = Depends(require_owner), db: Session = Depends(g
 
 
 @router.get("/technical")
-async def technical_view(user: User = Depends(require_owner_technical), db: Session = Depends(get_db)):
-    user_org_id = resolve_org_id(user, db)
+async def technical_view(
+    org_id: str | None = Query(None),
+    user: User = Depends(require_owner_technical),
+    db: Session = Depends(get_db),
+):
+    user_org_id = resolve_org_id(user, db, org_id=org_id)
 
     score = (
         db.query(Score)
@@ -185,8 +193,12 @@ async def technical_view(user: User = Depends(require_owner_technical), db: Sess
 
 
 @router.get("/history")
-def score_history(user: User = Depends(require_owner), db: Session = Depends(get_db)):
-    user_org_id = resolve_org_id(user, db)
+def score_history(
+    org_id: str | None = Query(None),
+    user: User = Depends(require_owner),
+    db: Session = Depends(get_db),
+):
+    user_org_id = resolve_org_id(user, db, org_id=org_id)
 
     history = (
         db.query(ScoreHistory)
@@ -237,8 +249,12 @@ def verify_email(token: str, db: Session = Depends(get_db)):
 
 
 @router.post("/rescan")
-async def rescan(user: User = Depends(require_owner), db: Session = Depends(get_db)):
-    user_org_id = resolve_org_id(user, db)
+async def rescan(
+    org_id: str | None = Query(None),
+    user: User = Depends(require_owner),
+    db: Session = Depends(get_db),
+):
+    user_org_id = resolve_org_id(user, db, org_id=org_id)
     org = db.query(Organization).filter(Organization.id == user_org_id).first()
     scan_run = await run_scan(db, org.primary_domain, is_full_report=False)
     return {"scan_run_id": str(scan_run.id), "status": scan_run.status}

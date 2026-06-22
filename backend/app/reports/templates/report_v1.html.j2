@@ -37,13 +37,22 @@
   --shield:{{ score.tier_color|default('#1A5C8A') }};
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-html{font-size:15px;}
+html{font-size:15px;scroll-behavior:smooth;}
 body{
   background:var(--bg);
   color:var(--text);
   font-family:'DM Sans',sans-serif;
   max-width:960px;
   margin:0 auto;
+  padding:0;
+}
+
+/* grain overlay */
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
+  opacity:.02;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:200px;
 }
 .section{
   padding:34px 42px;
@@ -121,13 +130,17 @@ body{
 
 /* Risk factors */
 .risk-card{border:1px solid var(--border);border-radius:6px;margin-bottom:14px;overflow:hidden;page-break-inside: avoid;}
-.risk-card-header{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--bg);}
+.risk-card-header{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;user-select:none;transition:background .15s;}
+.risk-card-header:hover{background:var(--bg2);}
 .risk-severity{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;font-weight:600;text-transform:uppercase;padding:4px 10px;border-radius:3px;flex-shrink:0;}
 .sev-high{background:rgba(155,82,0,.12);color:var(--amber);border:1px solid rgba(155,82,0,.2);}
 .sev-critical{background:rgba(184,32,10,.1);color:var(--red);border:1px solid rgba(184,32,10,.2);}
 .sev-medium{background:rgba(15,92,46,.1);color:var(--green);border:1px solid rgba(15,92,46,.15);}
 .risk-title{font-size:15px;font-weight:600;color:var(--ink);flex:1;}
-.risk-body{padding:16px 18px 20px;border-top:1px solid var(--border);}
+.risk-chevron{font-size:12px;color:var(--muted);transition:transform .25s;flex-shrink:0;}
+.risk-card.open .risk-chevron{transform:rotate(180deg);}
+.risk-body{display:none;padding:0 18px 20px;border-top:1px solid var(--border);}
+.risk-card.open .risk-body{display:block;}
 .risk-section-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin:14px 0 6px;}
 .risk-obs{font-size:13px;line-height:1.65;color:var(--text2);padding:10px 14px;background:var(--bg2);border-left:2px solid var(--border2);border-radius:0 3px 3px 0;}
 .tia-block{margin-top:4px;background:linear-gradient(135deg,#F0EDE8,#EAE6DF);border:1px solid var(--border2);border-radius:4px;padding:14px;}
@@ -187,6 +200,29 @@ body{
 @media print{
   .report-footer{position:fixed;bottom:0;left:0;right:0;}
   .section{page-break-inside:avoid;}
+  .risk-body{display:block !important;}
+  .risk-card-header{cursor:default;}
+  body::after{display:none;}
+}
+
+/* Animations */
+@keyframes revealUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.reveal{animation:revealUp .6s ease forwards;opacity:0;}
+.r1{animation-delay:.05s;}.r2{animation-delay:.15s;}.r3{animation-delay:.25s;}
+.r4{animation-delay:.35s;}.r5{animation-delay:.45s;}.r6{animation-delay:.55s;}
+
+@keyframes countUp{from{opacity:0;}to{opacity:1;}}
+.count{animation:countUp .8s .3s ease both;}
+
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.outlook-dot{animation:pulse 2s ease-in-out infinite;}
+
+/* Responsive */
+@media(max-width:700px){
+  .report-header,.section,.hero-section{padding-left:24px;padding-right:24px;}
+  .hero-top{flex-direction:column;gap:24px;}
+  .hero-right{align-items:flex-start;}
+  .benchmark-grid,.entity-grid,.hygiene-grid,.reg-grid{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -218,7 +254,7 @@ body{
 </header>
 
 <div class="hero-section">
-  <svg style="position:absolute;right:42px;top:22px;opacity:.12;pointer-events:none;" width="160" height="160" viewBox="0 0 180 180" fill="none">
+  <svg style="position:absolute;right:42px;top:22px;opacity:.15;pointer-events:none;" width="180" height="180" viewBox="0 0 180 180" fill="none">
     <circle cx="90" cy="90" r="70" stroke="#5AC8EC" stroke-width=".8" stroke-dasharray="3 5"/>
     <circle cx="90" cy="90" r="52" stroke="#5AC8EC" stroke-width="1"/>
     <circle cx="90" cy="90" r="34" stroke="#5AC8EC" stroke-width="1.2"/>
@@ -235,9 +271,9 @@ body{
   </svg>
 
   <div class="hero-top">
-    <div class="hero-score-block">
+    <div class="hero-score-block reveal r1">
       <div class="hero-score-label">Myescore™</div>
-      <div class="hero-score-num">{{ score.overall }}<span> / 1000</span></div>
+      <div class="hero-score-num count">{{ score.overall }}<span> / 1000</span></div>
       <div class="hero-shield-row">
         <div class="hero-shield-badge">
           <span class="shield-icon">🛡️</span>
@@ -254,7 +290,7 @@ body{
       </div>
     </div>
 
-    <div class="hero-right">
+    <div class="hero-right reveal r2">
       <div class="outlook-badge">
         <div>
           <div class="outlook-label">Trust Outlook</div>
@@ -271,17 +307,13 @@ body{
   </div>
 </div>
 
-<div class="section">
+<div class="section reveal r3">
   <div class="section-label">Sector Position</div>
   <div class="benchmark-grid">
     <div class="bench-card">
       <div class="bench-title">Sector Percentile</div>
-      <div class="dist-marker">▲ {{ org.name }}</div>
-      <div class="dist-chart">
-        {% for bar in range(1, 21) %}
-        <div class="dist-bar {% if bar <= (benchmarks.sector / 5)|int %}active{% endif %} {% if bar == (benchmarks.sector / 5)|int %}you{% endif %}" style="height:{{ 12 + (loop.index % 5) * 4 }}px"></div>
-        {% endfor %}
-      </div>
+      <div class="dist-marker">&#9650; {{ org.name }}</div>
+      <div class="dist-chart" id="sectorChart"></div>
       <div class="bench-bar-track">
         <div class="bench-bar-fill" style="width:{{ benchmarks.sector }}%"></div>
       </div>
@@ -291,12 +323,8 @@ body{
     </div>
     <div class="bench-card">
       <div class="bench-title">National Percentile</div>
-      <div class="dist-marker">▲ {{ org.name }}</div>
-      <div class="dist-chart">
-        {% for bar in range(1, 21) %}
-        <div class="dist-bar {% if bar <= (benchmarks.national / 5)|int %}active{% endif %} {% if bar == (benchmarks.national / 5)|int %}you{% endif %}" style="height:{{ 12 + (loop.index % 5) * 4 }}px"></div>
-        {% endfor %}
-      </div>
+      <div class="dist-marker">&#9650; {{ org.name }}</div>
+      <div class="dist-chart" id="nationalChart"></div>
       <div class="bench-bar-track">
         <div class="bench-bar-fill" style="width:{{ benchmarks.national }}%"></div>
       </div>
@@ -307,7 +335,7 @@ body{
   </div>
 </div>
 
-<div class="section">
+<div class="section reveal r4">
   <div class="section-label">Executive Summary</div>
   <p class="exec-para">
     {{ org.name }} ({{ org.domain }}) currently scores <strong>{{ score.overall }} / 1000</strong>, placing it at
@@ -326,10 +354,11 @@ body{
 <div class="section">
   <div class="section-label">Priority Trust Risk Factors</div>
   {% for risk in risk_factors %}
-  <div class="risk-card">
+  <div class="risk-card open" onclick="toggleRisk(this)">
     <div class="risk-card-header">
       <span class="risk-severity sev-{{ risk.severity }}">{{ risk.severity|upper }}</span>
       <span class="risk-title">{{ risk.name }}</span>
+      <span class="risk-chevron">&#9660;</span>
     </div>
     <div class="risk-body">
       {% if risk.tia.rendered_text %}
@@ -521,6 +550,63 @@ body{
   <div class="rf-text">What does the Internet expose about you?</div>
   <div class="rf-text">myeview.com</div>
 </footer>
+
+<script>
+// Toggle risk cards
+function toggleRisk(card){
+  card.classList.toggle('open');
+}
+
+// Generate distribution charts
+function buildChart(id, percentile, bars){
+  const ct=document.getElementById(id);
+  if(!ct)return;
+  const n=bars||20;
+  const youIdx=Math.floor((percentile/100)*n);
+  for(let i=0;i<n;i++){
+    const b=document.createElement('div');
+    b.className='dist-bar';
+    const h=20+Math.sin(i*0.4)*8+Math.random()*12;
+    b.style.height=h+'px';
+    if(i===youIdx){b.classList.add('you');b.style.height='38px';}
+    else if(i<youIdx){b.classList.add('active');}
+    ct.appendChild(b);
+  }
+}
+buildChart('sectorChart', {{ benchmarks.sector }});
+buildChart('nationalChart', {{ benchmarks.national }});
+
+// Animate score counter
+function animateScore(){
+  const el=document.querySelector('.hero-score-num');
+  if(!el)return;
+  const end={{ score.overall }};
+  let startTime=null;
+  const duration=1200;
+  function step(ts){
+    if(!startTime)startTime=ts;
+    const progress=Math.min((ts-startTime)/duration,1);
+    const ease=1-Math.pow(1-progress,3);
+    const val=ease*end;
+    el.innerHTML=val.toFixed(2).replace(/\.00$/,'')+'<span> / 1000</span>';
+    if(progress<1)requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+window.addEventListener('load',()=>setTimeout(animateScore,400));
+
+// Intersection observer for reveals
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach((e,i)=>{
+    if(e.isIntersecting){
+      if(!e.target.classList.contains('reveal'))return;
+      e.target.style.animationPlayState='running';
+      obs.unobserve(e.target);
+    }
+  });
+},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(s=>obs.observe(s));
+</script>
 
 </body>
 </html>

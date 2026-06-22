@@ -34,11 +34,18 @@ export function TIAPanel({ tia }: TIAPanelProps) {
         {slotOrder.map((slot) => {
           const value = tia.rendered_text[slot]
           if (!value) return null
+          const isHtmlSlot = slot === 'business_impact' || slot === 'regulatory_relevance'
           return (
             <div key={slot}>
               <dt className="section-title mb-1">{slotLabels[slot]}</dt>
               <dd className="text-sm leading-relaxed text-[var(--text-secondary)]">
-                {Array.isArray(value) ? value.join(', ') : value}
+                {Array.isArray(value) ? (
+                  value.join(', ')
+                ) : isHtmlSlot && value.includes('<') ? (
+                  <span dangerouslySetInnerHTML={{ __html: value }} />
+                ) : (
+                  value
+                )}
               </dd>
             </div>
           )
