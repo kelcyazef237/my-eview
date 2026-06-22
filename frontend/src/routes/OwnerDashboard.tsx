@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Loader2, RefreshCw, AlertTriangle, CheckCircle2, ChevronDown, ChevronUp, Radar } from 'lucide-react'
 import { api } from '@/api/client'
-import { CategoryCard } from '@/components/CategoryCard'
+import { CategoryBreakdown } from '@/components/CategoryBreakdown'
+import { EntityIntelligence } from '@/components/EntityIntelligence'
 import { ScoreGauge } from '@/components/ScoreGauge'
 import { ScoreHistoryChart } from '@/components/ScoreHistoryChart'
 import { TIAPanel } from '@/components/TIAPanel'
@@ -20,6 +21,7 @@ export function OwnerDashboard() {
   const [showTechnical, setShowTechnical] = useState(false)
   const [vectors, setVectors] = useState<VectorFinding[]>([])
   const [loadingVectors, setLoadingVectors] = useState(false)
+  const [showAllTIA, setShowAllTIA] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -97,6 +99,17 @@ export function OwnerDashboard() {
 
   const canSeeTechnical = data.user_role === 'owner_technical' || data.user_role === 'ops' || data.user_role === 'global_admin'
 
+  const totalPointsLost = data.categories.reduce((sum, c) => sum + c.points_lost, 0)
+
+  // Sort TIA by criticality (most points lost first)
+  const sortedTIA = [...data.tia].sort((a, b) => {
+    const catA = data.categories.find((c) => c.category_id === a.category_id)
+    const catB = data.categories.find((c) => c.category_id === b.category_id)
+    return (catB?.points_lost || 0) - (catA?.points_lost || 0)
+  })
+  const visibleTIA = showAllTIA ? sortedTIA : sortedTIA.slice(0, 2)
+  const hiddenTIACount = sortedTIA.length - 2
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -148,68 +161,43 @@ export function OwnerDashboard() {
         tier={data.score.shield_tier}
         label={data.score.outlook}
         outlook={data.score.outlook}
+        pointsLost={totalPointsLost}
+        categoryCount={data.categories.length}
       />
 
       {data.history.length > 0 && (
         <ScoreHistoryChart data={data.history} />
       )}
 
-      <div>
-        <div className="section-title mb-4">Category Breakdown</div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data.categories.map((cat) => (
-            <CategoryCard key={cat.category_id} category={cat} />
-          ))}
-        </div>
-      </div>
+      <CategoryBreakdown categories={data.categories} />
 
       <div>
         <div className="section-title mb-4">Trust Impact Analysis</div>
         <div className="grid gap-4 lg:grid-cols-2">
-          {data.tia.map((entry) => (
+          {visibleTIA.map((entry) => (
             <TIAPanel key={entry.category_id} tia={entry} />
           ))}
         </div>
+        {hiddenTIACount > 0 && (
+          <button
+            onClick={() => setShowAllTIA(!showAllTIA)}
+            className="mt-4 flex items-center gap-2 text-sm font-semibold text-[var(--accent)] hover:underline"
+          >
+            {showAllTIA ? (
+              <>
+                <ChevronUp size={16} /> Show Less
+              </>
+            ) : (
+              <>
+                <ChevronDown size={16} /> View All ({hiddenTIACount} more)
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {data.entity_intelligence && (
-        <div>
-          <div className="mb-4 flex items-center gap-3">
-            <div className="section-title">Entity Intelligence</div>
-            <span className="badge badge-neutral">Not Scored</span>
-          </div>
-          <div className="glass-card grid gap-4 p-5 sm:grid-cols-2">
-            <div>
-              <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                Related Domains
-              </div>
-              <div className="text-sm text-[var(--text-secondary)]">
-                {data.entity_intelligence.related_domains.count} discovered subdomains
-              </div>
-              {data.entity_intelligence.related_domains.items.length > 0 && (
-                <ul className="mt-2 space-y-1 font-mono text-xs text-[var(--text-muted)]">
-                  {data.entity_intelligence.related_domains.items.slice(0, 10).map((d) => (
-                    <li key={d}>{d}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            <div>
-              <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                Shared Infrastructure
-              </div>
-              <div className="text-sm text-[var(--text-secondary)]">
-                Registrar: {data.entity_intelligence.shared_infrastructure.registrar || '—'}
-              </div>
-              <div className="mt-1 text-sm text-[var(--text-secondary)]">
-                Name servers: {data.entity_intelligence.shared_infrastructure.name_servers.length}
-              </div>
-            </div>
-          </div>
-          <p className="mt-2 text-xs text-[var(--text-muted)]">
-            {data.entity_intelligence.label}
-          </p>
-        </div>
+        <EntityIntelligence entity={data.entity_intelligence} />
       )}
 
       {canSeeTechnical && (

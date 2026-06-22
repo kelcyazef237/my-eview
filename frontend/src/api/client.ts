@@ -48,6 +48,9 @@ export const api = {
       method: 'POST',
     }),
 
+  publicStats: () =>
+    fetchJson<{ organizations: number; scans: number }>('/public/stats'),
+
   // Auth
   me: () => fetchJson<User>('/auth/me'),
   login: (identifier: string, password: string) =>

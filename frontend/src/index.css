@@ -13,6 +13,7 @@
     --border-color: #e2e8f0;
     --accent: #0f4c81;
     --accent-light: #e0f2fe;
+    --accent-rgb: 15, 76, 129;
     --danger: #9f4a4a;
     --warning: #c67a2e;
     --success: #1d5c3f;
@@ -43,6 +44,7 @@
     --border-color: #334155;
     --accent: #60a5fa;
     --accent-light: #1e3a5f;
+    --accent-rgb: 96, 165, 250;
     --danger: #ef4444;
     --warning: #f59e0b;
     --success: #22c55e;
@@ -97,6 +99,27 @@
     border: 1px solid var(--glass-border);
     border-radius: 1rem;
     box-shadow: var(--glass-shadow);
+  }
+
+  /* Hero glass card — larger, gradient overlay, accent glow */
+  .glass-card-hero {
+    background: var(--glass-bg-strong);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: 1.5rem;
+    box-shadow: var(--glass-shadow), 0 0 30px rgba(var(--accent-rgb), 0.08);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-card-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-accent-soft);
+    opacity: 0.5;
+    pointer-events: none;
   }
 
   /* Glass input — form fields */
@@ -196,6 +219,69 @@
     }
     50% {
       opacity: 0.5;
+    }
+  }
+
+  /* Score count-up animation */
+  .animate-count-up {
+    animation: countUp 1.2s ease-out forwards;
+  }
+
+  @keyframes countUp {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Quantum glow pulse for hero elements */
+  .animate-glow {
+    animation: glowPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes glowPulse {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.15);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(var(--accent-rgb), 0.3);
+    }
+  }
+
+  /* Slide-up reveal for sections */
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out forwards;
+    opacity: 0;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Shimmer for loading states */
+  .animate-shimmer {
+    background: linear-gradient(90deg, var(--glass-bg) 25%, var(--glass-bg-strong) 50%, var(--glass-bg) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
     }
   }
 }

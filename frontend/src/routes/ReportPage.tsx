@@ -1,9 +1,26 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Download, Loader2, ExternalLink } from 'lucide-react'
+import { Download, Loader2, ExternalLink, Gauge, Shield as ShieldIcon, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { api } from '@/api/client'
+import { CategoryBreakdown } from '@/components/CategoryBreakdown'
+import { ScoreGauge } from '@/components/ScoreGauge'
 import { ScoreHistoryChart } from '@/components/ScoreHistoryChart'
 import type { OwnerDashboardData, ScoreHistoryPoint } from '@/types'
+
+const tierNames: Record<number, string> = {
+  1: 'Critical',
+  2: 'Elevated',
+  3: 'Moderate',
+  4: 'Strong',
+  5: 'Exceptional',
+}
+
+function outlookIcon(outlook: string) {
+  const lower = outlook.toLowerCase()
+  if (lower.includes('positive') || lower.includes('improv')) return TrendingUp
+  if (lower.includes('negative') || lower.includes('declin')) return TrendingDown
+  return Minus
+}
 
 export function ReportPage() {
   const [searchParams] = useSearchParams()
@@ -40,10 +57,13 @@ export function ReportPage() {
   }
 
   const scanRunId = data.score.scan_run_id
+  const totalPointsLost = data.categories.reduce((sum, c) => sum + c.points_lost, 0)
+  const OutlookIcon = outlookIcon(data.score.outlook)
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-slide-up">
         <div>
           <h1 className="text-2xl font-bold">
             <span className="gradient-text">Report Center</span>
@@ -69,21 +89,52 @@ export function ReportPage() {
         </div>
       </div>
 
-      <ScoreHistoryChart data={history} />
+      {/* Score Hero */}
+      <ScoreGauge
+        score={data.score.overall}
+        tier={data.score.shield_tier}
+        label={data.score.outlook}
+        outlook={data.score.outlook}
+        pointsLost={totalPointsLost}
+        categoryCount={data.categories.length}
+      />
 
-      <div className="glass-card p-5">
-        <div className="section-title mb-3">Latest Snapshot</div>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-lg bg-[var(--glass-bg)] p-4">
-            <div className="text-sm text-[var(--text-muted)]">Score</div>
-            <div className="text-2xl font-bold">{data.score.overall}</div>
+      {/* Score History */}
+      {history.length > 0 && (
+        <ScoreHistoryChart data={history} />
+      )}
+
+      {/* Category Breakdown (radar default) */}
+      <CategoryBreakdown categories={data.categories} defaultView="radar" />
+
+      {/* Snapshot cards with icons */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="glass-card p-5 flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]">
+            <Gauge size={24} />
           </div>
-          <div className="rounded-lg bg-[var(--glass-bg)] p-4">
-            <div className="text-sm text-[var(--text-muted)]">Shield Tier</div>
-            <div className="text-2xl font-bold">{data.score.shield_tier}</div>
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Score</div>
+            <div className="text-2xl font-bold">{data.score.overall}<span className="text-sm font-medium text-[var(--text-muted)]"> / 1000</span></div>
           </div>
-          <div className="rounded-lg bg-[var(--glass-bg)] p-4">
-            <div className="text-sm text-[var(--text-muted)]">Outlook</div>
+        </div>
+
+        <div className="glass-card p-5 flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]">
+            <ShieldIcon size={24} />
+          </div>
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Shield Tier</div>
+            <div className="text-2xl font-bold">{data.score.shield_tier}<span className="text-sm font-medium text-[var(--text-muted)]"> · {tierNames[data.score.shield_tier] || '—'}</span></div>
+          </div>
+        </div>
+
+        <div className="glass-card p-5 flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]">
+            <OutlookIcon size={24} />
+          </div>
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Outlook</div>
             <div className="text-lg font-semibold">{data.score.outlook}</div>
           </div>
         </div>

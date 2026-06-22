@@ -18,6 +18,7 @@ import {
   Radar,
 } from 'lucide-react'
 import { api } from '@/api/client'
+import { AdminChartSystem } from '@/components/AdminChartSystem'
 import type {
   AdminMetrics,
   AdminOrg,
@@ -260,6 +261,9 @@ export function AdminDashboard() {
         <MetricTile icon={Activity} label="Scan Runs" value={metrics?.total_scans ?? 0} accent="linear-gradient(135deg, #0891b2, #22d3ee)" />
         <MetricTile icon={UserCheck} label="Pending" value={metrics?.pending_registrations ?? 0} accent="linear-gradient(135deg, #c67a2e, #f59e0b)" />
       </div>
+
+      {/* System Overview — org scores + category breakdown */}
+      <AdminChartSystem orgs={orgs} onSelectOrg={goToOrgDashboard} />
 
       {/* Pending Registrations */}
       <div className="glass-card overflow-hidden">

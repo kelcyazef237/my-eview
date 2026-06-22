@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { UserPlus, Loader2, Building2, ArrowLeft } from 'lucide-react'
 import { api } from '@/api/client'
+import { AuthLayout } from '@/components/AuthLayout'
 
 export function RegisterPage() {
   const [fullName, setFullName] = useState('')
@@ -38,20 +39,25 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md animate-fade-in">
-      <Link to="/login" className="mb-6 inline-flex items-center gap-1.5 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+    <AuthLayout
+      title="Register your organization"
+      subtitle="Sign up with your name and organization's domain. An admin will validate your account and assign a role."
+      icon={<UserPlus className="h-7 w-7 text-[var(--accent)]" />}
+      footer={
+        <>
+          Already have an account?{' '}
+          <Link to="/login" className="text-[var(--accent)] hover:underline">
+            Log in
+          </Link>
+        </>
+      }
+    >
+      <Link
+        to="/login"
+        className="mb-4 inline-flex items-center gap-1.5 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+      >
         <ArrowLeft size={16} /> Back to login
       </Link>
-
-      <div className="mb-8 text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl gradient-surface">
-          <UserPlus className="h-7 w-7 text-[var(--accent)]" />
-        </div>
-        <h1 className="mb-2 text-3xl font-bold">Register your organization</h1>
-        <p className="text-[var(--text-secondary)]">
-          Sign up with your name and organization's domain. An admin will validate your account and assign a role.
-        </p>
-      </div>
 
       <form onSubmit={handleSubmit} className="glass-card space-y-4 p-6">
         <div>
@@ -132,13 +138,6 @@ export function RegisterPage() {
           Submit registration
         </button>
       </form>
-
-      <div className="mt-6 text-center text-sm text-[var(--text-muted)]">
-        Already have an account?{' '}
-        <Link to="/login" className="text-[var(--accent)] hover:underline">
-          Log in
-        </Link>
-      </div>
-    </div>
+    </AuthLayout>
   )
 }

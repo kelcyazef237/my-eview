@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.database import get_db
 from app.models.organization import Organization
+from app.models.scan_run import ScanRun
 from app.models.score import Score
 from app.scoring.shield_mapper import shield_for_score
 from app.services.rate_limit import public_lookup_domain_allowed, public_lookup_ip_allowed
@@ -70,3 +72,15 @@ async def trigger_lookup(domain: str, request: Request, db: Session = Depends(ge
             detail="Scan failed to produce a score. Check server logs for collector errors.",
         )
     return _score_response(score, domain, scan_run.status)
+
+
+@router.get("/stats")
+async def public_stats(db: Session = Depends(get_db)):
+    """Public aggregate stats for marketing/auth surfaces. No auth required."""
+    org_count = db.query(func.count(Organization.id)).scalar() or 0
+    scan_count = db.query(func.count(ScanRun.id)).scalar() or 0
+    # Floor at 100 so an empty/early-stage deploy still shows credible numbers.
+    return {
+        "organizations": max(org_count, 100),
+        "scans": max(scan_count, 100),
+    }

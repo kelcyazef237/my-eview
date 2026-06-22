@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { LogIn, Loader2, UserCircle } from 'lucide-react'
 import { api } from '@/api/client'
+import { AuthLayout } from '@/components/AuthLayout'
 
 export function LoginPage() {
   const [identifier, setIdentifier] = useState('')
@@ -34,17 +35,19 @@ export function LoginPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md animate-fade-in">
-      <div className="mb-8 text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl gradient-surface">
-          <UserCircle className="h-7 w-7 text-[var(--accent)]" />
-        </div>
-        <h1 className="mb-2 text-3xl font-bold">MYEVIEW Login</h1>
-        <p className="text-[var(--text-secondary)]">
-          Sign in to access your dashboard, reports, and settings.
-        </p>
-      </div>
-
+    <AuthLayout
+      title="MYEVIEW Login"
+      subtitle="Sign in to access your dashboard, reports, and settings."
+      icon={<UserCircle className="h-7 w-7 text-[var(--accent)]" />}
+      footer={
+        <>
+          Want to access your organization's details?{' '}
+          <Link to="/register" className="text-[var(--accent)] hover:underline">
+            Register here
+          </Link>
+        </>
+      }
+    >
       <form onSubmit={handleSubmit} className="glass-card space-y-4 p-6">
         <div>
           <label className="mb-1.5 block text-sm font-medium text-[var(--text-secondary)]">
@@ -89,13 +92,6 @@ export function LoginPage() {
           Sign In
         </button>
       </form>
-
-      <div className="mt-6 text-center text-sm text-[var(--text-muted)]">
-        Want to access your organization's details?{' '}
-        <Link to="/register" className="text-[var(--accent)] hover:underline">
-          Register here
-        </Link>
-      </div>
-    </div>
+    </AuthLayout>
   )
 }

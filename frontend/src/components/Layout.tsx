@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useTheme } from '@/hooks/useTheme'
 import { api } from '@/api/client'
 import type { User } from '@/types'
+import { ParticleBackground } from './ParticleBackground'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -49,8 +50,9 @@ export function Layout({ children }: LayoutProps) {
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-50 border-b border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl">
+    <div className="min-h-screen flex flex-col">
+      <ParticleBackground />
+      <header className="sticky top-0 z-50 border-b border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl relative">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <Link to="/" className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-[var(--accent)]" />
@@ -153,9 +155,10 @@ export function Layout({ children }: LayoutProps) {
             )}
           </nav>
         )}
+        <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: 'var(--gradient-accent)' }} />
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
+      <main className="flex-1 w-full mx-auto max-w-7xl px-4 py-8">{children}</main>
 
       <footer className="border-t border-[var(--glass-border)] py-6 text-center text-xs text-[var(--text-muted)]">
         MYEVIEW — Cameroon external digital-trust scoring platform · Deterministic · Non-intrusive · Locally cached
