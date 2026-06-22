@@ -10,6 +10,7 @@ running.
 Steps performed:
   0. Install system dependencies (apt-get) if on Debian/Ubuntu
   1. Create backend/.env from .env.example (generates a random SECRET_KEY)
+  1b. Create a Python virtual environment (.venv/) — needed for PEP 668
   2. Install Python dependencies (pip install -r backend/requirements.txt)
   3. Install Node dependencies (npm ci || npm install)
   4. Build the frontend (npm run build)
@@ -39,6 +40,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 BACKEND_DIR = PROJECT_ROOT / "backend"
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
 SETUP_MARKER = BACKEND_DIR / ".setup_complete"
+VENV_DIR = PROJECT_ROOT / ".venv"
+VENV_PYTHON = str(VENV_DIR / "bin" / "python")
 
 
 # ---------------------------------------------------------------------------
@@ -83,6 +86,18 @@ def command_exists(cmd: str) -> bool:
 # ---------------------------------------------------------------------------
 # Steps
 # ---------------------------------------------------------------------------
+
+def create_virtualenv() -> None:
+    """Create a Python virtual environment (needed for PEP 668 / externally-managed envs)."""
+    log("Checking virtual environment…", "step")
+
+    if VENV_DIR.exists() and (VENV_DIR / "bin" / "python").exists():
+        log(".venv/ already exists — skipping", "info")
+        return
+
+    run([sys.executable, "-m", "venv", str(VENV_DIR)], cwd=PROJECT_ROOT)
+    log("Virtual environment created at .venv/", "info")
+
 
 def install_system_deps() -> None:
     """Install system-level dependencies needed by Python packages (apt-based only)."""
@@ -150,12 +165,12 @@ def ensure_env_file() -> bool:
 
 
 def install_python_deps() -> None:
-    """Install Python dependencies from requirements.txt."""
+    """Install Python dependencies from requirements.txt into the virtual environment."""
     log("Checking Python dependencies…", "step")
 
-    # Quick check: is fastapi importable?
+    # Quick check: is fastapi importable in the venv?
     result = subprocess.run(
-        [sys.executable, "-c", "import fastapi; import sqlalchemy; import celery"],
+        [VENV_PYTHON, "-c", "import fastapi; import sqlalchemy; import celery"],
         capture_output=True,
         text=True,
     )
@@ -170,7 +185,11 @@ def install_python_deps() -> None:
 
     log("Installing Python dependencies (this may take a few minutes)…", "step")
     result = subprocess.run(
-        [sys.executable, "-m", "pip", "install", "-r", str(req_path)],
+        [VENV_PYTHON, "-m", "pip", "install", "--upgrade", "pip"],
+        capture_output=True, text=True,
+    )
+    result = subprocess.run(
+        [VENV_PYTHON, "-m", "pip", "install", "-r", str(req_path)],
         capture_output=False,  # show live output for long installs
     )
     if result.returncode != 0:
@@ -232,7 +251,7 @@ def run_migrations() -> None:
     # Check if migrations have already been run by looking for the alembic_version table
     try:
         result = subprocess.run(
-            [sys.executable, "-c", """
+            [VENV_PYTHON, "-c", """
 import sys
 sys.path.insert(0, 'backend')
 from app.config import get_settings
@@ -254,7 +273,7 @@ else:
     except Exception:
         pass  # If we can't check, run migrations anyway
 
-    run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=BACKEND_DIR)
+    run([VENV_PYTHON, "-m", "alembic", "upgrade", "head"], cwd=BACKEND_DIR)
     log("Database migrations applied", "info")
 
 
@@ -264,7 +283,7 @@ def verify_reference_data() -> None:
 
     try:
         result = subprocess.run(
-            [sys.executable, "-c", """
+            [VENV_PYTHON, "-c", """
 import sys
 sys.path.insert(0, 'backend')
 from app.config import get_settings
@@ -287,7 +306,7 @@ with engine.connect() as conn:
         pass  # If we can't check, run the seed migration
 
     # Run the seed migration (0002) — it's idempotent (uses INSERT ... ON CONFLICT DO NOTHING)
-    run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=BACKEND_DIR)
+    run([VENV_PYTHON, "-m", "alembic", "upgrade", "head"], cwd=BACKEND_DIR)
     log("Reference data seeded", "info")
 
 
@@ -296,7 +315,7 @@ def validate_scoring() -> None:
     log("Validating scoring ruleset…", "step")
 
     result = subprocess.run(
-        [sys.executable, "-c", """
+        [VENV_PYTHON, "-c", """
 import sys
 sys.path.insert(0, 'backend')
 from app.scoring.validators import validate_all
@@ -355,7 +374,7 @@ def print_next_steps() -> None:
     print("  2. Start all services with Docker Compose:")
     print("     docker compose up -d")
     print()
-    print("  3. Or run services individually:")
+    print("  3. Or run services individually (activate venv first: source .venv/bin/activate):")
     print("     Backend:    cd backend && uvicorn app.main:app --reload")
     print("     Celery:     cd backend && celery -A app.tasks.celery_app worker -l info")
     print("     Celery Beat: cd backend && celery -A app.tasks.celery_app beat -l info")
@@ -401,6 +420,9 @@ def main() -> None:
 
     # 1. Create .env
     ensure_env_file()
+
+    # 1b. Create virtual environment (needed for PEP 668 / externally-managed envs)
+    create_virtualenv()
 
     # 2. Install Python deps
     install_python_deps()
