@@ -12,6 +12,10 @@ export function PublicLookup() {
 
   // Dev login is only available when VITE_DEV_LOGIN is set (development mode)
   const showDevLogin = import.meta.env.VITE_DEV_LOGIN === 'true'
+  const [devDomain, setDevDomain] = useState('')
+  const [devRole, setDevRole] = useState<'owner' | 'owner_technical' | 'ops'>('owner')
+  const [devLoading, setDevLoading] = useState(false)
+  const [devError, setDevError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,14 +46,17 @@ export function PublicLookup() {
   }
 
   const devLogin = async () => {
-    const email = 'dev@example.cm'
-    const role = 'owner'
+    setDevLoading(true)
+    setDevError('')
+    const email = `dev@${devDomain || 'example.cm'}`
     try {
-      const data = await api.devLogin(email, role)
+      const data = await api.devLogin(email, devRole, devDomain || undefined)
       localStorage.setItem('myeview_token', data.access_token)
-      window.location.reload()
+      window.location.href = devRole === 'owner_technical' ? '/technical' : '/dashboard'
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Dev login failed')
+      setDevError(err instanceof Error ? err.message : 'Dev login failed')
+    } finally {
+      setDevLoading(false)
     }
   }
 
@@ -63,13 +70,45 @@ export function PublicLookup() {
       </div>
 
       {showDevLogin && (
-        <div className="mb-6 flex justify-center">
-          <button
-            onClick={devLogin}
-            className="flex items-center gap-2 rounded-lg border border-[var(--border-color)] px-4 py-2 text-sm font-medium hover:bg-[var(--bg-secondary)]"
-          >
-            <LogIn size={16} /> Dev login as owner
-          </button>
+        <div className="mb-6 rounded-lg border border-[var(--border-color)] bg-[var(--bg-elevated)] p-4">
+          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-secondary)]">
+            <LogIn size={16} /> Dev Login — access dashboard, technical view, reports
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <label className="mb-1 block text-xs text-[var(--text-muted)]">Domain (your scanned org)</label>
+              <input
+                type="text"
+                value={devDomain}
+                onChange={(e) => setDevDomain(e.target.value)}
+                placeholder="matrixtelecoms.com"
+                className="w-full rounded-lg border border-[var(--border-color)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-[var(--text-muted)]">Role</label>
+              <select
+                value={devRole}
+                onChange={(e) => setDevRole(e.target.value as 'owner' | 'owner_technical' | 'ops')}
+                className="rounded-lg border border-[var(--border-color)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none"
+              >
+                <option value="owner">Owner</option>
+                <option value="owner_technical">Technical</option>
+                <option value="ops">Ops (admin)</option>
+              </select>
+            </div>
+            <button
+              onClick={devLogin}
+              disabled={devLoading}
+              className="flex items-center justify-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--accent)]/90 disabled:opacity-50"
+            >
+              {devLoading ? <Loader2 className="animate-spin" size={16} /> : <LogIn size={16} />}
+              Login
+            </button>
+          </div>
+          {devError && (
+            <div className="mt-2 text-sm text-red-500">{devError}</div>
+          )}
         </div>
       )}
 

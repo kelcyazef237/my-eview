@@ -203,6 +203,18 @@ def ensure_env_file() -> bool:
     return True
 
 
+def ensure_frontend_env_file() -> bool:
+    """Create frontend/.env with VITE_DEV_LOGIN setting."""
+    env_path = FRONTEND_DIR / ".env"
+    if env_path.exists():
+        log("frontend/.env already exists — skipping", "info")
+        return False
+
+    env_path.write_text("VITE_DEV_LOGIN=true\n")
+    log("Created frontend/.env with VITE_DEV_LOGIN=true", "info")
+    return True
+
+
 def install_python_deps() -> None:
     """Install Python dependencies from requirements.txt into the virtual environment."""
     log("Checking Python dependencies…", "step")
@@ -265,9 +277,8 @@ def build_frontend() -> None:
     log("Building frontend…", "step")
 
     dist_dir = FRONTEND_DIR / "dist"
-    # Rebuild if dist doesn't exist or is older than source files
+    # Rebuild if dist doesn't exist or is older than source files or .env
     if dist_dir.exists():
-        # Check if any source file is newer than dist
         src_dir = FRONTEND_DIR / "src"
         dist_mtime = dist_dir.stat().st_mtime
         needs_rebuild = False
@@ -275,6 +286,10 @@ def build_frontend() -> None:
             if src_file.is_file() and src_file.stat().st_mtime > dist_mtime:
                 needs_rebuild = True
                 break
+        # Also check if frontend/.env is newer than dist (VITE_ vars are baked at build time)
+        env_file = FRONTEND_DIR / ".env"
+        if not needs_rebuild and env_file.exists() and env_file.stat().st_mtime > dist_mtime:
+            needs_rebuild = True
         if not needs_rebuild:
             log("frontend/dist/ is up to date — skipping build", "info")
             return
@@ -460,7 +475,10 @@ def main() -> None:
     # 1. Create .env
     ensure_env_file()
 
-    # 1b. Create virtual environment (needed for PEP 668 / externally-managed envs)
+    # 1b. Create frontend/.env (for VITE_DEV_LOGIN)
+    ensure_frontend_env_file()
+
+    # 1c. Create virtual environment (needed for PEP 668 / externally-managed envs)
     create_virtualenv()
 
     # 2. Install Python deps
@@ -469,7 +487,7 @@ def main() -> None:
     # 3. Install Node deps
     install_node_deps()
 
-    # 4. Build frontend
+    # 4. Build frontend (must happen after frontend/.env is created so VITE_ vars are baked in)
     build_frontend()
 
     # 5. Run migrations

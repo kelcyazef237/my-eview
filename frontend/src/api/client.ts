@@ -44,10 +44,10 @@ export const api = {
 
   // Auth
   me: () => fetchJson<User>('/auth/me'),
-  devLogin: (email: string, role: string) =>
+  devLogin: (email: string, role: string, domain?: string) =>
     fetchJson<{ access_token: string }>('/auth/dev-login', {
       method: 'POST',
-      body: JSON.stringify({ email, role }),
+      body: JSON.stringify({ email, role, domain }),
     }),
 
   // Owner
