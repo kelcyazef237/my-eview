@@ -198,9 +198,9 @@ async def run_scan(db: Session, domain: str, is_full_report: bool = False) -> Sc
     scan_run.finished_at = datetime.now(timezone.utc)
     db.commit()
 
-    if not score_result.is_complete:
-        return scan_run
-
+    # Even if the scan is incomplete (too many NOT_OBSERVED vectors), we still
+    # create a Score record so the user gets a result.  The scan_run.status
+    # captures the incompleteness — the API can surface a warning.
     shield = shield_for_score(score_result.overall_score)
 
     # Previous full report for outlook

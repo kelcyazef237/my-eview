@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models.organization import Organization
 from app.models.score import Score
 from app.scoring.shield_mapper import shield_for_score
 from app.services.rate_limit import public_lookup_domain_allowed, public_lookup_ip_allowed
@@ -17,20 +18,9 @@ def _client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
-@router.get("/lookup/{domain}")
-async def lookup_domain(domain: str, request: Request, db: Session = Depends(get_db)):
-    domain = domain.lower().strip()
-    score = (
-        db.query(Score)
-        .join(Score.scan_run)
-        .filter(Score.scan_run.has(org__primary_domain=domain))
-        .order_by(Score.computed_at.desc())
-        .first()
-    )
-    if not score:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No score available. Trigger a scan first.")
+def _score_response(score: Score, domain: str, scan_status: str | None = None) -> dict:
     shield = shield_for_score(score.overall_score)
-    return {
+    resp = {
         "domain": domain,
         "org_name": score.organization.name,
         "overall_score": score.overall_score,
@@ -38,10 +28,28 @@ async def lookup_domain(domain: str, request: Request, db: Session = Depends(get
         "shield_label": shield.short_label,
         "band": shield.band,
         "outlook": score.outlook,
-        "sector_benchmark": None,  # placeholder until benchmark data is available
+        "sector_benchmark": None,
         "ruleset_version": score.ruleset_version,
         "computed_at": score.computed_at.isoformat(),
     }
+    if scan_status and scan_status == "incomplete":
+        resp["warning"] = "Scan completed but some vectors could not be observed. Score may be incomplete."
+    return resp
+
+
+@router.get("/lookup/{domain}")
+async def lookup_domain(domain: str, request: Request, db: Session = Depends(get_db)):
+    domain = domain.lower().strip()
+    score = (
+        db.query(Score)
+        .join(Organization, Score.org_id == Organization.id)
+        .filter(Organization.primary_domain == domain)
+        .order_by(Score.computed_at.desc())
+        .first()
+    )
+    if not score:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No score available. Trigger a scan first.")
+    return _score_response(score, domain, score.scan_run.status)
 
 
 @router.post("/lookup/{domain}")
@@ -59,18 +67,6 @@ async def trigger_lookup(domain: str, request: Request, db: Session = Depends(ge
     if not score:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Scan completed but did not produce a publishable score.",
+            detail="Scan failed to produce a score. Check server logs for collector errors.",
         )
-    shield = shield_for_score(score.overall_score)
-    return {
-        "domain": domain,
-        "org_name": score.organization.name,
-        "overall_score": score.overall_score,
-        "shield_tier": shield.tier,
-        "shield_label": shield.short_label,
-        "band": shield.band,
-        "outlook": score.outlook,
-        "sector_benchmark": None,
-        "ruleset_version": score.ruleset_version,
-        "computed_at": score.computed_at.isoformat(),
-    }
+    return _score_response(score, domain, scan_run.status)
