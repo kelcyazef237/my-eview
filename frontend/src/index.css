@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-elevated: #ffffff;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --border-color: #e2e8f0;
+    --accent: #0f4c81;
+    --accent-light: #e0f2fe;
+    --danger: #9f4a4a;
+    --warning: #c67a2e;
+    --success: #1d5c3f;
+  }
+
+  .dark {
+    --bg-primary: #0b1120;
+    --bg-secondary: #111827;
+    --bg-elevated: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #64748b;
+    --border-color: #334155;
+    --accent: #60a5fa;
+    --accent-light: #1e3a5f;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --success: #22c55e;
+  }
+
+  body {
+    @apply bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-[var(--border-color)] bg-[var(--bg-elevated)] shadow-sm;
+  }
+
+  .section-title {
+    @apply text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] font-mono;
+  }
+}

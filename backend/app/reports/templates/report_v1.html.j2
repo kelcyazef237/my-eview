@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MYEVIEW — Cyber Trust Intelligence Report · {{ org.name }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#F7F5F1;
+  --bg2:#F0EDE8;
+  --bg3:#E8E4DC;
+  --ink:#0D1117;
+  --ink2:#1A2332;
+  --navy:#0A1628;
+  --cyan:#007BA8;
+  --cyan2:#005F82;
+  --cyan3:#E8F4FA;
+  --cyan4:#C8E8F4;
+  --gold:#8B6914;
+  --gold2:#C49A1E;
+  --gold3:#FDF6E3;
+  --gold4:#F5E9C0;
+  --red:#B8200A;
+  --red2:#8C1A08;
+  --red3:#FDECEA;
+  --amber:#9A5200;
+  --amber2:#F5E8D0;
+  --green:#0F5C2E;
+  --green2:#E8F5EE;
+  --muted:#6B7A8D;
+  --border:#D8D0C4;
+  --border2:#C8BFB0;
+  --text:#1C2530;
+  --text2:#3A4A5C;
+  --shield:{{ score.tier_color|default('#1A5C8A') }};
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:15px;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  max-width:960px;
+  margin:0 auto;
+}
+.section{
+  padding:34px 42px;
+  border-bottom:1px solid var(--border);
+  page-break-inside: avoid;
+}
+.section:last-child{border-bottom:none;}
+.section-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:4px;color:var(--muted);
+  text-transform:uppercase;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.section-label::after{content:'';width:24px;height:1px;background:var(--border2);}
+
+/* Header */
+.report-header{
+  background:var(--navy);
+  padding:26px 42px 22px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:3px solid var(--cyan2);
+}
+.rh-logo{display:flex;align-items:center;gap:10px;}
+.rh-logo-mark{width:32px;height:32px;border-radius:6px;background:var(--cyan2);display:flex;align-items:center;justify-content:center;}
+.rh-logo-text{font-size:20px;font-weight:300;letter-spacing:4px;text-transform:uppercase;color:#D8EAF4;}
+.rh-logo-text b{font-weight:700;color:#5AC8EC;}
+.rh-meta{text-align:right;}
+.rh-doc-type{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;color:rgba(216,234,244,.5);text-transform:uppercase;margin-bottom:4px;}
+.rh-entity{font-size:14px;font-weight:600;color:#D8EAF4;letter-spacing:.3px;}
+.rh-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(216,234,244,.35);letter-spacing:1px;margin-top:2px;}
+
+/* Hero */
+.hero-section{
+  background:linear-gradient(160deg,var(--navy) 0%,#0D2040 60%,#0A1830 100%);
+  padding:42px 42px 36px;
+  position:relative;overflow:hidden;
+}
+.hero-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;position:relative;z-index:2;}
+.hero-score-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:5px;color:rgba(90,200,236,.7);text-transform:uppercase;margin-bottom:8px;}
+.hero-score-num{font-family:'Playfair Display',serif;font-size:96px;font-weight:400;line-height:1;letter-spacing:-3px;color:#FFFFFF;}
+.hero-score-num span{font-size:.45em;font-weight:400;color:rgba(255,255,255,.4);letter-spacing:0;}
+.hero-shield-row{display:flex;align-items:center;gap:14px;margin-top:14px;}
+.hero-shield-badge{display:flex;align-items:center;gap:8px;background:rgba(90,200,236,.12);border:1px solid rgba(90,200,236,.3);border-radius:4px;padding:7px 14px;}
+.shield-icon{font-size:18px;}
+.shield-name{font-size:14px;font-weight:700;color:#5AC8EC;letter-spacing:.3px;}
+.hero-trust-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.35);text-transform:uppercase;}
+.hero-status-text{font-size:15px;font-weight:500;color:rgba(255,255,255,.7);}
+.hero-right{display:flex;flex-direction:column;align-items:flex-end;gap:16px;position:relative;z-index:2;}
+.outlook-badge{display:flex;align-items:center;gap:8px;border:1px solid rgba(90,200,236,.25);border-radius:4px;padding:10px 16px;background:rgba(90,200,236,.06);}
+.outlook-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(90,200,236,.6);text-transform:uppercase;}
+.outlook-val{font-size:16px;font-weight:700;color:#5AC8EC;margin-top:2px;}
+.outlook-dot{width:8px;height:8px;border-radius:50%;background:#2ECC71;box-shadow:0 0 8px rgba(46,204,113,.6);}
+.shield-ladder{display:flex;align-items:center;gap:4px;position:relative;z-index:2;}
+.shield-step{height:6px;border-radius:2px;}
+
+/* Benchmark */
+.benchmark-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:8px;}
+.bench-card{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:22px;position:relative;overflow:hidden;}
+.bench-title{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:14px;}
+.bench-bar-track{height:8px;background:var(--bg3);border-radius:4px;margin-bottom:10px;position:relative;overflow:hidden;}
+.bench-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--cyan2),#5AC8EC);position:relative;}
+.bench-bar-fill::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);width:12px;height:12px;border-radius:50%;background:#5AC8EC;border:2px solid var(--bg);box-shadow:0 0 8px rgba(90,200,236,.5);}
+.bench-percentile{font-family:'Playfair Display',serif;font-size:36px;font-weight:400;letter-spacing:-1px;color:var(--ink2);line-height:1;margin-bottom:4px;}
+.bench-pct-sym{font-size:.5em;font-weight:400;color:var(--muted);}
+.bench-label{font-size:12px;color:var(--muted);}
+.bench-context{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--cyan2);margin-top:8px;text-transform:uppercase;}
+.dist-chart{height:40px;display:flex;align-items:flex-end;gap:2px;margin-bottom:8px;}
+.dist-bar{flex:1;border-radius:2px 2px 0 0;background:var(--bg3);min-height:4px;}
+.dist-bar.active{background:var(--cyan2);}
+.dist-bar.you{background:#C49A1E;}
+.dist-marker{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;color:var(--gold);text-align:center;margin-bottom:4px;}
+
+/* Executive summary */
+.exec-para{font-family:'Playfair Display',serif;font-size:16px;line-height:1.8;color:var(--text2);font-weight:400;font-style:italic;border-left:3px solid var(--cyan2);padding-left:22px;}
+
+/* Risk factors */
+.risk-card{border:1px solid var(--border);border-radius:6px;margin-bottom:14px;overflow:hidden;page-break-inside: avoid;}
+.risk-card-header{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--bg);}
+.risk-severity{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;font-weight:600;text-transform:uppercase;padding:4px 10px;border-radius:3px;flex-shrink:0;}
+.sev-high{background:rgba(155,82,0,.12);color:var(--amber);border:1px solid rgba(155,82,0,.2);}
+.sev-critical{background:rgba(184,32,10,.1);color:var(--red);border:1px solid rgba(184,32,10,.2);}
+.sev-medium{background:rgba(15,92,46,.1);color:var(--green);border:1px solid rgba(15,92,46,.15);}
+.risk-title{font-size:15px;font-weight:600;color:var(--ink);flex:1;}
+.risk-body{padding:16px 18px 20px;border-top:1px solid var(--border);}
+.risk-section-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin:14px 0 6px;}
+.risk-obs{font-size:13px;line-height:1.65;color:var(--text2);padding:10px 14px;background:var(--bg2);border-left:2px solid var(--border2);border-radius:0 3px 3px 0;}
+.tia-block{margin-top:4px;background:linear-gradient(135deg,#F0EDE8,#EAE6DF);border:1px solid var(--border2);border-radius:4px;padding:14px;}
+.tia-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--cyan2);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.tia-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.tia-impact{font-size:13px;line-height:1.7;color:var(--text2);margin-bottom:10px;}
+.tia-impact p{margin-bottom:6px;}
+.stakeholders{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.stakeholder-tag{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;padding:3px 8px;border-radius:3px;background:var(--bg3);color:var(--muted);text-transform:uppercase;border:1px solid var(--border);}
+.reg-note{font-size:12px;color:var(--muted);font-style:italic;line-height:1.5;padding:8px 12px;border-left:2px solid var(--border2);margin-bottom:10px;}
+.action-box{display:flex;align-items:flex-start;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:12px 14px;}
+.action-icon{font-size:14px;flex-shrink:0;margin-top:1px;color:var(--cyan2);}
+.action-text{font-size:13px;color:var(--text2);line-height:1.5;}
+
+/* Hygiene */
+.hygiene-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;}
+.hygiene-item{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:4px;}
+.hygiene-status{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-top:1px;}
+.hs-warn{background:rgba(155,82,0,.1);color:var(--amber);}
+.hs-ok{background:rgba(15,92,46,.1);color:var(--green);}
+.hs-info{background:rgba(90,200,236,.1);color:var(--cyan2);}
+.hygiene-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px;}
+.hygiene-desc{font-size:11px;color:var(--muted);line-height:1.4;}
+
+/* Entity intelligence */
+.entity-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;}
+.entity-stat{border:1px solid var(--border);border-radius:6px;padding:18px 20px;background:var(--bg);display:flex;align-items:center;gap:14px;}
+.entity-stat-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.entity-stat-val{font-family:'Playfair Display',serif;font-size:28px;font-weight:400;color:var(--ink2);line-height:1;margin-bottom:2px;}
+.entity-stat-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}
+.entity-interpret{background:linear-gradient(135deg,var(--cyan3),var(--bg));border:1px solid var(--cyan4);border-radius:6px;padding:18px 22px;}
+.ei-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--cyan2);text-transform:uppercase;margin-bottom:10px;}
+.ei-body{font-size:13px;line-height:1.7;color:var(--text2);}
+.ei-highlight{margin-top:12px;font-family:'Playfair Display',serif;font-style:italic;font-size:14px;color:var(--cyan2);line-height:1.6;border-left:2px solid var(--cyan2);padding-left:14px;}
+
+/* Regulatory */
+.reg-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.reg-card{border:1px solid var(--border);border-radius:6px;padding:16px;background:var(--bg);}
+.reg-card-flag{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;}
+.reg-card-name{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px;line-height:1.3;}
+.reg-card-body{font-size:11px;color:var(--muted);line-height:1.5;}
+.reg-disclaimer{margin-top:14px;font-size:11px;font-style:italic;color:var(--muted);line-height:1.5;padding:10px 14px;border-left:2px solid var(--border2);}
+
+/* Conclusion */
+.conclusion-para{font-family:'Playfair Display',serif;font-size:16px;line-height:1.85;color:var(--text2);font-style:italic;}
+.conclusion-sign{margin-top:28px;display:flex;align-items:center;justify-content:space-between;padding-top:18px;border-top:1px solid var(--border);}
+.sign-brand{display:flex;align-items:center;gap:8px;}
+.sign-logo{font-size:14px;font-weight:300;letter-spacing:3px;text-transform:uppercase;color:var(--muted);}
+.sign-logo b{font-weight:700;color:var(--cyan2);}
+.sign-meta{text-align:right;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);line-height:1.6;text-transform:uppercase;}
+
+/* Footer */
+.report-footer{background:var(--ink2);padding:14px 42px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.rf-text{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(216,234,244,.25);text-transform:uppercase;}
+
+/* Print */
+@media print{
+  .report-footer{position:fixed;bottom:0;left:0;right:0;}
+  .section{page-break-inside:avoid;}
+}
+</style>
+</head>
+<body>
+
+<header class="report-header">
+  <div class="rh-logo">
+    <div class="rh-logo-mark">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <circle cx="9" cy="9" r="5.5" stroke="#90E0FF" stroke-width="1.2"/>
+        <line x1="9" y1="2" x2="9" y2="4" stroke="#90E0FF" stroke-width="1.2"/>
+        <line x1="9" y1="14" x2="9" y2="16" stroke="#90E0FF" stroke-width="1.2"/>
+        <line x1="2" y1="9" x2="4" y2="9" stroke="#90E0FF" stroke-width="1.2"/>
+        <line x1="14" y1="9" x2="16" y2="9" stroke="#90E0FF" stroke-width="1.2"/>
+        <rect x="7" y="6.5" width="1.6" height="5" rx=".8" fill="#90E0FF"/>
+        <rect x="9.4" y="6.5" width="1.6" height="5" rx=".8" fill="#90E0FF"/>
+        <line x1="7.8" y1="6.5" x2="9" y2="8" stroke="#90E0FF" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="11" y1="6.5" x2="9" y2="8" stroke="#90E0FF" stroke-width="1.3" stroke-linecap="round"/>
+        <circle cx="9" cy="9" r="1.5" fill="#90E0FF"/>
+      </svg>
+    </div>
+    <div class="rh-logo-text">MY<b>EVIEW</b></div>
+  </div>
+  <div class="rh-meta">
+    <div class="rh-doc-type">Cyber Trust Intelligence Report</div>
+    <div class="rh-entity">{{ org.name }} · {{ org.domain }}</div>
+    <div class="rh-date">Assessment Date: {{ score.computed_at.strftime('%B %Y') }} &nbsp;·&nbsp; Confidential &nbsp;·&nbsp; Single Use</div>
+  </div>
+</header>
+
+<div class="hero-section">
+  <svg style="position:absolute;right:42px;top:22px;opacity:.12;pointer-events:none;" width="160" height="160" viewBox="0 0 180 180" fill="none">
+    <circle cx="90" cy="90" r="70" stroke="#5AC8EC" stroke-width=".8" stroke-dasharray="3 5"/>
+    <circle cx="90" cy="90" r="52" stroke="#5AC8EC" stroke-width="1"/>
+    <circle cx="90" cy="90" r="34" stroke="#5AC8EC" stroke-width="1.2"/>
+    <line x1="90" y1="38" x2="90" y2="45" stroke="#5AC8EC" stroke-width="1.2"/>
+    <line x1="90" y1="135" x2="90" y2="142" stroke="#5AC8EC" stroke-width="1.2"/>
+    <line x1="38" y1="90" x2="45" y2="90" stroke="#5AC8EC" stroke-width="1.2"/>
+    <line x1="135" y1="90" x2="142" y2="90" stroke="#5AC8EC" stroke-width="1.2"/>
+    <rect x="84" y="79" width="2.5" height="16" rx="1.2" fill="#5AC8EC"/>
+    <rect x="93.5" y="79" width="2.5" height="16" rx="1.2" fill="#5AC8EC"/>
+    <line x1="85.25" y1="79" x2="90" y2="85" stroke="#5AC8EC" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="94.75" y1="79" x2="90" y2="85" stroke="#5AC8EC" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="90" cy="90" r="5" fill="#5AC8EC"/>
+    <circle cx="90" cy="90" r="2.2" fill="#C0F0FF"/>
+  </svg>
+
+  <div class="hero-top">
+    <div class="hero-score-block">
+      <div class="hero-score-label">Myescore™</div>
+      <div class="hero-score-num">{{ score.overall }}<span> / 1000</span></div>
+      <div class="hero-shield-row">
+        <div class="hero-shield-badge">
+          <span class="shield-icon">🛡️</span>
+          <span class="shield-name">{{ score.shield_label }} — {{ score.outlook }}</span>
+        </div>
+      </div>
+      <div class="shield-ladder" style="margin-top:14px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.25);margin-right:6px;text-transform:uppercase;">I</div>
+        {% for step in range(1, 6) %}
+        <div class="shield-step" style="width:28px;{% if step == score.tier %}background:#5AC8EC;{% elif step < score.tier %}background:rgba(90,200,236,.45);{% else %}background:rgba(90,200,236,.15);{% endif %}"></div>
+        {% endfor %}
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.25);margin-left:6px;text-transform:uppercase;">V</div>
+        <div style="margin-left:10px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;color:rgba(90,200,236,.6);text-transform:uppercase;">← You are here</div>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="outlook-badge">
+        <div>
+          <div class="outlook-label">Trust Outlook</div>
+          <div class="outlook-val">{{ score.outlook }}</div>
+        </div>
+        <div class="outlook-dot"></div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.25);text-transform:uppercase;margin-bottom:4px;">Assessment Scope</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.5);">{{ org.domain }}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.2);margin-top:4px;text-transform:uppercase;">Passive Intelligence · Zero Intrusion</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">Sector Position</div>
+  <div class="benchmark-grid">
+    <div class="bench-card">
+      <div class="bench-title">Sector Percentile</div>
+      <div class="dist-marker">▲ {{ org.name }}</div>
+      <div class="dist-chart">
+        {% for bar in range(1, 21) %}
+        <div class="dist-bar {% if bar <= (benchmarks.sector / 5)|int %}active{% endif %} {% if bar == (benchmarks.sector / 5)|int %}you{% endif %}" style="height:{{ 12 + (loop.index % 5) * 4 }}px"></div>
+        {% endfor %}
+      </div>
+      <div class="bench-bar-track">
+        <div class="bench-bar-fill" style="width:{{ benchmarks.sector }}%"></div>
+      </div>
+      <div class="bench-percentile">{{ benchmarks.sector }}<span class="bench-pct-sym">%</span></div>
+      <div class="bench-label">Sector peer group</div>
+      <div class="bench-context">Top {{ (100 - benchmarks.sector)|int }}% of assessed peers</div>
+    </div>
+    <div class="bench-card">
+      <div class="bench-title">National Percentile</div>
+      <div class="dist-marker">▲ {{ org.name }}</div>
+      <div class="dist-chart">
+        {% for bar in range(1, 21) %}
+        <div class="dist-bar {% if bar <= (benchmarks.national / 5)|int %}active{% endif %} {% if bar == (benchmarks.national / 5)|int %}you{% endif %}" style="height:{{ 12 + (loop.index % 5) * 4 }}px"></div>
+        {% endfor %}
+      </div>
+      <div class="bench-bar-track">
+        <div class="bench-bar-fill" style="width:{{ benchmarks.national }}%"></div>
+      </div>
+      <div class="bench-percentile">{{ benchmarks.national }}<span class="bench-pct-sym">%</span></div>
+      <div class="bench-label">All assessed institutions — Cameroon</div>
+      <div class="bench-context">Top {{ (100 - benchmarks.national)|int }}% nationally</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">Executive Summary</div>
+  <p class="exec-para">
+    {{ org.name }} ({{ org.domain }}) currently scores <strong>{{ score.overall }} / 1000</strong>, placing it at
+    <strong>{{ score.shield_label }}</strong> with a trust outlook of <strong>{{ score.outlook }}</strong>.
+    {% if risk_factors %}
+    The assessment identified {{ risk_factors|length }} priority trust risk factor{{ 's' if risk_factors|length > 1 else '' }} requiring attention,
+    primarily in {{ risk_factors[0].name }}{% if risk_factors|length > 1 %} and {{ risk_factors[1].name }}{% endif %}.
+    {% else %}
+    No priority risk factors were identified; the external posture reflects strong configuration hygiene across assessed vectors.
+    {% endif %}
+    Entity intelligence did not surface elevated-risk relationships or suspicious infrastructure associations during this assessment period.
+  </p>
+</div>
+
+{% if risk_factors %}
+<div class="section">
+  <div class="section-label">Priority Trust Risk Factors</div>
+  {% for risk in risk_factors %}
+  <div class="risk-card">
+    <div class="risk-card-header">
+      <span class="risk-severity sev-{{ risk.severity }}">{{ risk.severity|upper }}</span>
+      <span class="risk-title">{{ risk.name }}</span>
+    </div>
+    <div class="risk-body">
+      {% if risk.tia.rendered_text %}
+      {% set obs = risk.tia.rendered_text.technical_observation %}
+      {% if obs %}
+      <div class="risk-section-label">Technical Observation</div>
+      <div class="risk-obs">{{ obs }}</div>
+      {% endif %}
+
+      <div class="risk-section-label">Trust Impact Analysis (TIA)</div>
+      <div class="tia-block">
+        {% set impact = risk.tia.rendered_text.business_impact %}
+        {% if impact %}
+        <div class="tia-label">Business Impact</div>
+        <div class="tia-impact">{{ impact }}</div>
+        {% endif %}
+
+        {% set stakeholders = risk.tia.rendered_text.stakeholders_affected %}
+        {% if stakeholders %}
+        <div class="tia-label">Stakeholders Affected</div>
+        <div class="stakeholders">
+          {% for s in stakeholders %}
+          <span class="stakeholder-tag">{{ s }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% set reg = risk.tia.rendered_text.regulatory_relevance %}
+        {% if reg %}
+        <div class="tia-label">Regulatory Relevance</div>
+        <div class="reg-note">{{ reg }}</div>
+        {% endif %}
+
+        {% set action = risk.tia.rendered_text.recommended_action %}
+        {% if action %}
+        <div class="tia-label">Recommended Action</div>
+        <div class="action-box">
+          <span class="action-icon">→</span>
+          <span class="action-text">{{ action }}</span>
+        </div>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="risk-obs">No detailed TIA available for this risk factor.</div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="section">
+  <div class="section-label">Trust Hygiene Observations</div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.6;">
+    The following observations are grouped hygiene signals. They do not constitute priority trust risk factors but indicate incremental attention areas.
+  </p>
+  <div class="hygiene-grid">
+    {% for item in hygiene %}
+    <div class="hygiene-item">
+      <div class="hygiene-status hs-{{ item.status }}">
+        {% if item.status == 'ok' %}✓{% elif item.status == 'warn' %}!{% else %}→{% endif %}
+      </div>
+      <div>
+        <div class="hygiene-title">{{ item.title }}</div>
+        <div class="hygiene-desc">{{ item.description }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">Entity Intelligence</div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
+    Observable relationships associated with {{ org.name }}'s digital footprint. Entity intelligence reflects organizational visibility from an external intelligence perspective.
+  </p>
+
+  <div style="font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:14px;">Organizational Visibility</div>
+  <div class="entity-grid">
+    <div class="entity-stat">
+      <div class="entity-stat-icon" style="background:rgba(0,123,168,.08);">🔗</div>
+      <div>
+        <div class="entity-stat-val">{{ entity_counts.associated_assets }}</div>
+        <div class="entity-stat-label">Associated digital assets identified</div>
+      </div>
+    </div>
+    <div class="entity-stat">
+      <div class="entity-stat-icon" style="background:rgba(0,123,168,.08);">⚙️</div>
+      <div>
+        <div class="entity-stat-val">{{ entity_counts.service_dependencies }}</div>
+        <div class="entity-stat-label">Externally observable service dependencies</div>
+      </div>
+    </div>
+    <div class="entity-stat">
+      <div class="entity-stat-icon" style="background:rgba(15,92,46,.08);">✓</div>
+      <div>
+        <div class="entity-stat-val">{{ entity_counts.risk_related_entities }}</div>
+        <div class="entity-stat-label">Elevated-risk related entities observed</div>
+      </div>
+    </div>
+    <div class="entity-stat">
+      <div class="entity-stat-icon" style="background:rgba(15,92,46,.08);">✓</div>
+      <div>
+        <div class="entity-stat-val">{{ entity_counts.suspicious_relationships }}</div>
+        <div class="entity-stat-label">Suspicious infrastructure relationships</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entity-interpret">
+    <div class="ei-label">Business Interpretation</div>
+    <div class="ei-body">
+      Current observations suggest a {% if entity_counts.risk_related_entities + entity_counts.suspicious_relationships == 0 %}relatively clean and stable{% else %}mixed{% endif %} digital identity profile for {{ org.name }}.
+      {% if entity_counts.risk_related_entities + entity_counts.suspicious_relationships == 0 %}
+      No significant external relationship concerns were identified during this assessment.
+      {% else %}
+      A small number of external relationship signals warrant monitoring.
+      {% endif %}
+      The observable footprint is consistent with an institution of this size and operational model.
+    </div>
+    <div class="ei-highlight">Entity relationships often influence inherited risk, supplier exposure, and reputational association. Maintaining a clean entity profile is a meaningful positive signal as the institution's digital presence grows.</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">Regulatory Intelligence Overview</div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.6;">
+    Regulatory areas that may be relevant to observations in this report. This section does not constitute legal advice.
+  </p>
+  <div class="reg-grid">
+    <div class="reg-card">
+      <div class="reg-card-flag">COBAC</div>
+      <div class="reg-card-name">Operational Risk &amp; Information Systems</div>
+      <div class="reg-card-body">COBAC operational risk management obligations establish expectations for information system integrity and access controls relevant to email authentication and third-party dependency observations.</div>
+    </div>
+    <div class="reg-card">
+      <div class="reg-card-flag">ANTIC</div>
+      <div class="reg-card-name">Cybersecurity &amp; Electronic Communications</div>
+      <div class="reg-card-body">Law No. 2010/012 on Cybersecurity and Cybercrime establishes baseline obligations for system integrity and electronic communications security applicable to the observations in this report.</div>
+    </div>
+    <div class="reg-card">
+      <div class="reg-card-flag">Law No. 2024/017</div>
+      <div class="reg-card-name">Data Protection — June 2026 Deadline</div>
+      <div class="reg-card-body">Cameroon's Data Protection Law imposes cybersecurity and privacy protocol obligations on institutions processing member or customer data. Compliance deadline: 23 June 2026.</div>
+    </div>
+  </div>
+  <div class="reg-disclaimer">MYEVIEW identifies external exposure signals that may indicate areas warranting compliance review. All regulatory determinations should be made in consultation with qualified legal and compliance advisors.</div>
+</div>
+
+<div class="section">
+  <div class="section-label">Conclusion</div>
+  <p class="conclusion-para">
+    {{ org.name }} presents a {% if score.tier >= 4 %}strong{% else %}developing{% endif %} digital trust profile at <strong>{{ score.shield_label }}</strong>.
+    {% if risk_factors %}
+    The priority risk factors identified are addressable through configuration-level interventions that require no significant infrastructure investment, and their resolution would materially advance the institution's trust standing.
+    {% endif %}
+    The entity intelligence profile is {% if entity_counts.risk_related_entities + entity_counts.suspicious_relationships == 0 %}clean{% else %}largely clean{% endif %} and the observable posture reflects an institution that takes its external digital responsibilities seriously. The Trust Outlook remains {{ score.outlook }}.
+  </p>
+
+  <div class="conclusion-sign">
+    <div class="sign-brand">
+      <div style="margin-right:16px;">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect width="28" height="28" rx="6" fill="#0A1628"/>
+          <circle cx="14" cy="14" r="7" stroke="#5AC8EC" stroke-width="1.2" fill="none"/>
+          <line x1="14" y1="6" x2="14" y2="8" stroke="#5AC8EC" stroke-width="1.2"/>
+          <line x1="14" y1="20" x2="14" y2="22" stroke="#5AC8EC" stroke-width="1.2"/>
+          <line x1="6" y1="14" x2="8" y2="14" stroke="#5AC8EC" stroke-width="1.2"/>
+          <line x1="20" y1="14" x2="22" y2="14" stroke="#5AC8EC" stroke-width="1.2"/>
+          <rect x="12" y="10.5" width="1.5" height="6" rx=".75" fill="#5AC8EC"/>
+          <rect x="14.5" y="10.5" width="1.5" height="6" rx=".75" fill="#5AC8EC"/>
+          <line x1="12.75" y1="10.5" x2="14" y2="12" stroke="#5AC8EC" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="15.25" y1="10.5" x2="14" y2="12" stroke="#5AC8EC" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="14" cy="14" r="2" fill="#5AC8EC"/>
+        </svg>
+      </div>
+      <div class="sign-logo">MY<b>EVIEW</b></div>
+    </div>
+    <div class="sign-meta">
+      Myescore™ {{ score.overall }} / 1000 &nbsp;·&nbsp; {{ score.shield_label }}<br/>
+      Trust Outlook: {{ score.outlook }} &nbsp;·&nbsp; {{ score.computed_at.strftime('%B %Y') }}<br/>
+      Africa's Compliance-Native External Intelligence Platform
+    </div>
+  </div>
+</div>
+
+<footer class="report-footer">
+  <div class="rf-text">© {{ score.computed_at.year }} MYEVIEW · Confidential · Single Use · {{ org.name }}</div>
+  <div class="rf-text">What does the Internet expose about you?</div>
+  <div class="rf-text">myeview.com</div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,311 @@
+ruleset_version: "v1"
+max_possible_score: 1000
+incomplete_threshold_ratio: 0.15
+
+categories:
+  - key: email_trust
+    name: "Email Trust & Authentication"
+    points_total: 140
+    scored: true
+    vectors:
+      - key: spf_presence
+        points_budget: 30
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == FAIL
+            deduction: -30
+          - match: true
+            deduction: 0
+
+      - key: dkim_presence
+        points_budget: 30
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == FAIL
+            deduction: -30
+          - match: true
+            deduction: 0
+
+      - key: dmarc_enforcement
+        points_budget: 80
+        tiers:
+          - match: meta.dmarc_policy == reject
+            deduction: 0
+          - match: meta.dmarc_policy == quarantine
+            deduction: -30
+          - match: meta.dmarc_policy == none
+            deduction: -60
+          - match: true
+            deduction: -80
+
+  - key: domain_governance
+    name: "Digital Identity & Domain Governance"
+    points_total: 90
+    scored: true
+    vectors:
+      - key: domain_age
+        points_budget: 30
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -15
+          - match: state == FAIL
+            deduction: -30
+          - match: true
+            deduction: 0
+
+      - key: domain_expiration
+        points_budget: 35
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -15
+          - match: state == FAIL
+            deduction: -35
+          - match: true
+            deduction: 0
+
+      - key: dnssec_adoption
+        points_budget: 25
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -10
+          - match: state == FAIL
+            deduction: -25
+          - match: true
+            deduction: 0
+
+  - key: infrastructure_security
+    name: "Infrastructure Security"
+    points_total: 180
+    scored: true
+    vectors:
+      - key: tls_version
+        points_budget: 40
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -10
+          - match: state == FAIL
+            deduction: -40
+          - match: true
+            deduction: 0
+
+      - key: certificate_health
+        points_budget: 45
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -20
+          - match: state == FAIL
+            deduction: -45
+          - match: true
+            deduction: 0
+
+      - key: security_headers
+        points_budget: 40
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -15
+          - match: state == FAIL
+            deduction: -40
+          - match: true
+            deduction: 0
+
+      - key: https_enforcement
+        points_budget: 30
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -15
+          - match: state == FAIL
+            deduction: -30
+          - match: true
+            deduction: 0
+
+      - key: exposed_admin
+        points_budget: 25
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -10
+          - match: state == FAIL
+            deduction: -25
+          - match: true
+            deduction: 0
+
+  - key: technology_currency
+    name: "Technology Currency"
+    points_total: 90
+    scored: true
+    vectors:
+      - key: tech_obsolescence
+        points_budget: 35
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -15
+          - match: state == FAIL
+            deduction: -35
+          - match: true
+            deduction: 0
+
+      - key: software_version
+        points_budget: 35
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -15
+          - match: state == FAIL
+            deduction: -35
+          - match: true
+            deduction: 0
+
+      - key: legacy_service
+        points_budget: 20
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -8
+          - match: state == FAIL
+            deduction: -20
+          - match: true
+            deduction: 0
+
+  - key: threat_intelligence
+    name: "Threat Intelligence Exposure"
+    points_total: 270
+    scored: true
+    vectors:
+      - key: malware
+        points_budget: 60
+        tiers:
+          - match: meta.activity == none
+            deduction: 0
+          - match: meta.activity == historical
+            deduction: -20
+          - match: state == FAIL
+            deduction: -60
+          - match: true
+            deduction: 0
+
+      - key: phishing
+        points_budget: 60
+        tiers:
+          - match: meta.activity == none
+            deduction: 0
+          - match: meta.activity == historical
+            deduction: -20
+          - match: state == FAIL
+            deduction: -60
+          - match: true
+            deduction: 0
+
+      - key: spam_blacklist
+        points_budget: 55
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -20
+          - match: state == FAIL
+            deduction: -55
+          - match: true
+            deduction: 0
+
+      - key: botnet
+        points_budget: 65
+        tiers:
+          - match: meta.activity == none
+            deduction: 0
+          - match: meta.activity == historical
+            deduction: -25
+          - match: state == FAIL
+            deduction: -65
+          - match: true
+            deduction: 0
+
+      - key: blacklist_aggregate
+        points_budget: 30
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -15
+          - match: state == FAIL
+            deduction: -30
+          - match: true
+            deduction: 0
+
+  - key: asset_visibility
+    name: "Asset Visibility & Attack Surface"
+    points_total: 140
+    scored: true
+    vectors:
+      - key: asset_count
+        points_budget: 40
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -15
+          - match: state == FAIL
+            deduction: -40
+          - match: true
+            deduction: 0
+
+      - key: shadow_assets
+        points_budget: 55
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -25
+          - match: state == FAIL
+            deduction: -55
+          - match: true
+            deduction: 0
+
+      - key: unmanaged_assets
+        points_budget: 45
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -20
+          - match: state == FAIL
+            deduction: -45
+          - match: true
+            deduction: 0
+
+  - key: ecosystem_trust
+    name: "Ecosystem Trust (Third-Party Dependency)"
+    points_total: 90
+    scored: true
+    vectors:
+      - key: sri_adoption
+        points_budget: 90
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -35
+          - match: state == FAIL
+            deduction: -90
+          - match: true
+            deduction: 0

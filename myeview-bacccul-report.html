@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>MYEVIEW — Cyber Trust Intelligence Report · BACCCUL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#F7F5F1;
+  --bg2:#F0EDE8;
+  --bg3:#E8E4DC;
+  --ink:#0D1117;
+  --ink2:#1A2332;
+  --navy:#0A1628;
+  --cyan:#007BA8;
+  --cyan2:#005F82;
+  --cyan3:#E8F4FA;
+  --cyan4:#C8E8F4;
+  --gold:#8B6914;
+  --gold2:#C49A1E;
+  --gold3:#FDF6E3;
+  --gold4:#F5E9C0;
+  --red:#B8200A;
+  --red2:#8C1A08;
+  --red3:#FDECEA;
+  --amber:#9A5200;
+  --amber2:#F5E8D0;
+  --green:#0F5C2E;
+  --green2:#E8F5EE;
+  --muted:#6B7A8D;
+  --border:#D8D0C4;
+  --border2:#C8BFB0;
+  --text:#1C2530;
+  --text2:#3A4A5C;
+  --shield:#1A5C8A;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:15px;scroll-behavior:smooth;}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  max-width:960px;
+  margin:0 auto;
+  padding:0;
+}
+
+/* grain overlay */
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
+  opacity:.02;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:200px;
+}
+
+/* ─── REPORT HEADER ─── */
+.report-header{
+  background:var(--navy);
+  padding:28px 48px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:3px solid var(--cyan2);
+}
+.rh-logo{
+  display:flex;align-items:center;gap:10px;
+}
+.rh-logo-mark{
+  width:32px;height:32px;border-radius:6px;
+  background:var(--cyan2);
+  display:flex;align-items:center;justify-content:center;
+}
+.rh-logo-text{
+  font-family:'DM Sans',sans-serif;
+  font-size:20px;font-weight:300;letter-spacing:4px;
+  text-transform:uppercase;color:#D8EAF4;
+}
+.rh-logo-text b{font-weight:700;color:#5AC8EC;}
+.rh-meta{text-align:right;}
+.rh-doc-type{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:3px;color:rgba(216,234,244,.5);
+  text-transform:uppercase;margin-bottom:4px;
+}
+.rh-entity{
+  font-family:'DM Sans',sans-serif;
+  font-size:14px;font-weight:600;color:#D8EAF4;
+  letter-spacing:.3px;
+}
+.rh-date{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;color:rgba(216,234,244,.35);
+  letter-spacing:1px;margin-top:2px;
+}
+
+/* ─── SECTION WRAPPER ─── */
+.section{
+  padding:40px 48px;
+  border-bottom:1px solid var(--border);
+}
+.section:last-child{border-bottom:none;}
+.section-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:4px;color:var(--muted);
+  text-transform:uppercase;margin-bottom:16px;
+  display:flex;align-items:center;gap:10px;
+}
+.section-label::after{content:'';width:24px;height:1px;background:var(--border2);}
+
+/* ─── HERO SCORE SECTION ─── */
+.hero-section{
+  background:linear-gradient(160deg,var(--navy) 0%,#0D2040 60%,#0A1830 100%);
+  padding:48px 48px 40px;
+  position:relative;overflow:hidden;
+}
+.hero-section::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(90,200,236,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(90,200,236,.03) 1px,transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+}
+
+.hero-top{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:40px;position:relative;z-index:2;
+}
+.hero-score-block{}
+.hero-score-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:5px;color:rgba(90,200,236,.7);
+  text-transform:uppercase;margin-bottom:8px;
+}
+.hero-score-num{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(64px,10vw,108px);
+  font-weight:400;line-height:1;letter-spacing:-3px;
+  color:#FFFFFF;
+}
+.hero-score-num span{
+  font-size:.45em;font-weight:400;
+  color:rgba(255,255,255,.4);letter-spacing:0;
+}
+.hero-shield-row{
+  display:flex;align-items:center;gap:14px;margin-top:14px;
+}
+.hero-shield-badge{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(90,200,236,.12);
+  border:1px solid rgba(90,200,236,.3);
+  border-radius:4px;padding:7px 14px;
+}
+.shield-icon{font-size:18px;}
+.shield-name{
+  font-family:'DM Sans',sans-serif;
+  font-size:14px;font-weight:700;color:#5AC8EC;
+  letter-spacing:.3px;
+}
+.hero-trust-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.35);
+  text-transform:uppercase;
+}
+.hero-status-text{
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;font-weight:500;color:rgba(255,255,255,.7);
+}
+
+/* outlook + eye right side */
+.hero-right{
+  display:flex;flex-direction:column;align-items:flex-end;gap:16px;
+  position:relative;z-index:2;
+}
+.outlook-badge{
+  display:flex;align-items:center;gap:8px;
+  border:1px solid rgba(90,200,236,.25);
+  border-radius:4px;padding:10px 16px;
+  background:rgba(90,200,236,.06);
+}
+.outlook-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:3px;color:rgba(90,200,236,.6);
+  text-transform:uppercase;
+}
+.outlook-val{
+  font-family:'DM Sans',sans-serif;
+  font-size:16px;font-weight:700;color:#5AC8EC;
+  margin-top:2px;
+}
+.outlook-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:#2ECC71;
+  box-shadow:0 0 8px rgba(46,204,113,.6);
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* eye SVG in hero */
+.hero-eye{
+  width:80px;height:80px;opacity:.5;
+}
+
+/* shield tier ladder */
+.shield-ladder{
+  display:flex;align-items:center;gap:4px;
+  position:relative;z-index:2;
+}
+.shield-step{
+  height:6px;border-radius:2px;
+  transition:all .3s;
+}
+
+/* ─── BENCHMARK SECTION ─── */
+.benchmark-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:20px;margin-top:8px;
+}
+.bench-card{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:6px;padding:24px;
+  position:relative;overflow:hidden;
+}
+.bench-title{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:3px;color:var(--muted);
+  text-transform:uppercase;margin-bottom:16px;
+}
+.bench-bar-track{
+  height:8px;background:var(--bg3);
+  border-radius:4px;margin-bottom:12px;
+  position:relative;overflow:hidden;
+}
+.bench-bar-fill{
+  height:100%;border-radius:4px;
+  background:linear-gradient(90deg,var(--cyan2),#5AC8EC);
+  position:relative;
+}
+.bench-bar-fill::after{
+  content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);
+  width:12px;height:12px;border-radius:50%;
+  background:#5AC8EC;border:2px solid var(--bg);
+  box-shadow:0 0 8px rgba(90,200,236,.5);
+}
+.bench-percentile{
+  font-family:'Playfair Display',serif;
+  font-size:38px;font-weight:400;
+  letter-spacing:-1px;color:var(--ink2);
+  line-height:1;margin-bottom:4px;
+}
+.bench-pct-sym{
+  font-size:.5em;font-weight:400;
+  color:var(--muted);
+}
+.bench-label{
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;color:var(--muted);
+}
+.bench-context{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:1px;
+  color:var(--cyan2);margin-top:8px;
+  text-transform:uppercase;
+}
+
+/* distribution mini chart */
+.dist-chart{
+  height:40px;display:flex;align-items:flex-end;
+  gap:2px;margin-bottom:8px;
+}
+.dist-bar{
+  flex:1;border-radius:2px 2px 0 0;
+  background:var(--bg3);
+  transition:background .2s;
+}
+.dist-bar.active{background:var(--cyan2);}
+.dist-bar.you{background:#C49A1E;}
+.dist-marker{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;letter-spacing:1px;color:var(--gold);
+  text-align:center;margin-bottom:4px;
+}
+
+/* ─── EXEC SUMMARY ─── */
+.exec-para{
+  font-family:'Playfair Display',serif;
+  font-size:16px;line-height:1.85;
+  color:var(--text2);font-weight:400;
+  font-style:italic;
+  border-left:3px solid var(--cyan2);
+  padding-left:24px;
+}
+
+/* ─── TRUST RISK FACTORS ─── */
+.risk-card{
+  border:1px solid var(--border);
+  border-radius:6px;margin-bottom:16px;
+  overflow:hidden;
+}
+.risk-card-header{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 20px;cursor:pointer;
+  user-select:none;transition:background .15s;
+}
+.risk-card-header:hover{background:var(--bg2);}
+.risk-severity{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:2px;font-weight:600;
+  text-transform:uppercase;padding:4px 10px;
+  border-radius:3px;flex-shrink:0;
+}
+.sev-high{background:rgba(155,82,0,.12);color:var(--amber);border:1px solid rgba(155,82,0,.2);}
+.sev-critical{background:rgba(184,32,10,.1);color:var(--red);border:1px solid rgba(184,32,10,.2);}
+.sev-medium{background:rgba(15,92,46,.1);color:var(--green);border:1px solid rgba(15,92,46,.15);}
+.risk-title{
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;font-weight:600;color:var(--ink);flex:1;
+}
+.risk-chevron{
+  font-size:12px;color:var(--muted);
+  transition:transform .25s;flex-shrink:0;
+}
+.risk-card.open .risk-chevron{transform:rotate(180deg);}
+
+.risk-body{
+  display:none;
+  padding:0 20px 24px;
+  border-top:1px solid var(--border);
+}
+.risk-card.open .risk-body{display:block;}
+
+.risk-section-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:3px;color:var(--muted);
+  text-transform:uppercase;margin:16px 0 6px;
+}
+.risk-obs{
+  font-size:13px;line-height:1.65;color:var(--text2);
+  padding:10px 14px;background:var(--bg2);
+  border-left:2px solid var(--border2);border-radius:0 3px 3px 0;
+}
+
+.tia-block{
+  margin-top:4px;
+  background:linear-gradient(135deg,#F0EDE8,#EAE6DF);
+  border:1px solid var(--border2);
+  border-radius:4px;padding:16px;
+}
+.tia-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:3px;color:var(--cyan2);
+  text-transform:uppercase;margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.tia-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.tia-impact{
+  font-size:13px;line-height:1.7;color:var(--text2);margin-bottom:12px;
+}
+.tia-impact p{margin-bottom:6px;}
+
+.stakeholders{
+  display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;
+}
+.stakeholder-tag{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:1px;
+  padding:3px 8px;border-radius:3px;
+  background:var(--bg3);color:var(--muted);
+  text-transform:uppercase;border:1px solid var(--border);
+}
+
+.reg-note{
+  font-size:12px;color:var(--muted);
+  font-style:italic;line-height:1.5;
+  padding:8px 12px;border-left:2px solid var(--border2);
+  margin-bottom:12px;
+}
+
+.action-box{
+  display:flex;align-items:flex-start;gap:10px;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:4px;padding:12px 14px;
+}
+.action-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.action-text{font-size:13px;color:var(--text2);line-height:1.5;}
+
+/* ─── HYGIENE TABLE ─── */
+.hygiene-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:12px;margin-top:8px;
+}
+.hygiene-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:14px 16px;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:4px;
+}
+.hygiene-status{
+  width:20px;height:20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;flex-shrink:0;margin-top:1px;
+}
+.hs-warn{background:rgba(155,82,0,.1);color:var(--amber);}
+.hs-ok{background:rgba(15,92,46,.1);color:var(--green);}
+.hs-info{background:rgba(90,200,236,.1);color:var(--cyan2);}
+.hygiene-text{}
+.hygiene-title{
+  font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px;
+}
+.hygiene-desc{font-size:11px;color:var(--muted);line-height:1.4;}
+
+/* ─── ENTITY INTELLIGENCE ─── */
+.entity-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;
+}
+.entity-stat{
+  border:1px solid var(--border);border-radius:6px;
+  padding:20px 22px;background:var(--bg);
+  display:flex;align-items:center;gap:14px;
+}
+.entity-stat-icon{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.entity-stat-val{
+  font-family:'Playfair Display',serif;
+  font-size:28px;font-weight:400;color:var(--ink2);
+  line-height:1;margin-bottom:2px;
+}
+.entity-stat-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:1px;color:var(--muted);
+  text-transform:uppercase;
+}
+.entity-interpret{
+  background:linear-gradient(135deg,var(--cyan3),var(--bg));
+  border:1px solid var(--cyan4);border-radius:6px;
+  padding:20px 24px;
+}
+.ei-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:3px;color:var(--cyan2);
+  text-transform:uppercase;margin-bottom:10px;
+}
+.ei-body{
+  font-size:13px;line-height:1.7;color:var(--text2);
+}
+.ei-highlight{
+  margin-top:12px;
+  font-family:'Playfair Display',serif;
+  font-style:italic;font-size:14px;
+  color:var(--cyan2);line-height:1.6;
+  border-left:2px solid var(--cyan2);
+  padding-left:14px;
+}
+
+/* ─── REGULATORY OVERVIEW ─── */
+.reg-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.reg-card{
+  border:1px solid var(--border);border-radius:6px;
+  padding:18px;background:var(--bg);
+}
+.reg-card-flag{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;letter-spacing:2px;color:var(--gold);
+  text-transform:uppercase;margin-bottom:8px;
+}
+.reg-card-name{
+  font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px;
+  line-height:1.3;
+}
+.reg-card-body{
+  font-size:11px;color:var(--muted);line-height:1.5;
+}
+.reg-disclaimer{
+  margin-top:16px;font-size:11px;font-style:italic;
+  color:var(--muted);line-height:1.5;
+  padding:10px 14px;border-left:2px solid var(--border2);
+}
+
+/* ─── CONCLUSION ─── */
+.conclusion-para{
+  font-family:'Playfair Display',serif;
+  font-size:16px;line-height:1.85;
+  color:var(--text2);font-style:italic;
+}
+.conclusion-sign{
+  margin-top:32px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:20px;border-top:1px solid var(--border);
+}
+.sign-brand{
+  display:flex;align-items:center;gap:8px;
+}
+.sign-logo{
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:300;
+  letter-spacing:3px;text-transform:uppercase;color:var(--muted);
+}
+.sign-logo b{font-weight:700;color:var(--cyan2);}
+.sign-meta{
+  text-align:right;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:1px;color:var(--muted);
+  line-height:1.6;text-transform:uppercase;
+}
+
+/* ─── FOOTER ─── */
+.report-footer{
+  background:var(--ink2);
+  padding:16px 48px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:8px;
+}
+.rf-text{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:2px;
+  color:rgba(216,234,244,.25);text-transform:uppercase;
+}
+
+/* ─── ANIMATIONS ─── */
+@keyframes revealUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.reveal{animation:revealUp .6s ease forwards;opacity:0;}
+.r1{animation-delay:.05s;}.r2{animation-delay:.15s;}.r3{animation-delay:.25s;}
+.r4{animation-delay:.35s;}.r5{animation-delay:.45s;}.r6{animation-delay:.55s;}
+
+@keyframes countUp{from{opacity:0;}to{opacity:1;}}
+.count{animation:countUp .8s .3s ease both;}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:700px){
+  .report-header,.section,.hero-section{padding-left:24px;padding-right:24px;}
+  .hero-top{flex-direction:column;gap:24px;}
+  .hero-right{align-items:flex-start;}
+  .benchmark-grid,.entity-grid,.hygiene-grid,.reg-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ REPORT HEADER ═══════════════════════════════════════════════════ -->
+<header class="report-header">
+  <div class="rh-logo">
+    <div class="rh-logo-mark">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <circle cx="9" cy="9" r="5.5" stroke="#90E0FF" stroke-width="1.2"/>
+        <line x1="9" y1="2" x2="9" y2="4" stroke="#90E0FF" stroke-width="1.2"/>
+        <line x1="9" y1="14" x2="9" y2="16" stroke="#90E0FF" stroke-width="1.2"/>
+        <line x1="2" y1="9" x2="4" y2="9" stroke="#90E0FF" stroke-width="1.2"/>
+        <line x1="14" y1="9" x2="16" y2="9" stroke="#90E0FF" stroke-width="1.2"/>
+        <rect x="7" y="6.5" width="1.6" height="5" rx=".8" fill="#90E0FF"/>
+        <rect x="9.4" y="6.5" width="1.6" height="5" rx=".8" fill="#90E0FF"/>
+        <line x1="7.8" y1="6.5" x2="9" y2="8" stroke="#90E0FF" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="11" y1="6.5" x2="9" y2="8" stroke="#90E0FF" stroke-width="1.3" stroke-linecap="round"/>
+        <circle cx="9" cy="9" r="1.5" fill="#90E0FF"/>
+      </svg>
+    </div>
+    <div class="rh-logo-text">MY<b>EVIEW</b></div>
+  </div>
+  <div class="rh-meta">
+    <div class="rh-doc-type">Cyber Trust Intelligence Report</div>
+    <div class="rh-entity">BACCCUL — Bamenda Community Credit Union League</div>
+    <div class="rh-date">Assessment Date: June 2026 &nbsp;·&nbsp; Confidential &nbsp;·&nbsp; Single Use</div>
+  </div>
+</header>
+
+<!-- ═══ HERO SCORE ═══════════════════════════════════════════════════════ -->
+<div class="hero-section">
+
+  <!-- scan rings -->
+  <svg style="position:absolute;right:48px;top:24px;opacity:.15;pointer-events:none;" width="180" height="180" viewBox="0 0 180 180" fill="none">
+    <circle cx="90" cy="90" r="70" stroke="#5AC8EC" stroke-width=".8" stroke-dasharray="3 5"/>
+    <circle cx="90" cy="90" r="52" stroke="#5AC8EC" stroke-width="1"/>
+    <circle cx="90" cy="90" r="34" stroke="#5AC8EC" stroke-width="1.2"/>
+    <line x1="90" y1="38" x2="90" y2="45" stroke="#5AC8EC" stroke-width="1.2"/>
+    <line x1="90" y1="135" x2="90" y2="142" stroke="#5AC8EC" stroke-width="1.2"/>
+    <line x1="38" y1="90" x2="45" y2="90" stroke="#5AC8EC" stroke-width="1.2"/>
+    <line x1="135" y1="90" x2="142" y2="90" stroke="#5AC8EC" stroke-width="1.2"/>
+    <rect x="84" y="79" width="2.5" height="16" rx="1.2" fill="#5AC8EC"/>
+    <rect x="93.5" y="79" width="2.5" height="16" rx="1.2" fill="#5AC8EC"/>
+    <line x1="85.25" y1="79" x2="90" y2="85" stroke="#5AC8EC" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="94.75" y1="79" x2="90" y2="85" stroke="#5AC8EC" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="90" cy="90" r="5" fill="#5AC8EC"/>
+    <circle cx="90" cy="90" r="2.2" fill="#C0F0FF"/>
+  </svg>
+
+  <div class="hero-top">
+    <div class="hero-score-block reveal r1">
+      <div class="hero-score-label">Myescore™</div>
+      <div class="hero-score-num count">860.42<span> / 1000</span></div>
+      <div class="hero-shield-row">
+        <div class="hero-shield-badge">
+          <span class="shield-icon">🛡️</span>
+          <span class="shield-name">Shield III — Above Average Digital Trust</span>
+        </div>
+      </div>
+      <!-- shield ladder -->
+      <div class="shield-ladder" style="margin-top:14px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.25);margin-right:6px;text-transform:uppercase;">I</div>
+        <div class="shield-step" style="width:28px;background:#B8200A;opacity:.5;"></div>
+        <div class="shield-step" style="width:28px;background:#9A5200;opacity:.6;"></div>
+        <div class="shield-step" style="width:28px;background:#5AC8EC;"></div>
+        <div class="shield-step" style="width:28px;background:rgba(90,200,236,.25);"></div>
+        <div class="shield-step" style="width:28px;background:rgba(90,200,236,.15);"></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.25);margin-left:6px;text-transform:uppercase;">V</div>
+        <div style="margin-left:10px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;color:rgba(90,200,236,.6);text-transform:uppercase;">← You are here</div>
+      </div>
+    </div>
+
+    <div class="hero-right reveal r2">
+      <div class="outlook-badge">
+        <div>
+          <div class="outlook-label">Trust Outlook</div>
+          <div class="outlook-val">Positive ↑</div>
+        </div>
+        <div class="outlook-dot"></div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.25);text-transform:uppercase;margin-bottom:4px;">Assessment Scope</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:13px;color:rgba(255,255,255,.5);">bacccul.cm · 6 associated assets</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.2);margin-top:4px;text-transform:uppercase;">Passive Intelligence · Zero Intrusion</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ BENCHMARK ════════════════════════════════════════════════════════ -->
+<div class="section reveal r3">
+  <div class="section-label">Sector Position</div>
+
+  <div class="benchmark-grid">
+    <!-- Sector -->
+    <div class="bench-card">
+      <div class="bench-title">Sector Percentile</div>
+      <div class="dist-marker">▲ BACCCUL</div>
+      <div class="dist-chart" id="sectorChart"></div>
+      <div class="bench-bar-track">
+        <div class="bench-bar-fill" style="width:88.73%"></div>
+      </div>
+      <div class="bench-percentile">88.73<span class="bench-pct-sym">%</span></div>
+      <div class="bench-label">Microfinance &amp; Credit Union Sector</div>
+      <div class="bench-context">Top 12% of assessed peer institutions</div>
+    </div>
+
+    <!-- National -->
+    <div class="bench-card">
+      <div class="bench-title">National Percentile</div>
+      <div class="dist-marker">▲ BACCCUL</div>
+      <div class="dist-chart" id="nationalChart"></div>
+      <div class="bench-bar-track">
+        <div class="bench-bar-fill" style="width:91.14%"></div>
+      </div>
+      <div class="bench-percentile">91.14<span class="bench-pct-sym">%</span></div>
+      <div class="bench-label">All Assessed Institutions — Cameroon</div>
+      <div class="bench-context">Top 9% nationally across all sectors</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EXECUTIVE SUMMARY ════════════════════════════════════════════════ -->
+<div class="section reveal r4">
+  <div class="section-label">Executive Summary</div>
+  <p class="exec-para">
+    BACCCUL demonstrates a strong digital trust profile relative to peer microfinance and credit union institutions, ranking within the upper tier of assessed organizations nationally and exhibiting positive trust momentum with limited observable threat exposure. The institution's external posture reflects deliberate infrastructure governance, with no elevated-risk entity relationships or suspicious infrastructure associations identified during this assessment period. Several opportunities exist to further strengthen resilience and advance to Shield IV standing, particularly in email authentication enforcement, third-party dependency governance, and certificate lifecycle management — each of which represents a high-confidence, low-friction improvement with meaningful impact on long-term trust score trajectory.
+  </p>
+</div>
+
+<!-- ═══ TRUST RISK FACTORS ═══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">Priority Trust Risk Factors</div>
+
+  <!-- RISK 1 — HIGH -->
+  <div class="risk-card open" onclick="toggleRisk(this)">
+    <div class="risk-card-header">
+      <span class="risk-severity sev-high">High</span>
+      <span class="risk-title">Email Authentication Not Fully Enforced</span>
+      <span class="risk-chevron">▼</span>
+    </div>
+    <div class="risk-body">
+      <div class="risk-section-label">Technical Observation</div>
+      <div class="risk-obs">A DMARC policy is present on the bacccul.cm domain but operates in monitoring mode (p=none) rather than enforcement mode. SPF and DKIM records are present; however, the absence of DMARC enforcement means the policy currently observes without blocking non-compliant mail flows.</div>
+
+      <div class="risk-section-label">Trust Impact Analysis (TIA)</div>
+      <div class="tia-block">
+        <div class="tia-label">Business Impact</div>
+        <div class="tia-impact">
+          <p>Cybercriminals may find it easier to impersonate BACCCUL through fraudulent emails. This may increase the likelihood of phishing campaigns targeting customers, members, staff, or partners while appearing to originate from the institution.</p>
+          <p>In a cooperative finance context where member trust is foundational to institutional legitimacy, email impersonation represents a direct reputational and relationship risk — not merely a technical one.</p>
+        </div>
+
+        <div class="tia-label">Stakeholders Affected</div>
+        <div class="stakeholders">
+          <span class="stakeholder-tag">Customers</span>
+          <span class="stakeholder-tag">Employees</span>
+          <span class="stakeholder-tag">Business Partners</span>
+          <span class="stakeholder-tag">Regulators</span>
+        </div>
+
+        <div class="tia-label">Regulatory Relevance</div>
+        <div class="reg-note">This observation may warrant review against applicable cybersecurity governance expectations and electronic communications security practices under ANTIC Law No. 2010/012 and COBAC operational risk management obligations.</div>
+
+        <div class="tia-label">Recommended Action</div>
+        <div class="action-box">
+          <span class="action-icon">→</span>
+          <span class="action-text">Transition DMARC from monitoring mode (p=none) to quarantine or reject enforcement after validating all legitimate email sources. This is a configuration-level change with no infrastructure disruption and materially strengthens email trust posture.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RISK 2 — HIGH -->
+  <div class="risk-card" onclick="toggleRisk(this)">
+    <div class="risk-card-header">
+      <span class="risk-severity sev-high">High</span>
+      <span class="risk-title">Third-Party Script Dependencies — Unverified Integrity</span>
+      <span class="risk-chevron">▼</span>
+    </div>
+    <div class="risk-body">
+      <div class="risk-section-label">Technical Observation</div>
+      <div class="risk-obs">External JavaScript resources are loaded on publicly accessible pages without Subresource Integrity (SRI) hash verification. These resources originate from two identified third-party domains and are loaded without cryptographic validation on each request.</div>
+
+      <div class="risk-section-label">Trust Impact Analysis (TIA)</div>
+      <div class="tia-block">
+        <div class="tia-label">Business Impact</div>
+        <div class="tia-impact">
+          <p>If any upstream third-party resource is compromised or modified at source, those changes would be silently delivered to every member or visitor accessing BACCCUL's web presence. The institution would bear reputational and potentially regulatory responsibility for code it did not write and did not validate.</p>
+          <p>This represents a supply chain trust risk — the kind that does not announce itself until after the event.</p>
+        </div>
+
+        <div class="tia-label">Stakeholders Affected</div>
+        <div class="stakeholders">
+          <span class="stakeholder-tag">Members</span>
+          <span class="stakeholder-tag">Web Visitors</span>
+          <span class="stakeholder-tag">IT Operations</span>
+        </div>
+
+        <div class="tia-label">Regulatory Relevance</div>
+        <div class="reg-note">Relevant to third-party digital risk obligations under COBAC R-2025/02 and ANTIC cybersecurity governance expectations for digital service providers.</div>
+
+        <div class="tia-label">Recommended Action</div>
+        <div class="action-box">
+          <span class="action-icon">→</span>
+          <span class="action-text">Add Subresource Integrity (SRI) hash attributes to all externally loaded scripts and stylesheets. Audit third-party dependencies quarterly and remove any that are no longer actively maintained or necessary.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RISK 3 — MEDIUM -->
+  <div class="risk-card" onclick="toggleRisk(this)">
+    <div class="risk-card-header">
+      <span class="risk-severity sev-medium">Medium</span>
+      <span class="risk-title">Certificate Renewal Cadence — Monitoring Recommended</span>
+      <span class="risk-chevron">▼</span>
+    </div>
+    <div class="risk-body">
+      <div class="risk-section-label">Technical Observation</div>
+      <div class="risk-obs">The primary TLS certificate for bacccul.cm has a remaining validity of 47 days at time of assessment. No automated renewal mechanism was observable from external signals. Historical certificate data suggests a manual renewal pattern with a prior lapse of 6 days in the previous cycle.</div>
+
+      <div class="risk-section-label">Trust Impact Analysis (TIA)</div>
+      <div class="tia-block">
+        <div class="tia-label">Business Impact</div>
+        <div class="tia-impact">
+          <p>A certificate expiry event causes browser security warnings visible to every member, visitor, or partner accessing the institution's digital presence. Even a brief expiry window creates disproportionate trust damage relative to the technical ease of prevention.</p>
+        </div>
+
+        <div class="tia-label">Stakeholders Affected</div>
+        <div class="stakeholders">
+          <span class="stakeholder-tag">Members</span>
+          <span class="stakeholder-tag">Regulators</span>
+          <span class="stakeholder-tag">Partners</span>
+        </div>
+
+        <div class="tia-label">Recommended Action</div>
+        <div class="action-box">
+          <span class="action-icon">→</span>
+          <span class="action-text">Implement automated certificate renewal via ACME protocol (Let's Encrypt or equivalent). Set monitoring alerts at 60, 30, and 14 day thresholds. Eliminate manual renewal dependency.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TRUST HYGIENE ════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">Trust Hygiene Observations</div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">The following observations do not constitute priority trust risk factors. They are documented as hygiene signals — grouped areas where incremental attention can contribute to Shield IV progression over time.</p>
+
+  <div class="hygiene-grid">
+    <div class="hygiene-item">
+      <div class="hygiene-status hs-ok">✓</div>
+      <div class="hygiene-text">
+        <div class="hygiene-title">HTTPS Enforced Across All Observed Assets</div>
+        <div class="hygiene-desc">All externally observable assets return HTTPS connections. No HTTP fallback observed.</div>
+      </div>
+    </div>
+    <div class="hygiene-item">
+      <div class="hygiene-status hs-warn">!</div>
+      <div class="hygiene-text">
+        <div class="hygiene-title">Security Header Coverage Incomplete</div>
+        <div class="hygiene-desc">X-Frame-Options and Content-Security-Policy headers absent on primary domain responses.</div>
+      </div>
+    </div>
+    <div class="hygiene-item">
+      <div class="hygiene-status hs-ok">✓</div>
+      <div class="hygiene-text">
+        <div class="hygiene-title">TLS 1.3 Supported</div>
+        <div class="hygiene-desc">Modern TLS protocol observed. No TLS 1.0 or 1.1 support detected on primary endpoints.</div>
+      </div>
+    </div>
+    <div class="hygiene-item">
+      <div class="hygiene-status hs-warn">!</div>
+      <div class="hygiene-text">
+        <div class="hygiene-title">HSTS Not Observed</div>
+        <div class="hygiene-desc">HTTP Strict Transport Security header not present. Absence allows potential protocol downgrade on initial connections.</div>
+      </div>
+    </div>
+    <div class="hygiene-item">
+      <div class="hygiene-status hs-ok">✓</div>
+      <div class="hygiene-text">
+        <div class="hygiene-title">No Publicly Indexed Admin Interfaces</div>
+        <div class="hygiene-desc">No administrative or management interfaces identified in public indexes or web archives.</div>
+      </div>
+    </div>
+    <div class="hygiene-item">
+      <div class="hygiene-status hs-info">→</div>
+      <div class="hygiene-text">
+        <div class="hygiene-title">robots.txt Discloses Internal Path Structure</div>
+        <div class="hygiene-desc">robots.txt contains Disallow entries that document internal URL patterns. Consider review against information disclosure policy.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ENTITY INTELLIGENCE ══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">Entity Intelligence</div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6;">MYEVIEW identified and mapped observable relationships associated with BACCCUL's digital footprint. Entity intelligence reflects organizational visibility from an external intelligence perspective.</p>
+
+  <div style="font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:14px;">Organizational Visibility</div>
+
+  <div class="entity-grid">
+    <div class="entity-stat">
+      <div class="entity-stat-icon" style="background:rgba(0,123,168,.08);">🔗</div>
+      <div>
+        <div class="entity-stat-val">4</div>
+        <div class="entity-stat-label">Associated digital assets identified</div>
+      </div>
+    </div>
+    <div class="entity-stat">
+      <div class="entity-stat-icon" style="background:rgba(0,123,168,.08);">⚙️</div>
+      <div>
+        <div class="entity-stat-val">2</div>
+        <div class="entity-stat-label">Externally observable service dependencies</div>
+      </div>
+    </div>
+    <div class="entity-stat">
+      <div class="entity-stat-icon" style="background:rgba(15,92,46,.08);">✓</div>
+      <div>
+        <div class="entity-stat-val">0</div>
+        <div class="entity-stat-label">Elevated-risk related entities observed</div>
+      </div>
+    </div>
+    <div class="entity-stat">
+      <div class="entity-stat-icon" style="background:rgba(15,92,46,.08);">✓</div>
+      <div>
+        <div class="entity-stat-val">0</div>
+        <div class="entity-stat-label">Suspicious infrastructure relationships</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="entity-interpret">
+    <div class="ei-label">Business Interpretation</div>
+    <div class="ei-body">Current observations suggest a relatively clean and stable digital identity with no significant external relationship concerns identified during this assessment. BACCCUL's observable digital ecosystem reflects a contained and well-bounded infrastructure footprint consistent with an institution of this size and operational model.</div>
+    <div class="ei-highlight">Entity relationships often influence inherited risk, supplier exposure, and reputational association. A clean entity profile at this stage is a meaningful positive signal — and one that should be actively maintained as the institution's digital presence grows.</div>
+  </div>
+</div>
+
+<!-- ═══ REGULATORY INTELLIGENCE ══════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">Regulatory Intelligence Overview</div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">The following regulatory areas may be relevant to observations identified in this report. This section does not constitute legal advice or a formal compliance determination.</p>
+
+  <div class="reg-grid">
+    <div class="reg-card">
+      <div class="reg-card-flag">COBAC</div>
+      <div class="reg-card-name">Operational Risk &amp; Information Systems</div>
+      <div class="reg-card-body">COBAC R-2017/01 and the 2025 Cyber Resilience framework establish expectations for information system integrity and access controls relevant to email authentication and third-party dependency observations.</div>
+    </div>
+    <div class="reg-card">
+      <div class="reg-card-flag">ANTIC</div>
+      <div class="reg-card-name">Cybersecurity &amp; Electronic Communications</div>
+      <div class="reg-card-body">Law No. 2010/012 on Cybersecurity and Cybercrime establishes baseline obligations for system integrity and electronic communications security applicable to the observations in this report.</div>
+    </div>
+    <div class="reg-card">
+      <div class="reg-card-flag">Law No. 2024/017</div>
+      <div class="reg-card-name">Data Protection — June 2026 Deadline</div>
+      <div class="reg-card-body">Cameroon's Data Protection Law imposes cybersecurity and privacy protocol obligations on institutions processing member or customer data. Compliance deadline: June 23, 2026.</div>
+    </div>
+  </div>
+  <div class="reg-disclaimer">MYEVIEW identifies external exposure signals that may indicate areas warranting compliance review. All regulatory determinations should be made in consultation with qualified legal and compliance advisors.</div>
+</div>
+
+<!-- ═══ CONCLUSION ════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-label">Conclusion</div>
+  <p class="conclusion-para">
+    BACCCUL presents a strong and improving digital trust profile that places the institution among the top-performing assessed organizations in both its sector and national peer group. The three trust risk factors identified — email authentication enforcement, third-party script integrity, and certificate lifecycle governance — are each addressable through configuration-level interventions requiring no significant infrastructure investment, and their resolution would materially advance the institution's standing toward Shield IV. The entity intelligence profile is clean, the infrastructure footprint is appropriately bounded, and the observable posture reflects an institution that takes its digital responsibilities seriously. The Trust Outlook remains Positive.
+  </p>
+
+  <div class="conclusion-sign">
+    <div class="sign-brand">
+      <div style="margin-right:16px;">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect width="28" height="28" rx="6" fill="#0A1628"/>
+          <circle cx="14" cy="14" r="7" stroke="#5AC8EC" stroke-width="1.2" fill="none"/>
+          <line x1="14" y1="6" x2="14" y2="8" stroke="#5AC8EC" stroke-width="1.2"/>
+          <line x1="14" y1="20" x2="14" y2="22" stroke="#5AC8EC" stroke-width="1.2"/>
+          <line x1="6" y1="14" x2="8" y2="14" stroke="#5AC8EC" stroke-width="1.2"/>
+          <line x1="20" y1="14" x2="22" y2="14" stroke="#5AC8EC" stroke-width="1.2"/>
+          <rect x="12" y="10.5" width="1.5" height="6" rx=".75" fill="#5AC8EC"/>
+          <rect x="14.5" y="10.5" width="1.5" height="6" rx=".75" fill="#5AC8EC"/>
+          <line x1="12.75" y1="10.5" x2="14" y2="12" stroke="#5AC8EC" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="15.25" y1="10.5" x2="14" y2="12" stroke="#5AC8EC" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="14" cy="14" r="2" fill="#5AC8EC"/>
+        </svg>
+      </div>
+      <div class="sign-logo">MY<b>EVIEW</b></div>
+    </div>
+    <div class="sign-meta">
+      Myescore™ 860.42 / 1000 &nbsp;·&nbsp; Shield III<br/>
+      Trust Outlook: Positive &nbsp;·&nbsp; June 2026<br/>
+      Africa's Compliance-Native External Intelligence Platform
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FOOTER ════════════════════════════════════════════════════════════ -->
+<footer class="report-footer">
+  <div class="rf-text">© 2026 Myeview · Confidential · Single Use · BACCCUL</div>
+  <div class="rf-text">What does the Internet expose about you?</div>
+  <div class="rf-text">myeview.com</div>
+</footer>
+
+<script>
+// Generate distribution charts
+function buildChart(id, percentile, bars=20){
+  const ct=document.getElementById(id);
+  if(!ct)return;
+  const youIdx=Math.floor((percentile/100)*bars);
+  for(let i=0;i<bars;i++){
+    const b=document.createElement('div');
+    b.className='dist-bar';
+    const h=20+Math.sin(i*0.4)*8+Math.random()*12;
+    b.style.height=h+'px';
+    if(i===youIdx){b.classList.add('you');b.style.height='38px';}
+    else if(i<youIdx){b.classList.add('active');}
+    ct.appendChild(b);
+  }
+}
+buildChart('sectorChart',88.73);
+buildChart('nationalChart',91.14);
+
+// Toggle risk cards
+function toggleRisk(card){
+  card.classList.toggle('open');
+}
+
+// Animate score counter
+function animateScore(){
+  const el=document.querySelector('.hero-score-num');
+  if(!el)return;
+  let start=0,end=860.42,duration=1200,startTime=null;
+  function step(ts){
+    if(!startTime)startTime=ts;
+    const progress=Math.min((ts-startTime)/duration,1);
+    const ease=1-Math.pow(1-progress,3);
+    const val=(ease*end).toFixed(2);
+    el.innerHTML=val+'<span> / 1000</span>';
+    if(progress<1)requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+window.addEventListener('load',()=>setTimeout(animateScore,400));
+
+// Intersection observer for reveals
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach((e,i)=>{
+    if(e.isIntersecting){
+      e.target.style.animationDelay=(i*0.08)+'s';
+      e.target.classList.add('in');
+      obs.unobserve(e.target);
+    }
+  });
+},{threshold:0.1});
+document.querySelectorAll('.section').forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

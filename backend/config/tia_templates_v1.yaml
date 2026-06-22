@@ -1,0 +1,206 @@
+version: "v1"
+
+templates:
+  email_trust:
+    vectors: [spf_presence, dkim_presence, dmarc_enforcement]
+    dirty:
+      template_id: "email_trust_dirty_v1"
+      technical_observation: |
+        {% if dmarc_enforcement_meta.dmarc_policy == 'none' %}
+        A DMARC policy is present on {{ domain }} but operates in monitoring mode (p=none), so it observes non-compliant mail without blocking it.
+        {% elif dmarc_enforcement.state == 'FAIL' %}
+        No valid DMARC policy was observed for {{ domain }}.
+        {% else %}
+        The DMARC policy for {{ domain }} does not fully enforce email authentication.
+        {% endif %}
+        {% if spf_presence == 'FAIL' %}No SPF record was found.{% endif %}
+        {% if dkim_presence == 'FAIL' %}No DKIM record was found for the probed selectors.{% endif %}
+      business_impact: |
+        <p>Email spoofing and impersonation become easier when authentication records are missing or set to monitoring mode. Fraudulent messages may appear to originate from {{ org_name }}, increasing the likelihood of phishing campaigns against customers, staff, and partners.</p>
+        <p>For a financial or cooperative institution, member trust is foundational; a single successful impersonation incident can materially damage that relationship and invite regulatory scrutiny.</p>
+      stakeholders_affected: [Customers, Employees, Business Partners, Regulators]
+      regulatory_relevance: |
+        Relevant to electronic communications security and cybersecurity audit expectations under ANTIC Law No. 2010/012 and COBAC operational risk management obligations. {{ regulatory_disclaimer }}
+      recommended_action: |
+        Ensure SPF and DKIM are correctly configured, then transition DMARC to p=reject after validating all legitimate mail sources.
+    clean:
+      template_id: "email_trust_clean_v1"
+      technical_observation: |
+        SPF and DKIM records are present for {{ domain }}, and DMARC is configured. Authentication records are in place.
+      business_impact: |
+        <p>With SPF, DKIM, and DMARC correctly configured, the organization materially reduces the risk of email impersonation and protects customer, staff, and partner confidence in outbound communications.</p>
+      stakeholders_affected: [Customers, Employees, Business Partners]
+      regulatory_relevance: |
+        Consistent with electronic communications security expectations under ANTIC Law No. 2010/012. {{ regulatory_disclaimer }}
+      recommended_action: |
+        Maintain DMARC at p=reject, monitor aggregate reports regularly, and keep SPF/DKIM alignments up to date as mail sources change.
+
+  domain_governance:
+    vectors: [domain_age, domain_expiration, dnssec_adoption]
+    dirty:
+      template_id: "domain_governance_dirty_v1"
+      technical_observation: |
+        {% if domain_age == 'FAIL' %}The domain {{ domain }} is less than six months old.{% elif domain_age == 'WARN' %}The domain is between six and twelve months old.{% endif %}
+        {% if domain_expiration == 'FAIL' %}The domain registration expires within 30 days or has already expired.{% elif domain_expiration == 'WARN' %}The domain registration expires within 30 to 90 days.{% endif %}
+        {% if dnssec_adoption == 'FAIL' %}DNSSEC is not enabled for {{ domain }}.{% elif dnssec_adoption == 'WARN' %}DNSSEC deployment is only partial.{% endif %}
+      business_impact: |
+        <p>Short registration history or a near-term expiration window increases the risk of service disruption, accidental loss, or adversarial takeover of the organization's primary digital identity.</p>
+        <p>Without DNSSEC, DNS responses can be spoofed or poisoned, potentially redirecting customers to attacker-controlled infrastructure while appearing legitimate.</p>
+      stakeholders_affected: [Customers, Business Partners, Regulators]
+      regulatory_relevance: |
+        Relevant to system integrity and continuity obligations under ANTIC Law No. 2010/012. {{ regulatory_disclaimer }}
+      recommended_action: |
+        Renew the domain for the longest practical term, enable auto-renewal, and deploy DNSSEC with the registrar or DNS provider.
+    clean:
+      template_id: "domain_governance_clean_v1"
+      technical_observation: |
+        The domain {{ domain }} has a stable registration age and an expiration window well beyond the assessment horizon. DNSSEC is enabled.
+      business_impact: |
+        <p>A mature registration and healthy expiration horizon reduce the risk of identity loss or disruption, while DNSSEC helps protect visitors from DNS-based redirection attacks.</p>
+      stakeholders_affected: [Customers, Business Partners]
+      regulatory_relevance: |
+        Consistent with continuity and system integrity expectations under ANTIC Law No. 2010/012. {{ regulatory_disclaimer }}
+      recommended_action: |
+        Keep auto-renewal enabled and monitor DNSSEC chain validity periodically.
+
+  infrastructure_security:
+    vectors: [tls_version, certificate_health, security_headers, https_enforcement, exposed_admin]
+    dirty:
+      template_id: "infrastructure_security_dirty_v1"
+      technical_observation: |
+        {% if tls_version == 'FAIL' %}Deprecated TLS/SSL versions are supported on {{ domain }}.{% elif tls_version == 'WARN' %}Only TLS 1.2 is observed; TLS 1.3 is not the baseline.{% endif %}
+        {% if certificate_health == 'FAIL' %}The TLS certificate is expired, untrusted, or mismatched.{% elif certificate_health == 'WARN' %}The certificate is valid but expires within 30 to 90 days.{% endif %}
+        {% if security_headers == 'FAIL' %}Multiple critical security headers are missing.{% elif security_headers == 'WARN' %}One or two critical security headers are missing or misconfigured.{% endif %}
+        {% if https_enforcement == 'FAIL' %}HTTPS is not enforced or is broken.{% elif https_enforcement == 'WARN' %}HTTPS is available but HTTP does not redirect or HSTS is absent.{% endif %}
+        {% if exposed_admin == 'FAIL' %}Sensitive or multiple administrative interfaces are exposed.{% elif exposed_admin == 'WARN' %}One administrative path is publicly reachable.{% endif %}
+      business_impact: |
+        <p>Weak transport security, missing headers, or exposed management paths increase the likelihood of interception, downgrade attacks, clickjacking, and direct compromise of the organization's web presence.</p>
+        <p>These weaknesses are visible to any visitor and can trigger browser warnings that erode member and customer confidence.</p>
+      stakeholders_affected: [Customers, Employees, Regulators]
+      regulatory_relevance: |
+        Relevant to information system integrity and access-control expectations under COBAC operational risk management obligations and ANTIC Law No. 2010/012. {{ regulatory_disclaimer }}
+      recommended_action: |
+        Disable legacy TLS versions, renew or replace the certificate before expiry, add HSTS and CSP headers, and remove or restrict public access to administrative paths.
+    clean:
+      template_id: "infrastructure_security_clean_v1"
+      technical_observation: |
+        {{ domain }} uses modern TLS, a trusted certificate with healthy validity, and HTTPS is enforced with HSTS. Administrative paths were not publicly observed.
+      business_impact: |
+        <p>Strong transport-layer defaults reduce the risk of interception, downgrade attacks, and unauthorized access to management interfaces.</p>
+      stakeholders_affected: [Customers, Employees]
+      regulatory_relevance: |
+        Consistent with access-control and system-integrity expectations under COBAC operational risk management obligations. {{ regulatory_disclaimer }}
+      recommended_action: |
+        Continue monitoring certificate expiry and header coverage on every deploy.
+
+  technology_currency:
+    vectors: [tech_obsolescence, software_version, legacy_service]
+    dirty:
+      template_id: "technology_currency_dirty_v1"
+      technical_observation: |
+        {% if tech_obsolescence == 'FAIL' %}End-of-life or significantly outdated software was identified on {{ domain }}.{% elif tech_obsolescence == 'WARN' %}Supported but older software versions were identified.{% endif %}
+        {% if software_version == 'FAIL' %}Detected software versions carry known high-risk exposure signals.{% elif software_version == 'WARN' %}Detected software versions show currency gaps that warrant attention.{% endif %}
+        {% if legacy_service == 'FAIL' %}Plaintext or deprecated remote-management services are exposed.{% elif legacy_service == 'WARN' %}A legacy service indicator was observed.{% endif %}
+      business_impact: |
+        <p>Outdated or unpatched components accumulate known vulnerabilities and reduce the organization's ability to withstand commodity attacks.</p>
+        <p>Legacy plaintext services expose credentials and commands to passive network observers and are disproportionately targeted by automated scans.</p>
+      stakeholders_affected: [Employees, Customers, Regulators]
+      regulatory_relevance: |
+        Relevant to technical and organizational security measures under Law No. 2024/017 (Data Protection), Arts. 22 and 27. {{ regulatory_disclaimer }}
+      recommended_action: |
+        Upgrade or replace end-of-life components, apply current patches, and remove unencrypted remote-management services from the public perimeter.
+    clean:
+      template_id: "technology_currency_clean_v1"
+      technical_observation: |
+        Observed technologies on {{ domain }} are current and supported, with no legacy plaintext services detected.
+      business_impact: |
+        <p>Running supported, reasonably current software reduces the window of exposure to known vulnerabilities and demonstrates operational discipline.</p>
+      stakeholders_affected: [Employees, Customers]
+      regulatory_relevance: |
+        Consistent with technical security expectations under Law No. 2024/017 (Data Protection). {{ regulatory_disclaimer }}
+      recommended_action: |
+        Maintain a patch-management cadence and review exposed services quarterly.
+
+  threat_intelligence:
+    vectors: [malware, phishing, spam_blacklist, botnet, blacklist_aggregate]
+    dirty:
+      template_id: "threat_intelligence_dirty_v1"
+      technical_observation: |
+        {% if malware == 'FAIL' %}Active malware signals were observed for {{ domain }}.{% elif malware == 'WARN' %}Historical malware signals were observed.{% endif %}
+        {% if phishing == 'FAIL' %}The domain is currently listed in phishing feeds.{% elif phishing == 'WARN' %}Historical phishing signals were observed.{% endif %}
+        {% if spam_blacklist == 'FAIL' %}{{ domain }} or its mail infrastructure is listed on multiple DNSBLs.{% elif spam_blacklist == 'WARN' %}One DNSBL listing was observed.{% endif %}
+        {% if botnet == 'FAIL' %}The domain or its infrastructure is associated with botnet command-and-control activity.{% elif botnet == 'WARN' %}Historical botnet association was observed.{% endif %}
+        {% if blacklist_aggregate == 'FAIL' %}The domain appears on four or more independent reputation lists.{% elif blacklist_aggregate == 'WARN' %}The domain appears on two or three reputation lists.{% endif %}
+      business_impact: |
+        <p>Active or historical malicious association suggests the organization's infrastructure has been abused or compromised, or shares resources with actors that have been.</p>
+        <p>These signals directly affect email deliverability, brand trust, and the likelihood of customer-facing blocks by browsers and security products.</p>
+      stakeholders_affected: [Customers, Business Partners, Regulators]
+      regulatory_relevance: |
+        Relevant to cybersecurity incident and electronic communications security obligations under ANTIC Law No. 2010/012, Arts. 13, 14, and 32. {{ regulatory_disclaimer }}
+      recommended_action: |
+        Investigate each listing source, remediate the root cause, request delisting after confirming cleanup, and review mail and web hosting hygiene.
+    clean:
+      template_id: "threat_intelligence_clean_v1"
+      technical_observation: |
+        No active malware, phishing, botnet, or blacklist signals were observed for {{ domain }} during this assessment period.
+      business_impact: |
+        <p>A clean threat-intel profile reduces the probability that customers or partners will encounter security warnings or blocks when interacting with the organization online.</p>
+      stakeholders_affected: [Customers, Business Partners]
+      regulatory_relevance: |
+        Consistent with proactive threat-exposure management under ANTIC Law No. 2010/012. {{ regulatory_disclaimer }}
+      recommended_action: |
+        Continue periodic threat-feed monitoring and retain logs that support rapid investigation if a future signal appears.
+
+  asset_visibility:
+    vectors: [asset_count, shadow_assets, unmanaged_assets]
+    dirty:
+      template_id: "asset_visibility_dirty_v1"
+      technical_observation: |
+        {% if asset_count == 'FAIL' %}More than 30 internet-facing assets were discovered for {{ domain }}.{% elif asset_count == 'WARN' %}Between 11 and 30 internet-facing assets were discovered.{% endif %}
+        {% if shadow_assets == 'FAIL' %}A large proportion of discovered assets appear shadowed or unmanaged.{% elif shadow_assets == 'WARN' %}A moderate number of shadow-asset indicators were observed.{% endif %}
+        {% if unmanaged_assets == 'FAIL' %}Multiple discovered assets show certificate, issuer, or banner mismatches.{% elif unmanaged_assets == 'WARN' %}One or two minor unmanaged-asset indicators were observed.{% endif %}
+      business_impact: |
+        <p>Every unmanaged or unknown internet-facing asset expands the perimeter that must be patched and monitored, increasing the chance of an overlooked entry point.</p>
+        <p>Shadow assets are more likely to run outdated software, lack oversight, and become the path of least resistance for an attacker.</p>
+      stakeholders_affected: [Employees, Customers, Regulators]
+      regulatory_relevance: |
+        Relevant to information system governance and risk management expectations under COBAC operational risk management obligations. {{ regulatory_disclaimer }}
+      recommended_action: |
+        Maintain an authoritative asset inventory, decommission unused subdomains, and apply the same patching and monitoring standards to all discovered assets.
+    clean:
+      template_id: "asset_visibility_clean_v1"
+      technical_observation: |
+        The discovered internet-facing footprint for {{ domain }} is small, well-bounded, and shows no significant shadow or unmanaged-asset indicators.
+      business_impact: |
+        <p>A contained and monitored external footprint reduces hidden entry points and simplifies incident response.</p>
+      stakeholders_affected: [Employees, Regulators]
+      regulatory_relevance: |
+        Consistent with perimeter governance expectations under COBAC operational risk management obligations. {{ regulatory_disclaimer }}
+      recommended_action: |
+        Keep certificate and DNS monitoring in place and review the asset inventory quarterly.
+
+  ecosystem_trust:
+    vectors: [sri_adoption]
+    dirty:
+      template_id: "ecosystem_trust_dirty_v1"
+      technical_observation: |
+        {% if sri_adoption == 'FAIL' %}Most or all external scripts and stylesheets on {{ domain }} are loaded without Subresource Integrity hashes.{% elif sri_adoption == 'WARN' %}Some external subresources include integrity hashes, but coverage is incomplete.{% endif %}
+      business_impact: |
+        <p>If a third-party script or stylesheet source is compromised, unvalidated resources will be served to every visitor. The institution bears responsibility for code it did not write and did not verify.</p>
+        <p>This represents a supply-chain trust risk that may not announce itself until after an incident.</p>
+      stakeholders_affected: [Customers, Business Partners, Regulators]
+      regulatory_relevance: |
+        Relevant to third-party digital risk and technical security measures under Law No. 2024/017 (Data Protection), Arts. 22 and 27. {{ regulatory_disclaimer }}
+      recommended_action: |
+        Add integrity attributes to every externally loaded script and stylesheet, audit third-party dependencies quarterly, and remove any that are unmaintained or unnecessary.
+    clean:
+      template_id: "ecosystem_trust_clean_v1"
+      technical_observation: |
+        All external scripts and stylesheets observed on {{ domain }} include Subresource Integrity hashes.
+      business_impact: |
+        <p>Integrity validation prevents third-party or supply-chain compromises from silently altering the code delivered to members and visitors.</p>
+      stakeholders_affected: [Customers, Business Partners]
+      regulatory_relevance: |
+        Consistent with third-party risk management under Law No. 2024/017 (Data Protection). {{ regulatory_disclaimer }}
+      recommended_action: |
+        Re-verify integrity hashes whenever a third-party dependency is upgraded or replaced.

@@ -1,0 +1,1 @@
+# Reports package — Jinja2 HTML rendering + WeasyPrint PDF export

@@ -1,0 +1,199 @@
+"""Report rendering pipeline: Jinja2 HTML + WeasyPrint PDF."""
+
+from pathlib import Path
+from typing import Any
+
+from jinja2 import Environment, FileSystemLoader
+from weasyprint import HTML, CSS
+
+from app.models.category_score import CategoryScore
+from app.models.organization import Organization
+from app.models.score import Score
+from app.models.score_history import ScoreHistory
+from app.models.tia_entry import TiaEntry
+from app.models.vector_finding import VectorFinding
+from app.scoring.shield_mapper import shield_for_score
+
+
+TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
+env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)))
+
+
+def _severity_for_category(points_lost: int, points_total: int) -> str:
+    if points_total == 0:
+        return "low"
+    ratio = points_lost / points_total
+    if ratio >= 0.4:
+        return "critical"
+    if ratio >= 0.2:
+        return "high"
+    if ratio >= 0.05:
+        return "medium"
+    return "low"
+
+
+def _benchmark_percentile(score: int) -> dict[str, float]:
+    """Placeholder benchmark percentiles until real benchmark data is available."""
+    # Sigmoid-style mapping so score 500 ≈ 50%, 900 ≈ 95%.
+    import math
+    sector = 100 / (1 + math.exp(-0.01 * (score - 500)))
+    national = min(99.9, sector * 1.05)
+    return {
+        "sector": round(sector, 2),
+        "national": round(national, 2),
+    }
+
+
+def _entity_counts(vectors: list[VectorFinding]) -> dict[str, int]:
+    """Derive simple entity-intelligence counts from vector findings."""
+    # In a full implementation these would come from dedicated entity-intelligence
+    # collectors. For the MVP we surface deterministic counts derived from vectors.
+    asset_vectors = {"asset_count", "shadow_assets", "unmanaged_assets"}
+    infra_vectors = {"tls_version", "certificate_health", "security_headers", "https_enforcement"}
+    threat_vectors = {"malware", "phishing", "spam_blacklist", "botnet", "blacklist_aggregate"}
+
+    asset_fail = sum(1 for v in vectors if v.vector.key in asset_vectors and v.state in ("WARN", "FAIL"))
+    infra_fail = sum(1 for v in vectors if v.vector.key in infra_vectors and v.state in ("WARN", "FAIL"))
+    threat_fail = sum(1 for v in vectors if v.vector.key in threat_vectors and v.state in ("WARN", "FAIL"))
+
+    return {
+        "associated_assets": max(1, len([v for v in vectors if v.vector.key == "asset_count"])),
+        "service_dependencies": max(1, infra_fail + 1),
+        "risk_related_entities": asset_fail,
+        "suspicious_relationships": threat_fail,
+    }
+
+
+def _hygiene_observations(vectors: list[VectorFinding]) -> list[dict[str, Any]]:
+    """Build deterministic hygiene observations from vector findings."""
+    findings = {v.vector.key: v.state for v in vectors}
+
+    def status(state: str | None) -> str:
+        if state == "PASS":
+            return "ok"
+        if state in ("WARN", "FAIL"):
+            return "warn"
+        return "info"
+
+    return [
+        {
+            "title": "HTTPS Enforcement",
+            "description": "All observed assets redirect to HTTPS.",
+            "status": status(findings.get("https_enforcement")),
+        },
+        {
+            "title": "Security Headers",
+            "description": "Critical security headers present on observed responses.",
+            "status": status(findings.get("security_headers")),
+        },
+        {
+            "title": "TLS Version",
+            "description": "Modern TLS protocol observed; no legacy SSL/TLS.",
+            "status": status(findings.get("tls_version")),
+        },
+        {
+            "title": "Exposed Admin Interfaces",
+            "description": "No sensitive admin paths observed externally.",
+            "status": status(findings.get("exposed_admin")),
+        },
+        {
+            "title": "Email Authentication",
+            "description": "SPF, DKIM, and DMARC records configured.",
+            "status": status(findings.get("dmarc_enforcement")),
+        },
+        {
+            "title": "DNSSEC Adoption",
+            "description": "Domain DNSSEC signatures validated where applicable.",
+            "status": status(findings.get("dnssec_adoption")),
+        },
+    ]
+
+
+def build_report_context(
+    org: Organization,
+    score: Score,
+    category_scores: list[CategoryScore],
+    tia_entries: list[TiaEntry],
+    vectors: list[VectorFinding],
+    history: list[ScoreHistory],
+    previous_full_score: int | None = None,
+) -> dict[str, Any]:
+    shield = shield_for_score(score.overall_score)
+    benchmarks = _benchmark_percentile(score.overall_score)
+
+    # Sort categories by lost points descending to surface priority risks first.
+    scored_categories = [
+        {
+            "key": cs.category.key,
+            "name": cs.category.name,
+            "parent_group": cs.category.parent_group,
+            "points_total": cs.points_total,
+            "points_lost": cs.points_lost,
+            "points_remaining": cs.points_remaining,
+            "severity": _severity_for_category(cs.points_lost, cs.points_total),
+        }
+        for cs in category_scores
+        if cs.category.scored
+    ]
+    scored_categories.sort(key=lambda c: c["points_lost"], reverse=True)
+
+    # TIA entries keyed by category key.
+    tia_by_category: dict[str, dict[str, Any]] = {}
+    for te in tia_entries:
+        tia_by_category[te.category.key] = {
+            "template_id": te.template_id,
+            "rendered_text": te.rendered_text,
+        }
+
+    # Risk factors: categories with material deductions paired with their TIA.
+    risk_factors = [
+        {
+            **cat,
+            "tia": tia_by_category.get(cat["key"], {}),
+        }
+        for cat in scored_categories
+        if cat["points_lost"] > 0
+    ]
+
+    # Clean categories (no deductions) — used for positive signals.
+    clean_categories = [cat for cat in scored_categories if cat["points_lost"] == 0]
+
+    return {
+        "org": {
+            "id": str(org.id),
+            "name": org.name,
+            "domain": org.primary_domain,
+        },
+        "score": {
+            "overall": score.overall_score,
+            "tier": score.shield_tier,
+            "shield_label": shield.short_label,
+            "outlook": score.outlook,
+            "computed_at": score.computed_at,
+            "is_full_report": score.is_full_report,
+            "previous_full_score": previous_full_score,
+        },
+        "benchmarks": benchmarks,
+        "risk_factors": risk_factors,
+        "clean_categories": clean_categories,
+        "hygiene": _hygiene_observations(vectors),
+        "entity_counts": _entity_counts(vectors),
+        "history": [
+            {
+                "computed_at": h.computed_at,
+                "overall_score": h.overall_score,
+                "is_full_report": h.is_full_report,
+            }
+            for h in sorted(history, key=lambda x: x.computed_at)
+        ],
+    }
+
+
+def render_html(context: dict[str, Any]) -> str:
+    template = env.get_template("report_v1.html.j2")
+    return template.render(context)
+
+
+def render_pdf(context: dict[str, Any]) -> bytes:
+    html = render_html(context)
+    return HTML(string=html).write_pdf()
