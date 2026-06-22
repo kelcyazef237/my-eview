@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import require_owner_technical
+from app.api.dependencies import require_owner_technical, resolve_org_id
 from app.database import get_db
 from app.models.organization import Organization
 from app.models.scan_run import ScanRun
@@ -30,13 +30,9 @@ async def trigger_verified_portscan(
     The task runs on the dedicated ``verified`` Celery queue and re-scores the
     most recent scan run once the port-scan evidence is collected.
     """
-    if not user.org_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User is not associated with an organization",
-        )
+    user_org_id = resolve_org_id(user, db)
 
-    org = db.query(Organization).filter(Organization.id == user.org_id).first()
+    org = db.query(Organization).filter(Organization.id == user_org_id).first()
     if not org:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

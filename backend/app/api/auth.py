@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
@@ -9,20 +11,52 @@ from app.database import get_db
 from app.models.organization import Organization
 from app.models.user import User
 from app.services.jwt import create_access_token
+from app.services.password import verify_password
 
 router = APIRouter()
 settings = get_settings()
 
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
 class DevLoginRequest(BaseModel):
     email: EmailStr
     role: UserRole
-    domain: str | None = None  # domain to associate with (looks up org_id)
+    domain: str | None = None
 
 
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    role: str = ""
+    org_id: str | None = None
+
+
+@router.post("/login", response_model=TokenResponse)
+def login(payload: LoginRequest, db: Session = Depends(get_db)):
+    """Real login endpoint — verifies email + password against the database."""
+    user = db.query(User).filter(User.email == payload.email.lower().strip()).first()
+    if not user or not verify_password(payload.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        )
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Account is disabled",
+        )
+    user.last_login_at = datetime.now(timezone.utc)
+    db.commit()
+    token = create_access_token({"sub": str(user.id), "role": user.role})
+    return {
+        "access_token": token,
+        "role": user.role,
+        "org_id": str(user.org_id) if user.org_id else None,
+    }
 
 
 @router.post("/dev-login", response_model=TokenResponse)
@@ -58,7 +92,7 @@ def dev_login(payload: DevLoginRequest, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(user)
     token = create_access_token({"sub": str(user.id), "role": user.role})
-    return {"access_token": token}
+    return {"access_token": token, "role": user.role, "org_id": str(user.org_id) if user.org_id else None}
 
 
 @router.get("/me")

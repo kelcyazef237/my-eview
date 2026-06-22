@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import require_owner
+from app.api.dependencies import require_owner, resolve_org_id
 from app.database import get_db
 from app.models.category_score import CategoryScore
 from app.models.organization import Organization
@@ -31,13 +31,9 @@ def _latest_score_for_org(db: Session, org_id: str) -> Score:
 
 
 def _score_context(db: Session, user: User, scan_run_id: str | None = None) -> dict:
-    if not user.org_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User is not associated with an organization",
-        )
+    user_org_id = resolve_org_id(user, db)
 
-    org = db.query(Organization).filter(Organization.id == user.org_id).first()
+    org = db.query(Organization).filter(Organization.id == user_org_id).first()
     if not org:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -46,13 +42,13 @@ def _score_context(db: Session, user: User, scan_run_id: str | None = None) -> d
 
     if scan_run_id:
         score = db.query(Score).filter(Score.scan_run_id == scan_run_id).first()
-        if not score or score.org_id != user.org_id:
+        if not score or str(score.org_id) != user_org_id:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Report not found for this scan run",
             )
     else:
-        score = _latest_score_for_org(db, str(user.org_id))
+        score = _latest_score_for_org(db, user_org_id)
 
     category_scores = (
         db.query(CategoryScore)
@@ -71,7 +67,7 @@ def _score_context(db: Session, user: User, scan_run_id: str | None = None) -> d
     )
     history = (
         db.query(ScoreHistory)
-        .filter_by(org_id=user.org_id)
+        .filter_by(org_id=user_org_id)
         .order_by(ScoreHistory.computed_at.desc())
         .limit(24)
         .all()
@@ -80,7 +76,7 @@ def _score_context(db: Session, user: User, scan_run_id: str | None = None) -> d
     previous_full = (
         db.query(Score)
         .filter(
-            Score.org_id == user.org_id,
+            Score.org_id == user_org_id,
             Score.is_full_report == True,
             Score.id != score.id,
         )

@@ -44,11 +44,20 @@ export const api = {
 
   // Auth
   me: () => fetchJson<User>('/auth/me'),
+  login: (email: string, password: string) =>
+    fetchJson<{ access_token: string; role: string; org_id: string | null }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }),
   devLogin: (email: string, role: string, domain?: string) =>
     fetchJson<{ access_token: string }>('/auth/dev-login', {
       method: 'POST',
       body: JSON.stringify({ email, role, domain }),
     }),
+  logout: () => {
+    localStorage.removeItem('myeview_token')
+    window.location.href = '/'
+  },
 
   // Owner
   dashboard: () => fetchJson<OwnerDashboardData>('/owner/dashboard'),

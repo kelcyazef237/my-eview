@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import require_owner, require_owner_technical
+from app.api.dependencies import require_owner, require_owner_technical, resolve_org_id
 from app.database import get_db
 from app.models.asset import Asset
 from app.models.category_score import CategoryScore
@@ -64,12 +64,11 @@ def _build_entity_intelligence(db: Session, scan_run_id: str, org_id: str) -> di
 
 @router.get("/dashboard")
 async def dashboard(user: User = Depends(require_owner), db: Session = Depends(get_db)):
-    if not user.org_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User is not associated with an organization")
+    user_org_id = resolve_org_id(user, db)
 
     score = (
         db.query(Score)
-        .filter(Score.org_id == user.org_id)
+        .filter(Score.org_id == user_org_id)
         .order_by(Score.computed_at.desc())
         .first()
     )
@@ -90,14 +89,14 @@ async def dashboard(user: User = Depends(require_owner), db: Session = Depends(g
     # Score history for trend chart
     history = (
         db.query(ScoreHistory)
-        .filter_by(org_id=user.org_id)
+        .filter_by(org_id=user_org_id)
         .order_by(ScoreHistory.computed_at.desc())
         .limit(24)
         .all()
     )
 
     # Entity intelligence (unscored, displayed separately)
-    entity_intel = _build_entity_intelligence(db, str(score.scan_run_id), str(user.org_id))
+    entity_intel = _build_entity_intelligence(db, str(score.scan_run_id), str(user_org_id))
 
     return {
         "org": {
@@ -151,12 +150,11 @@ async def dashboard(user: User = Depends(require_owner), db: Session = Depends(g
 
 @router.get("/technical")
 async def technical_view(user: User = Depends(require_owner_technical), db: Session = Depends(get_db)):
-    if not user.org_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User is not associated with an organization")
+    user_org_id = resolve_org_id(user, db)
 
     score = (
         db.query(Score)
-        .filter(Score.org_id == user.org_id)
+        .filter(Score.org_id == user_org_id)
         .order_by(Score.computed_at.desc())
         .first()
     )
@@ -188,12 +186,11 @@ async def technical_view(user: User = Depends(require_owner_technical), db: Sess
 
 @router.get("/history")
 def score_history(user: User = Depends(require_owner), db: Session = Depends(get_db)):
-    if not user.org_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No organization")
+    user_org_id = resolve_org_id(user, db)
 
     history = (
         db.query(ScoreHistory)
-        .filter_by(org_id=user.org_id)
+        .filter_by(org_id=user_org_id)
         .order_by(ScoreHistory.computed_at.desc())
         .limit(24)
         .all()
@@ -212,9 +209,8 @@ def score_history(user: User = Depends(require_owner), db: Session = Depends(get
 
 @router.post("/verify/start")
 def start_verification_flow(payload: VerificationStart, user: User = Depends(require_owner), db: Session = Depends(get_db)):
-    if not user.org_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No organization")
-    org = db.query(Organization).filter(Organization.id == user.org_id).first()
+    user_org_id = resolve_org_id(user, db)
+    org = db.query(Organization).filter(Organization.id == user_org_id).first()
     if not org:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
     verification = start_verification(db, str(org.id), payload.method)
@@ -223,9 +219,8 @@ def start_verification_flow(payload: VerificationStart, user: User = Depends(req
 
 @router.get("/verify/status")
 def verification_status(user: User = Depends(require_owner), db: Session = Depends(get_db)):
-    if not user.org_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No organization")
-    org = db.query(Organization).filter(Organization.id == user.org_id).first()
+    user_org_id = resolve_org_id(user, db)
+    org = db.query(Organization).filter(Organization.id == user_org_id).first()
     verified = check_dns_verification(db, org)
     return {
         "ownership_verified": org.ownership_verified,
@@ -243,8 +238,7 @@ def verify_email(token: str, db: Session = Depends(get_db)):
 
 @router.post("/rescan")
 async def rescan(user: User = Depends(require_owner), db: Session = Depends(get_db)):
-    if not user.org_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No organization")
-    org = db.query(Organization).filter(Organization.id == user.org_id).first()
+    user_org_id = resolve_org_id(user, db)
+    org = db.query(Organization).filter(Organization.id == user_org_id).first()
     scan_run = await run_scan(db, org.primary_domain, is_full_report=False)
     return {"scan_run_id": str(scan_run.id), "status": scan_run.status}

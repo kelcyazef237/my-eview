@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.constants import UserRole
 from app.database import get_db
+from app.models.score import Score
 from app.models.user import User
 from app.services.jwt import decode_access_token
 
@@ -26,6 +27,20 @@ def get_current_user(
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
+
+
+def resolve_org_id(user: User, db: Session) -> str:
+    """Get the org_id for a user. Ops users without org_id get the most recently scanned org."""
+    if user.org_id:
+        return str(user.org_id)
+    if user.role == "ops":
+        latest_score = db.query(Score).order_by(Score.computed_at.desc()).first()
+        if latest_score:
+            return str(latest_score.org_id)
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="User is not associated with an organization",
+    )
 
 
 def require_role(*roles: UserRole):

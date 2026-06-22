@@ -1,5 +1,5 @@
-import { Link, useLocation } from 'react-router-dom'
-import { Moon, Sun, Shield, Menu, X } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Moon, Sun, Shield, Menu, X, LogIn, LogOut } from 'lucide-react'
 import { useState } from 'react'
 import { useTheme } from '@/hooks/useTheme'
 
@@ -11,6 +11,7 @@ export function Layout({ children }: LayoutProps) {
   const { theme, toggle } = useTheme()
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
   const token = localStorage.getItem('myeview_token')
   const isPublic = !token
 
@@ -22,6 +23,12 @@ export function Layout({ children }: LayoutProps) {
         { label: 'Report', path: '/report' },
         { label: 'Settings', path: '/settings' },
       ]
+
+  const handleLogout = () => {
+    localStorage.removeItem('myeview_token')
+    navigate('/')
+    window.location.reload()
+  }
 
   return (
     <div className="min-h-screen">
@@ -49,6 +56,21 @@ export function Layout({ children }: LayoutProps) {
           </nav>
 
           <div className="flex items-center gap-2">
+            {isPublic ? (
+              <Link
+                to="/login"
+                className="hidden items-center gap-1.5 rounded-lg border border-[var(--border-color)] px-3 py-1.5 text-sm font-medium hover:bg-[var(--bg-secondary)] md:flex"
+              >
+                <LogIn size={16} /> Login
+              </Link>
+            ) : (
+              <button
+                onClick={handleLogout}
+                className="hidden items-center gap-1.5 rounded-lg border border-[var(--border-color)] px-3 py-1.5 text-sm font-medium hover:bg-[var(--bg-secondary)] md:flex"
+              >
+                <LogOut size={16} /> Logout
+              </button>
+            )}
             <button
               onClick={toggle}
               className="rounded-lg p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
@@ -78,6 +100,22 @@ export function Layout({ children }: LayoutProps) {
                 {item.label}
               </Link>
             ))}
+            {isPublic ? (
+              <Link
+                to="/login"
+                onClick={() => setMobileOpen(false)}
+                className="block py-2 text-sm font-medium text-[var(--text-secondary)]"
+              >
+                Login
+              </Link>
+            ) : (
+              <button
+                onClick={() => { handleLogout(); setMobileOpen(false) }}
+                className="block py-2 text-sm font-medium text-[var(--text-secondary)]"
+              >
+                Logout
+              </button>
+            )}
           </nav>
         )}
       </header>
