@@ -8,6 +8,7 @@ and skips them on re-run.  It does NOT start or restart services that are alread
 running.
 
 Steps performed:
+  0. Install system dependencies (apt-get) if on Debian/Ubuntu
   1. Create backend/.env from .env.example (generates a random SECRET_KEY)
   2. Install Python dependencies (pip install -r backend/requirements.txt)
   3. Install Node dependencies (npm ci || npm install)
@@ -57,9 +58,17 @@ def log(msg: str, level: str = "info") -> None:
     print(f"{prefix} {msg}{RESET}")
 
 
-def run(cmd: list[str], cwd: Path | None = None, check: bool = True) -> subprocess.CompletedProcess:
-    """Run a command and return the result."""
-    return subprocess.run(cmd, cwd=cwd, check=check, capture_output=True, text=True)
+def run(cmd: list[str], cwd: Path | None = None, check: bool = True, show_output_on_error: bool = True) -> subprocess.CompletedProcess:
+    """Run a command and return the result. On failure, print stderr."""
+    result = subprocess.run(cmd, cwd=cwd, check=False, capture_output=True, text=True)
+    if check and result.returncode != 0:
+        if show_output_on_error:
+            if result.stdout:
+                print(result.stdout)
+            if result.stderr:
+                print(result.stderr, file=sys.stderr)
+        raise subprocess.CalledProcessError(result.returncode, cmd, result.stdout, result.stderr)
+    return result
 
 
 def command_exists(cmd: str) -> bool:
@@ -75,13 +84,46 @@ def command_exists(cmd: str) -> bool:
 # Steps
 # ---------------------------------------------------------------------------
 
+def install_system_deps() -> None:
+    """Install system-level dependencies needed by Python packages (apt-based only)."""
+    log("Checking system dependencies…", "step")
+
+    # Only attempt apt-get on Debian/Ubuntu
+    if not Path("/usr/bin/apt-get").exists():
+        log("Not a Debian/Ubuntu system — skipping apt packages (install manually if needed)", "warn")
+        return
+
+    # Quick check: if libpango is present, assume system deps are installed
+    result = subprocess.run(
+        ["dpkg", "-l", "libpango-1.0-0"],
+        capture_output=True, text=True,
+    )
+    if result.returncode == 0 and "ii" in result.stdout:
+        log("System dependencies already installed — skipping", "info")
+        return
+
+    packages = [
+        "python3-pip", "python3-dev", "build-essential",
+        "libpq-dev", "libffi-dev", "libssl-dev",
+        "libpango-1.0-0", "libpangoft2-1.0-0", "libcairo2",
+        "libgdk-pixbuf2.0-0", "pkg-config", "nmap",
+    ]
+
+    log("Installing system packages via apt-get (requires sudo)…", "step")
+    cmd = ["sudo", "apt-get", "update", "-y"]
+    run(cmd)
+    cmd = ["sudo", "apt-get", "install", "-y"] + packages
+    run(cmd)
+    log("System dependencies installed", "info")
+
+
 def ensure_env_file() -> bool:
     """Create backend/.env from .env.example with a generated SECRET_KEY."""
     env_path = BACKEND_DIR / ".env"
     example_path = BACKEND_DIR / ".env.example"
 
     if env_path.exists():
-        log(f"backend/.env already exists — skipping", "info")
+        log("backend/.env already exists — skipping", "info")
         return False
 
     if not example_path.exists():
@@ -126,7 +168,14 @@ def install_python_deps() -> None:
         log("backend/requirements.txt not found", "error")
         sys.exit(1)
 
-    run([sys.executable, "-m", "pip", "install", "-r", str(req_path)])
+    log("Installing Python dependencies (this may take a few minutes)…", "step")
+    result = subprocess.run(
+        [sys.executable, "-m", "pip", "install", "-r", str(req_path)],
+        capture_output=False,  # show live output for long installs
+    )
+    if result.returncode != 0:
+        log("pip install failed — see output above", "error")
+        sys.exit(1)
     log("Python dependencies installed", "info")
 
 
@@ -343,7 +392,10 @@ def main() -> None:
         log("npm not found — install Node.js 20+ first", "error")
         sys.exit(1)
 
-    # 0. Optionally start infra
+    # 0. Install system deps (apt-based packages for WeasyPrint, psycopg2, nmap, etc.)
+    install_system_deps()
+
+    # 0b. Optionally start infra
     if use_docker_infra:
         start_docker_infra()
 
