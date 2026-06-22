@@ -166,7 +166,7 @@ async def run_scan(db: Session, domain: str, is_full_report: bool = False) -> Sc
     # Map vector keys to the collector that produced their evidence
     vec_to_collector = {
         "spf_presence": "dns", "dkim_presence": "dns", "dmarc_enforcement": "dns",
-        "dnssec_adoption": "dns",
+        "dnssec_adoption": "dns", "zone_transfer": "dns",
         "domain_age": "whois", "domain_expiration": "whois",
         "tls_version": "tls", "certificate_health": "tls",
         "security_headers": "http", "https_enforcement": "http",

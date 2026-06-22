@@ -6,6 +6,13 @@ Run:  python start.py
 Starts all MYEVIEW services and streams colour-coded logs to the terminal.
 Each service's output is also saved to a log file under logs/.
 
+On every startup, start.py automatically:
+  1. Checks if PostgreSQL + Redis are reachable; if not, starts them via
+     docker-compose (no --docker-infra flag needed — it's automatic).
+  2. Runs Alembic migrations (alembic upgrade head) so new migrations from
+     a fresh git pull are applied before services start.
+  3. Validates the scoring ruleset (reference_data + YAML consistency).
+
 Services started:
   - Backend API (uvicorn)
   - Celery worker
@@ -13,7 +20,7 @@ Services started:
   - Frontend (vite dev server or static serve of dist/)
 
 Options:
-  --docker-infra    Start PostgreSQL + Redis via docker-compose if not running
+  --docker-infra    Force docker-compose start (skips the reachability check)
   --dev             Run frontend in dev mode (vite) instead of serving dist/
   --no-celery       Skip Celery worker + beat (API + frontend only)
   --no-frontend     Skip frontend (backend + celery only)
@@ -220,6 +227,13 @@ print('OK')
 
 def start_docker_infra() -> None:
     """Start PostgreSQL and Redis via docker-compose."""
+    # Check if docker is available
+    docker_check = subprocess.run(["docker", "--version"], capture_output=True)
+    if docker_check.returncode != 0:
+        log("Docker is not available — cannot start infrastructure automatically", "error")
+        log("Start PostgreSQL and Redis manually, or install Docker.", "error")
+        sys.exit(1)
+
     log("Starting PostgreSQL + Redis via docker-compose…", "step")
     subprocess.run(["docker", "compose", "up", "-d", "postgres", "redis"], cwd=PROJECT_ROOT)
 
@@ -242,6 +256,73 @@ def start_docker_infra() -> None:
     else:
         log("Redis did not become ready in 15s", "error")
         sys.exit(1)
+
+
+def ensure_infrastructure() -> None:
+    """Check if PostgreSQL + Redis are reachable; start them via docker if not."""
+    log("Checking infrastructure…", "step")
+    pg_ok = check_postgres()
+    rd_ok = check_redis()
+
+    if pg_ok and rd_ok:
+        log("PostgreSQL and Redis are reachable", "info")
+        return
+
+    # Something is not reachable — try to start via docker-compose
+    missing = []
+    if not pg_ok:
+        missing.append("PostgreSQL")
+    if not rd_ok:
+        missing.append("Redis")
+    log(f"{' and '.join(missing)} not reachable — starting via docker-compose…", "warn")
+    start_docker_infra()
+
+
+def run_migrations() -> None:
+    """Run Alembic migrations (alembic upgrade head). Idempotent — only applies pending ones."""
+    log("Running database migrations…", "step")
+    result = subprocess.run(
+        [VENV_PYTHON, "-m", "alembic", "upgrade", "head"],
+        cwd=BACKEND_DIR,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        log("Database migrations failed:", "error")
+        if result.stdout:
+            print(result.stdout)
+        if result.stderr:
+            print(result.stderr, file=sys.stderr)
+        sys.exit(1)
+    # Alembic prints "INFO  [alembic.runtime.migration] ..." lines on success
+    if result.stdout.strip():
+        for line in result.stdout.strip().splitlines():
+            if "INFO" in line:
+                print(f"  {line.strip()}")
+    log("Database migrations applied (all up to head)", "info")
+
+
+def validate_scoring() -> None:
+    """Validate that scoring rules sum to 1000 and reference data is consistent."""
+    log("Validating scoring ruleset…", "step")
+    result = subprocess.run(
+        [VENV_PYTHON, "-c", """
+import sys
+sys.path.insert(0, 'backend')
+from app.reference_data import validate_reference_data
+from app.scoring.rules_loader import load_ruleset
+validate_reference_data()
+load_ruleset()
+print('VALID')
+"""],
+        capture_output=True, text=True, cwd=PROJECT_ROOT,
+    )
+    if "VALID" not in result.stdout:
+        log("Scoring validation failed:", "error")
+        if result.stderr:
+            print(result.stderr, file=sys.stderr)
+        sys.exit(1)
+    log("Scoring ruleset validated (28 vectors, 1000 points)", "info")
 
 
 # ---------------------------------------------------------------------------
@@ -271,20 +352,17 @@ def main() -> None:
     check_prerequisites()
     LOG_DIR.mkdir(exist_ok=True)
 
-    # Check / start infra
+    # Check / start infra (auto-starts via docker-compose if not reachable)
     if use_docker_infra:
         start_docker_infra()
     else:
-        log("Checking infrastructure…", "step")
-        pg_ok = check_postgres()
-        rd_ok = check_redis()
-        if not pg_ok:
-            log("PostgreSQL is not reachable — use --docker-infra or start it manually", "error")
-            sys.exit(1)
-        if not rd_ok:
-            log("Redis is not reachable — use --docker-infra or start it manually", "error")
-            sys.exit(1)
-        log("PostgreSQL and Redis are reachable", "info")
+        ensure_infrastructure()
+
+    # Run database migrations (always — alembic upgrade head is idempotent)
+    run_migrations()
+
+    # Validate scoring ruleset (catches reference_data / YAML inconsistencies early)
+    validate_scoring()
 
     # Build service list
     services: list[Service] = []

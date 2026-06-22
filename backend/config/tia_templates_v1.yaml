@@ -36,17 +36,19 @@ templates:
         Maintain DMARC at p=reject, monitor aggregate reports regularly, and keep SPF/DKIM alignments up to date as mail sources change.
 
   domain_governance:
-    vectors: [domain_age, domain_expiration, dnssec_adoption]
+    vectors: [domain_age, domain_expiration, dnssec_adoption, zone_transfer]
     dirty:
       template_id: "domain_governance_dirty_v1"
       technical_observation: |
         {% if domain_age == 'FAIL' %}The domain {{ domain }} is less than six months old.{% elif domain_age == 'WARN' %}The domain is between six and twelve months old.{% endif %}
         {% if domain_expiration == 'FAIL' %}The domain registration expires within 30 days or has already expired.{% elif domain_expiration == 'WARN' %}The domain registration expires within 30 to 90 days.{% endif %}
         {% if dnssec_adoption == 'FAIL' %}DNSSEC is not enabled for {{ domain }}.{% elif dnssec_adoption == 'WARN' %}DNSSEC deployment is only partial.{% endif %}
+        {% if zone_transfer == 'FAIL' %}At least one authoritative nameserver allows unrestricted zone transfers (AXFR), exposing the full DNS record set to any requester.{% endif %}
       business_impact: |
         <p>Short registration history or a near-term expiration window increases the risk of service disruption, accidental loss, or adversarial takeover of the organization's primary digital identity.</p>
         <p>Without DNSSEC, DNS responses can be spoofed or poisoned, potentially redirecting customers to attacker-controlled infrastructure while appearing legitimate.</p>
-      stakeholders_affected: [Customers, Business Partners, Regulators]
+        <p>Unrestricted zone transfers expose the complete DNS infrastructure map — every record, subdomain, and internal host — to anyone who asks, enabling targeted attacks against discovered services.</p>
+      stakeholders_affected: [Customers, Business Partners, Regulators, IT Security Team]
       regulatory_relevance: |
         Relevant to system integrity and continuity obligations under ANTIC Law No. 2010/012. {{ regulatory_disclaimer }}
       recommended_action: |
@@ -54,7 +56,7 @@ templates:
     clean:
       template_id: "domain_governance_clean_v1"
       technical_observation: |
-        The domain {{ domain }} has a stable registration age and an expiration window well beyond the assessment horizon. DNSSEC is enabled.
+        The domain {{ domain }} has a stable registration age and an expiration window well beyond the assessment horizon. DNSSEC is enabled. All authoritative nameservers refuse zone transfer requests.
       business_impact: |
         <p>A mature registration and healthy expiration horizon reduce the risk of identity loss or disruption, while DNSSEC helps protect visitors from DNS-based redirection attacks.</p>
       stakeholders_affected: [Customers, Business Partners]

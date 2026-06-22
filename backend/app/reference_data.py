@@ -1,6 +1,6 @@
 """Fixed reference data for categories and vectors.
 
-This module is the single source of truth for the 8 categories and 27 vectors used
+This module is the single source of truth for the 8 categories and 28 vectors used
 in scoring. It is imported by the Alembic seed migration and by the scoring rules
 validator to guarantee consistency.
 """
@@ -25,9 +25,10 @@ VECTOR_ROWS: list[dict[str, Any]] = [
     {"id": 3, "category_id": 1, "key": "dmarc_enforcement", "name": "DMARC Presence + Enforcement", "data_source": "DNS TXT", "collection_method": "dnspython", "points_budget": 80, "sort_order": 3},
 
     # 2 — Digital Identity & Domain Governance (90)
-    {"id": 4, "category_id": 2, "key": "domain_age", "name": "Domain Age", "data_source": "WHOIS/RDAP", "collection_method": "python-whois", "points_budget": 30, "sort_order": 1},
-    {"id": 5, "category_id": 2, "key": "domain_expiration", "name": "Domain Expiration Health", "data_source": "WHOIS/RDAP", "collection_method": "python-whois", "points_budget": 35, "sort_order": 2},
-    {"id": 6, "category_id": 2, "key": "dnssec_adoption", "name": "DNSSEC Adoption", "data_source": "DNS RRSIG/DS", "collection_method": "dnspython", "points_budget": 25, "sort_order": 3},
+    {"id": 4, "category_id": 2, "key": "domain_age", "name": "Domain Age", "data_source": "WHOIS/RDAP", "collection_method": "python-whois", "points_budget": 15, "sort_order": 1},
+    {"id": 5, "category_id": 2, "key": "domain_expiration", "name": "Domain Expiration Health", "data_source": "WHOIS/RDAP", "collection_method": "python-whois", "points_budget": 30, "sort_order": 2},
+    {"id": 6, "category_id": 2, "key": "dnssec_adoption", "name": "DNSSEC Adoption", "data_source": "DNS RRSIG/DS", "collection_method": "dnspython", "points_budget": 20, "sort_order": 3},
+    {"id": 28, "category_id": 2, "key": "zone_transfer", "name": "Zone Transfer (AXFR) Exposure", "data_source": "DNS AXFR", "collection_method": "dnspython", "points_budget": 25, "sort_order": 4},
 
     # 3 — Infrastructure Security (180)
     {"id": 7, "category_id": 3, "key": "tls_version", "name": "TLS Version Strength", "data_source": "Direct TLS handshake", "collection_method": "ssl/cryptography", "points_budget": 40, "sort_order": 1},
@@ -86,5 +87,5 @@ def validate_reference_data() -> None:
     if len(CATEGORY_ROWS) != 8:
         raise ValueError(f"Expected 8 categories, got {len(CATEGORY_ROWS)}")
 
-    if len(VECTOR_ROWS) != 27:
-        raise ValueError(f"Expected 27 vectors, got {len(VECTOR_ROWS)}")
+    if len(VECTOR_ROWS) != 28:
+        raise ValueError(f"Expected 28 vectors, got {len(VECTOR_ROWS)}")

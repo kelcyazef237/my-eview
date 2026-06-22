@@ -46,36 +46,46 @@ categories:
     scored: true
     vectors:
       - key: domain_age
+        points_budget: 15
+        tiers:
+          - match: state == PASS
+            deduction: 0
+          - match: state == WARN
+            deduction: -8
+          - match: state == FAIL
+            deduction: -15
+          - match: true
+            deduction: 0
+
+      - key: domain_expiration
         points_budget: 30
         tiers:
           - match: state == PASS
             deduction: 0
           - match: state == WARN
-            deduction: -15
+            deduction: -13
           - match: state == FAIL
             deduction: -30
           - match: true
             deduction: 0
 
-      - key: domain_expiration
-        points_budget: 35
+      - key: dnssec_adoption
+        points_budget: 20
         tiers:
           - match: state == PASS
             deduction: 0
           - match: state == WARN
-            deduction: -15
+            deduction: -8
           - match: state == FAIL
-            deduction: -35
+            deduction: -20
           - match: true
             deduction: 0
 
-      - key: dnssec_adoption
+      - key: zone_transfer
         points_budget: 25
         tiers:
           - match: state == PASS
             deduction: 0
-          - match: state == WARN
-            deduction: -10
           - match: state == FAIL
             deduction: -25
           - match: true
