@@ -42,3 +42,6 @@ backend/.setup_complete
 # Temporary
 *.log
 *.tmp
+
+# Service logs
+logs/
