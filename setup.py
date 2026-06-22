@@ -131,11 +131,13 @@ def install_system_deps() -> None:
         log("System dependencies already installed — skipping", "info")
         return
 
-    packages = [
+    # Candidate packages — we filter to only those available in apt
+    candidate_packages = [
         "python3-pip", "python3-dev", "build-essential",
         "libpq-dev", "libffi-dev", "libssl-dev",
         "libpango-1.0-0", "libpangoft2-1.0-0", "libcairo2",
-        "libgdk-pixbuf2.0-0", "pkg-config", "nmap",
+        "libgdk-pixbuf-2.0-0",  # renamed from libgdk-pixbuf2.0-0 on newer Ubuntu
+        "pkg-config", "nmap",
         "python3-venv",
     ]
 
@@ -143,13 +145,23 @@ def install_system_deps() -> None:
     # e.g. python3.13-venv on Ubuntu 24.04 with Python 3.13
     py_version = f"{sys.version_info.major}.{sys.version_info.minor}"
     venv_pkg = f"python{py_version}-venv"
-    # Check if this package exists in apt before adding it
-    check_pkg = subprocess.run(
-        ["apt-cache", "show", venv_pkg],
-        capture_output=True, text=True,
-    )
-    if check_pkg.returncode == 0:
-        packages.append(venv_pkg)
+    candidate_packages.append(venv_pkg)
+
+    # Filter to only packages that actually exist in apt repos
+    packages = []
+    for pkg in candidate_packages:
+        check_pkg = subprocess.run(
+            ["apt-cache", "show", pkg],
+            capture_output=True, text=True,
+        )
+        if check_pkg.returncode == 0:
+            packages.append(pkg)
+        else:
+            log(f"  Package {pkg} not found in apt — skipping", "warn")
+
+    if not packages:
+        log("No installable packages found — something is wrong with apt", "error")
+        sys.exit(1)
 
     log("Installing system packages via apt-get (requires sudo)…", "step")
     cmd = ["sudo", "apt-get", "update", "-y"]
