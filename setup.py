@@ -92,8 +92,18 @@ def create_virtualenv() -> None:
     log("Checking virtual environment…", "step")
 
     if VENV_DIR.exists() and (VENV_DIR / "bin" / "python").exists():
-        log(".venv/ already exists — skipping", "info")
-        return
+        # Verify the venv is actually functional
+        test_result = subprocess.run(
+            [str(VENV_DIR / "bin" / "python"), "-c", "import ensurepip"],
+            capture_output=True, text=True,
+        )
+        if test_result.returncode == 0:
+            log(".venv/ already exists — skipping", "info")
+            return
+        else:
+            log(".venv/ exists but is broken — recreating", "warn")
+            import shutil
+            shutil.rmtree(VENV_DIR, ignore_errors=True)
 
     run([sys.executable, "-m", "venv", str(VENV_DIR)], cwd=PROJECT_ROOT)
     log("Virtual environment created at .venv/", "info")
@@ -108,12 +118,16 @@ def install_system_deps() -> None:
         log("Not a Debian/Ubuntu system — skipping apt packages (install manually if needed)", "warn")
         return
 
-    # Quick check: if libpango is present, assume system deps are installed
+    # Quick check: if libpango is present AND python3-venv works, assume system deps are installed
     result = subprocess.run(
         ["dpkg", "-l", "libpango-1.0-0"],
         capture_output=True, text=True,
     )
-    if result.returncode == 0 and "ii" in result.stdout:
+    venv_ok = subprocess.run(
+        [sys.executable, "-c", "import venv; import ensurepip"],
+        capture_output=True, text=True,
+    )
+    if result.returncode == 0 and "ii" in result.stdout and venv_ok.returncode == 0:
         log("System dependencies already installed — skipping", "info")
         return
 
@@ -122,7 +136,20 @@ def install_system_deps() -> None:
         "libpq-dev", "libffi-dev", "libssl-dev",
         "libpango-1.0-0", "libpangoft2-1.0-0", "libcairo2",
         "libgdk-pixbuf2.0-0", "pkg-config", "nmap",
+        "python3-venv",
     ]
+
+    # On newer Ubuntu/Debian, the venv module needs a version-specific package
+    # e.g. python3.13-venv on Ubuntu 24.04 with Python 3.13
+    py_version = f"{sys.version_info.major}.{sys.version_info.minor}"
+    venv_pkg = f"python{py_version}-venv"
+    # Check if this package exists in apt before adding it
+    check_pkg = subprocess.run(
+        ["apt-cache", "show", venv_pkg],
+        capture_output=True, text=True,
+    )
+    if check_pkg.returncode == 0:
+        packages.append(venv_pkg)
 
     log("Installing system packages via apt-get (requires sudo)…", "step")
     cmd = ["sudo", "apt-get", "update", "-y"]
