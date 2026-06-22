@@ -94,11 +94,28 @@ def _authoritative_nameservers(domain: str) -> list[str]:
     return [str(rdata.target).rstrip(".") for rdata in ans]
 
 
+def _resolve_ns_ip(ns_hostname: str) -> str | None:
+    """Resolve a nameserver hostname to its IPv4 address."""
+    resolver = dns.resolver.Resolver()
+    resolver.timeout = 2.0
+    resolver.lifetime = 5.0
+    try:
+        ans = resolver.resolve(ns_hostname, "A")
+        for rdata in ans:
+            return str(rdata)
+    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer, dns.exception.Timeout, dns.resolver.NoNameservers):
+        pass
+    return None
+
+
 def _zone_transfer_status(domain: str) -> dict:
     """Test AXFR against every authoritative nameserver.
 
     Returns {"tested": int, "allowed": list[str], "refused": list[str]}.
     PASS if all refuse, FAIL if any allows.
+
+    dns.query.xfr requires an IP address (not a hostname), so we resolve
+    each NS hostname to its IP first.
     """
     nameservers = _authoritative_nameservers(domain)
     if not nameservers:
@@ -107,8 +124,13 @@ def _zone_transfer_status(domain: str) -> dict:
     allowed = []
     refused = []
     for ns in nameservers:
+        ns_ip = _resolve_ns_ip(ns)
+        if not ns_ip:
+            # Can't resolve the NS IP — treat as refused (can't test)
+            refused.append(ns)
+            continue
         try:
-            dns.zone.from_xfr(dns.query.xfr(ns, domain, timeout=5, lifetime=10))
+            dns.zone.from_xfr(dns.query.xfr(ns_ip, domain, timeout=10, lifetime=30))
             allowed.append(ns)
         except Exception:
             refused.append(ns)
