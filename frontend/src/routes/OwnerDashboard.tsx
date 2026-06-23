@@ -4,6 +4,7 @@ import { Loader2, RefreshCw, AlertTriangle, CheckCircle2, ChevronDown, ChevronUp
 import { api } from '@/api/client'
 import { CategoryBreakdown } from '@/components/CategoryBreakdown'
 import { EntityIntelligence } from '@/components/EntityIntelligence'
+import { OrgSelector } from '@/components/OrgSelector'
 import { ScoreGauge } from '@/components/ScoreGauge'
 import { ScoreHistoryChart } from '@/components/ScoreHistoryChart'
 import { TIAPanel } from '@/components/TIAPanel'
@@ -11,8 +12,14 @@ import { TechnicalTable } from '@/components/TechnicalTable'
 import type { OwnerDashboardData, VectorFinding } from '@/types'
 
 export function OwnerDashboard() {
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const orgId = searchParams.get('org_id') || undefined
+
+  const handleSelectOrg = (id: string) => {
+    const next = new URLSearchParams(searchParams)
+    next.set('org_id', id)
+    setSearchParams(next)
+  }
   const [data, setData] = useState<OwnerDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -118,6 +125,7 @@ export function OwnerDashboard() {
           <p className="text-[var(--text-secondary)]">{data.org.domain}</p>
         </div>
         <div className="flex items-center gap-3">
+          <OrgSelector orgId={orgId} onSelect={handleSelectOrg} />
           {data.org.ownership_verified ? (
             <span className="badge badge-pass">
               <CheckCircle2 size={14} /> Verified

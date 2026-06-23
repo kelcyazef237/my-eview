@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { Download, Loader2, ExternalLink, Gauge, Shield as ShieldIcon, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { api } from '@/api/client'
 import { CategoryBreakdown } from '@/components/CategoryBreakdown'
+import { OrgSelector } from '@/components/OrgSelector'
 import { ScoreGauge } from '@/components/ScoreGauge'
 import { ScoreHistoryChart } from '@/components/ScoreHistoryChart'
 import type { OwnerDashboardData, ScoreHistoryPoint } from '@/types'
@@ -23,8 +24,14 @@ function outlookIcon(outlook: string) {
 }
 
 export function ReportPage() {
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const orgId = searchParams.get('org_id') || undefined
+
+  const handleSelectOrg = (id: string) => {
+    const next = new URLSearchParams(searchParams)
+    next.set('org_id', id)
+    setSearchParams(next)
+  }
   const [data, setData] = useState<OwnerDashboardData | null>(null)
   const [history, setHistory] = useState<ScoreHistoryPoint[]>([])
   const [loading, setLoading] = useState(true)
@@ -71,6 +78,7 @@ export function ReportPage() {
           <p className="text-[var(--text-secondary)]">{data.org.name} · {data.org.domain}</p>
         </div>
         <div className="flex gap-2">
+          <OrgSelector orgId={orgId} onSelect={handleSelectOrg} />
           <a
             href={api.reportHtml(scanRunId)}
             target="_blank"
