@@ -366,6 +366,94 @@ def _pid_alive(pid: int) -> bool:
     return True
 
 
+def _pids_on_port(port: int) -> list[int]:
+    """Return PIDs of processes listening on the given TCP port. Tries lsof then fuser then ss."""
+    # 1. lsof
+    try:
+        out = subprocess.run(
+            ["lsof", "-ti", f":{port}"],
+            capture_output=True, text=True, timeout=5,
+        )
+        if out.returncode == 0:
+            pids = [int(p) for p in out.stdout.split() if p.isdigit()]
+            if pids:
+                return pids
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+    # 2. fuser
+    try:
+        out = subprocess.run(
+            ["fuser", f"{port}/tcp"],
+            capture_output=True, text=True, timeout=5,
+        )
+        # fuser prints PIDs to stderr in format "PORT/tcp:   PID PID"
+        text = (out.stdout + out.stderr).strip()
+        pids = [int(p) for p in text.replace(f"{port}/tcp:", "").split() if p.isdigit()]
+        if pids:
+            return pids
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+    # 3. ss (present on most modern Linux)
+    try:
+        out = subprocess.run(
+            ["ss", "-lptnH", f"sport = :{port}"],
+            capture_output=True, text=True, timeout=5,
+        )
+        pids = []
+        for line in out.stdout.splitlines():
+            # lines look like: "... users:(("uvicorn",pid=12345,fd=...))"
+            if "pid=" in line:
+                after = line.split("pid=", 1)[1]
+                num = ""
+                for ch in after:
+                    if ch.isdigit():
+                        num += ch
+                    else:
+                        break
+                if num:
+                    pids.append(int(num))
+        if pids:
+            return pids
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+    return []
+
+
+def free_port(port: int, label: str = "") -> None:
+    """Kill any process listening on `port` so a stale instance can't block startup."""
+    pids = _pids_on_port(port)
+    if not pids:
+        return
+    desc = f" ({label})" if label else ""
+    log(f"Port {port}{desc} is held by PID {', '.join(map(str, pids))} — killing…", "warn")
+    for pid in pids:
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except ProcessLookupError:
+            continue
+        except PermissionError:
+            log(f"No permission to kill PID {pid} on port {port}", "error")
+            continue
+    # Give them a moment to release the socket
+    time.sleep(2)
+    # Force-kill any survivors
+    survivors = _pids_on_port(port)
+    for pid in survivors:
+        try:
+            os.kill(pid, signal.SIGKILL)
+            log(f"Force-killed PID {pid} on port {port}", "warn")
+        except (ProcessLookupError, PermissionError):
+            pass
+    time.sleep(1)
+    if _pids_on_port(port):
+        log(f"Port {port} still in use after kill attempts — startup may fail", "error")
+    else:
+        log(f"Port {port} is now free", "info")
+
+
 def daemonize() -> None:
     """Double-fork detach: parent exits, child becomes session leader and runs main()."""
     LOG_DIR.mkdir(exist_ok=True)
@@ -435,6 +523,9 @@ def stop_daemon() -> None:
         if not _pid_alive(pid):
             _clear_pid()
             log("Daemon stopped", "info")
+            # Clean up any orphaned children still holding ports
+            free_port(8000, "API")
+            free_port(5173, "FRONTEND")
             sys.exit(0)
 
     # Force kill
@@ -445,6 +536,8 @@ def stop_daemon() -> None:
         pass
     _clear_pid()
     log("Daemon killed", "info")
+    free_port(8000, "API")
+    free_port(5173, "FRONTEND")
 
 
 def status_daemon() -> None:
@@ -579,6 +672,13 @@ def main() -> None:
     # Start all services
     print()
     print(f"{BOLD}Starting {len(services)} services…{RESET}")
+
+    # Free ports that the API and frontend will bind to, so a stale
+    # process from a crashed/killed run can't block startup.
+    free_port(port, "API")
+    if not no_frontend:
+        free_port(5173, "FRONTEND")
+
     print(f"Logs are saved to {LOG_DIR}/")
     if not daemon_mode:
         print(f"Press Ctrl+C to stop all services.")
