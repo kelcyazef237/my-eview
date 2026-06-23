@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { LogIn, Loader2, UserCircle } from 'lucide-react'
 import { api } from '@/api/client'
 import { AuthLayout } from '@/components/AuthLayout'
@@ -9,7 +9,6 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -18,15 +17,14 @@ export function LoginPage() {
     try {
       const data = await api.login(identifier, password)
       localStorage.setItem('myeview_token', data.access_token)
-      // Redirect based on role
-      if (data.role === 'global_admin') {
-        navigate('/admin')
-      } else if (data.role === 'owner_technical') {
-        navigate('/technical')
-      } else {
-        navigate('/dashboard')
-      }
-      window.location.reload()
+      // Hard navigation: sets the URL AND reloads in one atomic browser action,
+      // so there's no race between navigate() and reload() that could bounce
+      // back to /login. The RoleRoute on the target page re-checks the token.
+      const dest =
+        data.role === 'global_admin' ? '/admin'
+        : data.role === 'owner_technical' ? '/technical'
+        : '/dashboard'
+      window.location.href = dest
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
