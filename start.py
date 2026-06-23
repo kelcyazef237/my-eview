@@ -26,8 +26,12 @@ Options:
   --no-frontend     Skip frontend (backend + celery only)
   --host HOST       Bind backend to this host (default: 0.0.0.0)
   --port PORT       Bind backend to this port (default: 8000)
+  --daemon          Run in the background (detached, survives SSH disconnect)
+  --stop            Stop a running daemon (reads PID from logs/start.pid)
+  --status          Show whether the daemon is running
 
-Press Ctrl+C to stop all services gracefully.
+Press Ctrl+C to stop all services gracefully (foreground mode).
+In --daemon mode, use `python start.py --stop` to shut down.
 """
 
 from __future__ import annotations
@@ -326,11 +330,161 @@ print('VALID')
 
 
 # ---------------------------------------------------------------------------
+# Daemon mode — detached background execution (survives SSH disconnect)
+# ---------------------------------------------------------------------------
+
+PID_FILE = LOG_DIR / "start.pid"
+DAEMON_LOG = LOG_DIR / "daemon.log"
+
+
+def _write_pid(pid: int) -> None:
+    PID_FILE.write_text(str(pid))
+
+
+def _read_pid() -> int | None:
+    if not PID_FILE.exists():
+        return None
+    try:
+        return int(PID_FILE.read_text().strip())
+    except (ValueError, OSError):
+        return None
+
+
+def _clear_pid() -> None:
+    if PID_FILE.exists():
+        PID_FILE.unlink()
+
+
+def _pid_alive(pid: int) -> bool:
+    """Check if a process with this PID exists (no permission/owner check)."""
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True  # exists but not ours — treat as alive for status
+    return True
+
+
+def daemonize() -> None:
+    """Double-fork detach: parent exits, child becomes session leader and runs main()."""
+    LOG_DIR.mkdir(exist_ok=True)
+
+    # Flush any buffered output before forking
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+    # First fork — parent returns immediately, child continues
+    pid = os.fork()
+    if pid > 0:
+        # Parent — print the child PID and exit
+        print(f"{GREEN}✓ {BOLD}MYEVIEW daemonized{RESET} (PID {pid})")
+        print(f"  Logs:  {DAEMON_LOG}")
+        print(f"  Stop:  python start.py --stop")
+        print(f"  Status: python start.py --status")
+        sys.exit(0)
+
+    # Child — become its own session leader (no controlling terminal)
+    os.setsid()
+
+    # Second fork — prevents re-acquiring a controlling terminal
+    pid = os.fork()
+    if pid > 0:
+        # Intermediate child — exit immediately
+        os._exit(0)
+
+    # Grandchild — the actual daemon process
+    os.chdir(str(PROJECT_ROOT))
+    os.umask(0)
+
+    # Replace stdio: stdin from /dev/null, stdout+stderr to daemon log
+    with open("/dev/null", "rb") as devnull_in:
+        os.dup2(devnull_in.fileno(), sys.stdin.fileno())
+    log_fd = open(DAEMON_LOG, "a", buffering=1)
+    os.dup2(log_fd.fileno(), sys.stdout.fileno())
+    os.dup2(log_fd.fileno(), sys.stderr.fileno())
+
+    _write_pid(os.getpid())
+
+    # Register cleanup on exit
+    import atexit
+    atexit.register(_clear_pid)
+
+
+def stop_daemon() -> None:
+    pid = _read_pid()
+    if pid is None:
+        log("No PID file found — daemon not running (or started without --daemon)", "warn")
+        sys.exit(1)
+    if not _pid_alive(pid):
+        log(f"PID {pid} is not running — cleaning up stale PID file", "warn")
+        _clear_pid()
+        sys.exit(1)
+
+    log(f"Stopping MYEVIEW daemon (PID {pid})…", "step")
+    try:
+        os.kill(pid, signal.SIGTERM)
+    except ProcessLookupError:
+        _clear_pid()
+        log("Process already gone", "warn")
+        sys.exit(0)
+
+    # Wait up to 15s for it to die
+    for _ in range(15):
+        time.sleep(1)
+        if not _pid_alive(pid):
+            _clear_pid()
+            log("Daemon stopped", "info")
+            sys.exit(0)
+
+    # Force kill
+    log("Daemon did not stop in 15s — sending SIGKILL", "warn")
+    try:
+        os.kill(pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    _clear_pid()
+    log("Daemon killed", "info")
+
+
+def status_daemon() -> None:
+    pid = _read_pid()
+    if pid is None:
+        print(f"{YELLOW}MYEVIEW daemon is not running (no PID file){RESET}")
+        sys.exit(0)
+    if _pid_alive(pid):
+        print(f"{GREEN}✓ MYEVIEW daemon is running (PID {pid}){RESET}")
+        print(f"  Logs: {DAEMON_LOG}")
+        print(f"  Stop: python start.py --stop")
+        sys.exit(0)
+    else:
+        print(f"{RED}✗ PID file exists (PID {pid}) but process is dead — stale{RESET}")
+        _clear_pid()
+        sys.exit(1)
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
 def main() -> None:
     args = sys.argv[1:]
+
+    # Control flags (these exit before starting services)
+    if "--stop" in args:
+        stop_daemon()
+        return
+    if "--status" in args:
+        status_daemon()
+        return
+
+    daemon_mode = "--daemon" in args
+
+    # In daemon mode, fork off and let the grandchild continue past here.
+    # daemonize() calls sys.exit(0) in the parent, so only the daemon reaches below.
+    if daemon_mode:
+        daemonize()
+
     use_docker_infra = "--docker-infra" in args
     dev_mode = "--dev" in args
     no_celery = "--no-celery" in args
@@ -426,7 +580,10 @@ def main() -> None:
     print()
     print(f"{BOLD}Starting {len(services)} services…{RESET}")
     print(f"Logs are saved to {LOG_DIR}/")
-    print(f"Press Ctrl+C to stop all services.")
+    if not daemon_mode:
+        print(f"Press Ctrl+C to stop all services.")
+    else:
+        print(f"Running detached — use `python start.py --stop` to shut down.")
     print()
 
     started: list[Service] = []
