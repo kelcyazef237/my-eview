@@ -7,6 +7,7 @@ score, shield tier, and TIA output.
 """
 
 import asyncio
+import json
 import uuid
 from datetime import datetime, timezone
 from typing import Any
@@ -27,7 +28,7 @@ from app.models.tia_entry import TiaEntry
 from app.models.vector_finding import VectorFinding
 from app.normalization.normalize_portscan import normalize_legacy_service
 from app.reference_data import CATEGORY_ROWS, VECTOR_ROWS
-from app.scoring.engine import score_run
+from app.scoring.engine import _coerce_meta, score_run
 from app.scoring.outlook_mapper import outlook_for_score
 from app.scoring.shield_mapper import shield_for_score
 from app.tia.template_engine import TemplateEngine
@@ -48,7 +49,9 @@ def _build_findings_from_scan_run(db: Session, scan_run: ScanRun) -> dict[str, d
             continue
         findings[vf.vector.key] = {
             "state": vf.state,
-            "meta": vf.evidence_ref,
+            # evidence_ref is a String column; coerce the stringified dict back
+            # into a real dict so the scoring engine's meta-based matching works.
+            "meta": _coerce_meta(vf.evidence_ref),
         }
     return findings
 
@@ -71,7 +74,8 @@ def _persist_or_update_finding(
         .first()
     )
     meta = finding.get("meta")
-    evidence_ref = str(meta) if meta is not None else None
+    # Persist as JSON so the round-trip back through the DB yields a dict again.
+    evidence_ref = json.dumps(meta) if meta is not None else None
     if existing:
         existing.state = finding.get("state", VectorState.NOT_OBSERVED.value)
         existing.evidence_ref = evidence_ref

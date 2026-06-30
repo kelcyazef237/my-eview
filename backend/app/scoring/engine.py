@@ -17,6 +17,36 @@ class ScoreResult:
     scored_vector_count: int
 
 
+def _coerce_meta(meta: Any) -> dict[str, Any]:
+    """Coerce a finding's ``meta`` value into a dict.
+
+    Findings are persisted via ``VectorFinding.evidence_ref`` (a String column),
+    so a round-trip through the DB can leave ``meta`` as a stringified dict
+    (either JSON or Python repr). Parse those back into a dict; anything that
+    fails to parse becomes an empty dict so meta-based matching degrades
+    gracefully instead of crashing.
+    """
+    if isinstance(meta, dict):
+        return meta
+    if not meta:
+        return {}
+    if isinstance(meta, str):
+        import json
+        try:
+            parsed = json.loads(meta)
+            return parsed if isinstance(parsed, dict) else {}
+        except (ValueError, TypeError):
+            pass
+        # Fallback: Python repr dicts use single quotes — json can't parse those.
+        try:
+            import ast
+            parsed = ast.literal_eval(meta)
+            return parsed if isinstance(parsed, dict) else {}
+        except (ValueError, SyntaxError, TypeError):
+            pass
+    return {}
+
+
 def _eval_match(match: str | bool, state: str, meta: dict[str, Any]) -> bool:
     """Evaluate a simple match expression.
 
@@ -30,6 +60,11 @@ def _eval_match(match: str | bool, state: str, meta: dict[str, Any]) -> bool:
     match = str(match).strip()
     if match == "true":
         return True
+
+    # Defensive: callers may hand us a non-dict meta (e.g. a stringified dict
+    # read back from the DB). Coerce so meta-based matching never crashes.
+    if not isinstance(meta, dict):
+        meta = _coerce_meta(meta)
 
     if "==" in match:
         left, right = match.split("==", 1)

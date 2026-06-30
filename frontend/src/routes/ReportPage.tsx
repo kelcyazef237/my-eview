@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Download, Loader2, Gauge, Shield as ShieldIcon, TrendingUp, TrendingDown, Minus, FileText } from 'lucide-react'
+import { Download, Loader2, Gauge, Shield as ShieldIcon, TrendingUp, TrendingDown, Minus, FileText, Link as LinkIcon, Check } from 'lucide-react'
 import { api } from '@/api/client'
 import { CategoryBreakdown } from '@/components/CategoryBreakdown'
 import { OrgSelector } from '@/components/OrgSelector'
@@ -36,6 +36,8 @@ export function ReportPage() {
   const [history, setHistory] = useState<ScoreHistoryPoint[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     Promise.all([api.dashboard(orgId), api.history(orgId)])
@@ -46,6 +48,37 @@ export function ReportPage() {
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load report'))
       .finally(() => setLoading(false))
   }, [orgId])
+
+  // Mint a short shareable capability link for this report once the scan run id is known.
+  const scanRunId = data?.score.scan_run_id
+  useEffect(() => {
+    setShareUrl(null)
+    if (!scanRunId) return
+    let cancelled = false
+    api
+      .shareReport(scanRunId)
+      .then((res) => {
+        if (!cancelled) setShareUrl(`${window.location.origin}${res.path}`)
+      })
+      .catch(() => {
+        // Fall back to the long token-bearing URL if share minting is unavailable.
+        if (!cancelled) setShareUrl(`${window.location.origin}${api.reportHtml(scanRunId)}`)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [scanRunId])
+
+  async function copyShareLink() {
+    if (!shareUrl) return
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard may be unavailable; the link is still visible via the Web View href.
+    }
+  }
 
   if (loading) {
     return (
@@ -71,10 +104,12 @@ export function ReportPage() {
     )
   }
 
-  const scanRunId = data.score.scan_run_id
   const totalPointsLost = data.categories.reduce((sum, c) => sum + c.points_lost, 0)
   const OutlookIcon = outlookIcon(data.score.outlook)
   const tierColor = ['var(--neon-red)', 'var(--neon-amber)', 'var(--neon-cyan)', 'var(--neon-green)', 'var(--neon-violet)'][Math.max(0, data.score.shield_tier - 1)] || 'var(--text-muted)'
+
+  const shareHref = shareUrl ?? '#'
+  const pdfHref = shareUrl ? `${shareUrl}/pdf` : '#'
 
   return (
     <div className="space-y-8 stagger">
@@ -92,8 +127,17 @@ export function ReportPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <OrgSelector orgId={orgId} onSelect={handleSelectOrg} />
+          <button
+            type="button"
+            onClick={copyShareLink}
+            disabled={!shareUrl}
+            className="btn-ghost"
+            title={shareUrl ?? 'Generating link…'}
+          >
+            {copied ? <Check size={13} /> : <LinkIcon size={13} />} {copied ? 'Copied' : 'Copy Link'}
+          </button>
           <a
-            href={api.reportHtml(scanRunId)}
+            href={shareHref}
             target="_blank"
             rel="noreferrer"
             className="btn-ghost"
@@ -101,7 +145,7 @@ export function ReportPage() {
             <FileText size={13} /> Web View
           </a>
           <a
-            href={api.reportPdf(scanRunId)}
+            href={pdfHref}
             className="btn-gradient"
           >
             <Download size={13} /> PDF

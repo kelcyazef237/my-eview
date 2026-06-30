@@ -104,7 +104,7 @@ export const api = {
   history: (orgId?: string) =>
     fetchJson<ScoreHistoryPoint[]>(`/owner/history${orgId ? `?org_id=${orgId}` : ''}`),
 
-  // Reports — token appended as query param so browser <a>/iframe links work
+  // Reports — short shareable capability links (no JWT in the URL)
   reportHtml: (scanRunId: string) => {
     const token = localStorage.getItem('myeview_token')
     return `${API_BASE}/reports/${scanRunId}${token ? `?token=${encodeURIComponent(token)}` : ''}`
@@ -113,6 +113,12 @@ export const api = {
     const token = localStorage.getItem('myeview_token')
     return `${API_BASE}/reports/${scanRunId}/pdf${token ? `?token=${encodeURIComponent(token)}` : ''}`
   },
+  // Mint (or reuse) a short capability share link for a report.
+  // Returns a relative path like "/r/<code>" — the frontend builds the full URL.
+  shareReport: (scanRunId: string) =>
+    fetchJson<{ code: string; path: string }>(`/reports/${scanRunId}/share`, {
+      method: 'POST',
+    }),
 
   // Admin (global_admin only)
   admin: {

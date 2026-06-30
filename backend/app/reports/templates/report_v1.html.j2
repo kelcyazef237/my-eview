@@ -84,29 +84,38 @@ body::after{
 .rh-entity{font-size:14px;font-weight:600;color:#D8EAF4;letter-spacing:.3px;}
 .rh-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(216,234,244,.35);letter-spacing:1px;margin-top:2px;}
 
-/* Hero */
+/* Hero — centered cover page */
 .hero-section{
   background:linear-gradient(160deg,var(--navy) 0%,#0D2040 60%,#0A1830 100%);
-  padding:42px 42px 36px;
+  padding:56px 42px 48px;
   position:relative;overflow:hidden;
+  text-align:center;
+  min-height:560px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
-.hero-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;position:relative;z-index:2;}
-.hero-score-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:5px;color:rgba(90,200,236,.7);text-transform:uppercase;margin-bottom:8px;}
-.hero-score-num{font-family:'Playfair Display',serif;font-size:96px;font-weight:400;line-height:1;letter-spacing:-3px;color:#FFFFFF;}
-.hero-score-num span{font-size:.45em;font-weight:400;color:rgba(255,255,255,.4);letter-spacing:0;}
-.hero-shield-row{display:flex;align-items:center;gap:14px;margin-top:14px;}
-.hero-shield-badge{display:flex;align-items:center;gap:8px;background:rgba(90,200,236,.12);border:1px solid rgba(90,200,236,.3);border-radius:4px;padding:7px 14px;}
-.shield-icon{font-size:18px;}
-.shield-name{font-size:14px;font-weight:700;color:#5AC8EC;letter-spacing:.3px;}
+.hero-top{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;position:relative;z-index:2;width:100%;}
+.hero-score-label{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:6px;color:rgba(90,200,236,.7);text-transform:uppercase;margin-bottom:0;}
+.hero-score-num{font-family:'Playfair Display',serif;font-size:150px;font-weight:400;line-height:.95;letter-spacing:-5px;color:#FFFFFF;text-shadow:0 0 40px rgba(90,200,236,.25);}
+.hero-score-num span{font-size:.28em;font-weight:400;color:rgba(255,255,255,.4);letter-spacing:0;}
+.hero-shield-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:4px;}
+.hero-shield-badge{display:inline-flex;align-items:center;gap:10px;background:rgba(90,200,236,.12);border:1px solid rgba(90,200,236,.3);border-radius:6px;padding:10px 18px;}
+.shield-icon{font-size:20px;}
+.shield-name{font-size:15px;font-weight:700;color:#5AC8EC;letter-spacing:.4px;}
+.hero-tier-numeral{font-family:'Playfair Display',serif;font-size:64px;font-weight:400;line-height:1;color:#5AC8EC;letter-spacing:-2px;margin:2px 0 0;}
+.hero-tier-rating{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;color:rgba(255,255,255,.55);text-transform:uppercase;margin-top:6px;}
 .hero-trust-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.35);text-transform:uppercase;}
 .hero-status-text{font-size:15px;font-weight:500;color:rgba(255,255,255,.7);}
-.hero-right{display:flex;flex-direction:column;align-items:flex-end;gap:16px;position:relative;z-index:2;}
-.outlook-badge{display:flex;align-items:center;gap:8px;border:1px solid rgba(90,200,236,.25);border-radius:4px;padding:10px 16px;background:rgba(90,200,236,.06);}
+.hero-right{display:flex;flex-direction:column;align-items:center;gap:14px;position:relative;z-index:2;margin-top:6px;}
+.outlook-badge{display:flex;align-items:center;gap:10px;border:1px solid rgba(90,200,236,.25);border-radius:6px;padding:10px 18px;background:rgba(90,200,236,.06);}
 .outlook-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(90,200,236,.6);text-transform:uppercase;}
 .outlook-val{font-size:16px;font-weight:700;color:#5AC8EC;margin-top:2px;}
 .outlook-dot{width:8px;height:8px;border-radius:50%;background:#2ECC71;box-shadow:0 0 8px rgba(46,204,113,.6);}
-.shield-ladder{display:flex;align-items:center;gap:4px;position:relative;z-index:2;}
-.shield-step{height:6px;border-radius:2px;}
+.hero-org-meta{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:8px;}
+.hero-org-name{font-size:18px;font-weight:600;color:#D8EAF4;letter-spacing:.3px;}
+.hero-org-domain{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:rgba(216,234,244,.45);}
+.hero-scope-line{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-top:8px;}
+.shield-ladder{display:flex;align-items:center;justify-content:center;gap:4px;position:relative;z-index:2;margin-top:6px;}
+.shield-step{height:8px;border-radius:2px;}
 
 /* Benchmark */
 .benchmark-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:8px;}
@@ -198,11 +207,18 @@ body::after{
 
 /* Print */
 @media print{
-  .report-footer{position:fixed;bottom:0;left:0;right:0;}
+  .report-footer{position:static;}
   .section{page-break-inside:avoid;}
   .risk-body{display:block !important;}
   .risk-card-header{cursor:default;}
   body::after{display:none;}
+  /* WeasyPrint does not run JS, so CSS animations never reach their `forwards`
+     end-state. Force every reveal element visible so pages aren't blank. */
+  .reveal{opacity:1 !important;animation:none !important;transform:none !important;}
+  .count{opacity:1 !important;animation:none !important;}
+  .outlook-dot{animation:none !important;opacity:1 !important;}
+  /* Page 1 is the cover; start the analytical content on page 2. */
+  .hero-section{page-break-after:always;}
 }
 
 /* Animations */
@@ -254,7 +270,7 @@ body::after{
 </header>
 
 <div class="hero-section">
-  <svg style="position:absolute;right:42px;top:22px;opacity:.15;pointer-events:none;" width="180" height="180" viewBox="0 0 180 180" fill="none">
+  <svg style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);opacity:.10;pointer-events:none;" width="320" height="320" viewBox="0 0 180 180" fill="none">
     <circle cx="90" cy="90" r="70" stroke="#5AC8EC" stroke-width=".8" stroke-dasharray="3 5"/>
     <circle cx="90" cy="90" r="52" stroke="#5AC8EC" stroke-width="1"/>
     <circle cx="90" cy="90" r="34" stroke="#5AC8EC" stroke-width="1.2"/>
@@ -271,26 +287,30 @@ body::after{
   </svg>
 
   <div class="hero-top">
-    <div class="hero-score-block reveal r1">
-      <div class="hero-score-label">Myescore™</div>
+    <div class="hero-score-block reveal r1" style="display:flex;flex-direction:column;align-items:center;">
+      <div class="hero-score-label">Myescore™ · Cyber Trust Index</div>
       <div class="hero-score-num count">{{ score.overall }}<span> / 1000</span></div>
       <div class="hero-shield-row">
         <div class="hero-shield-badge">
           <span class="shield-icon">🛡️</span>
-          <span class="shield-name">{{ score.shield_label }} — {{ score.outlook }}</span>
+          <span class="shield-name">{{ score.shield_label }}</span>
+          <span class="hero-tier-rating" style="margin-top:0;">· {{ score.outlook }}</span>
         </div>
       </div>
-      <div class="shield-ladder" style="margin-top:14px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.25);margin-right:6px;text-transform:uppercase;">I</div>
+      <div class="shield-ladder">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);margin-right:6px;text-transform:uppercase;">I</div>
         {% for step in range(1, 6) %}
-        <div class="shield-step" style="width:28px;{% if step == score.tier %}background:#5AC8EC;{% elif step < score.tier %}background:rgba(90,200,236,.45);{% else %}background:rgba(90,200,236,.15);{% endif %}"></div>
+        <div class="shield-step" style="width:34px;{% if step == score.tier %}background:#5AC8EC;box-shadow:0 0 10px rgba(90,200,236,.6);{% elif step < score.tier %}background:rgba(90,200,236,.45);{% else %}background:rgba(90,200,236,.15);{% endif %}"></div>
         {% endfor %}
-        <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.25);margin-left:6px;text-transform:uppercase;">V</div>
-        <div style="margin-left:10px;font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;color:rgba(90,200,236,.6);text-transform:uppercase;">← You are here</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.3);margin-left:6px;text-transform:uppercase;">V</div>
       </div>
     </div>
 
-    <div class="hero-right reveal r2">
+    <div class="reveal r2" style="display:flex;flex-direction:column;align-items:center;gap:18px;">
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div class="hero-tier-rating">Shield Tier</div>
+        <div class="hero-tier-numeral">{% if score.tier == 5 %}V{% elif score.tier == 4 %}IV{% elif score.tier == 3 %}III{% elif score.tier == 2 %}II{% else %}I{% endif %}</div>
+      </div>
       <div class="outlook-badge">
         <div>
           <div class="outlook-label">Trust Outlook</div>
@@ -298,11 +318,12 @@ body::after{
         </div>
         <div class="outlook-dot"></div>
       </div>
-      <div style="text-align:right;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.25);text-transform:uppercase;margin-bottom:4px;">Assessment Scope</div>
-        <div style="font-size:13px;color:rgba(255,255,255,.5);">{{ org.domain }}</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.2);margin-top:4px;text-transform:uppercase;">Passive Intelligence · Zero Intrusion</div>
-      </div>
+    </div>
+
+    <div class="hero-org-meta reveal r3">
+      <div class="hero-org-name">{{ org.name }}</div>
+      <div class="hero-org-domain">{{ org.domain }}</div>
+      <div class="hero-scope-line">Assessment: {{ score.computed_at.strftime('%B %Y') }} · Passive Intelligence · Zero Intrusion</div>
     </div>
   </div>
 </div>
@@ -310,10 +331,17 @@ body::after{
 <div class="section reveal r3">
   <div class="section-label">Sector Position</div>
   <div class="benchmark-grid">
+    {% set dist_heights = [10,14,18,22,26,30,34,38,41,43,44,43,41,38,34,30,24,18,12,8] %}
+    {% set n_bars = dist_heights|length %}
     <div class="bench-card">
       <div class="bench-title">Sector Percentile</div>
       <div class="dist-marker">&#9650; {{ org.name }}</div>
-      <div class="dist-chart" id="sectorChart"></div>
+      <div class="dist-chart">
+        {% set sector_you = (benchmarks.sector * n_bars / 100)|int %}
+        {% for i in range(n_bars) %}
+        <div class="dist-bar{% if i == sector_you %} you{% elif i < sector_you %} active{% endif %}" style="height:{{ dist_heights[i] }}px;"></div>
+        {% endfor %}
+      </div>
       <div class="bench-bar-track">
         <div class="bench-bar-fill" style="width:{{ benchmarks.sector }}%"></div>
       </div>
@@ -324,7 +352,12 @@ body::after{
     <div class="bench-card">
       <div class="bench-title">National Percentile</div>
       <div class="dist-marker">&#9650; {{ org.name }}</div>
-      <div class="dist-chart" id="nationalChart"></div>
+      <div class="dist-chart">
+        {% set national_you = (benchmarks.national * n_bars / 100)|int %}
+        {% for i in range(n_bars) %}
+        <div class="dist-bar{% if i == national_you %} you{% elif i < national_you %} active{% endif %}" style="height:{{ dist_heights[i] }}px;"></div>
+        {% endfor %}
+      </div>
       <div class="bench-bar-track">
         <div class="bench-bar-fill" style="width:{{ benchmarks.national }}%"></div>
       </div>

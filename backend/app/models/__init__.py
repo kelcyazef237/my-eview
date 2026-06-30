@@ -13,4 +13,5 @@ from app.models.score import Score  # noqa: F401
 from app.models.score_history import ScoreHistory  # noqa: F401
 from app.models.user import User  # noqa: F401
 from app.models.ownership_verification import OwnershipVerification  # noqa: F401
+from app.models.report_share import ReportShare  # noqa: F401
 from app.models.threat_feed_cache import ThreatFeedCache  # noqa: F401

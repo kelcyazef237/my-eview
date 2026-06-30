@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_current_user, resolve_org_id
+from app.api.dependencies import get_current_user, require_owner, resolve_org_id
 from app.database import get_db
 from app.models.category_score import CategoryScore
 from app.models.organization import Organization
+from app.models.report_share import ReportShare
 from app.models.score import Score
 from app.models.score_history import ScoreHistory
 from app.models.tia_entry import TiaEntry
@@ -72,6 +73,16 @@ def _score_context(db: Session, user: User, scan_run_id: str | None = None, org_
     else:
         score = _latest_score_for_org(db, user_org_id)
 
+    return _load_report_context(db, score, org)
+
+
+def _load_report_context(db: Session, score: Score, org: Organization) -> dict:
+    """Build the Jinja context for a resolved Score + Organization.
+
+    Shared by the authenticated report endpoints and the public short-link
+    endpoint, so neither duplicates the eager-loading logic.
+    """
+    org_id = str(org.id)
     category_scores = (
         db.query(CategoryScore)
         .filter_by(scan_run_id=score.scan_run_id)
@@ -89,7 +100,7 @@ def _score_context(db: Session, user: User, scan_run_id: str | None = None, org_
     )
     history = (
         db.query(ScoreHistory)
-        .filter_by(org_id=user_org_id)
+        .filter_by(org_id=org_id)
         .order_by(ScoreHistory.computed_at.desc())
         .limit(24)
         .all()
@@ -98,7 +109,7 @@ def _score_context(db: Session, user: User, scan_run_id: str | None = None, org_
     previous_full = (
         db.query(Score)
         .filter(
-            Score.org_id == user_org_id,
+            Score.org_id == org_id,
             Score.is_full_report == True,
             Score.id != score.id,
         )
@@ -152,3 +163,55 @@ def report_pdf(
         media_type="application/pdf",
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
+
+
+def _generate_share_code(db: Session) -> str:
+    """Generate a unique short capability code for a report share."""
+    import secrets
+    import string
+    alphabet = string.ascii_letters + string.digits
+    for _ in range(8):
+        code = "".join(secrets.choice(alphabet) for _ in range(10))
+        if not db.query(ReportShare).filter_by(code=code).first():
+            return code
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not generate unique share code")
+
+
+@router.post("/{scan_run_id}/share")
+def create_report_share(
+    scan_run_id: str,
+    user: User = Depends(require_owner),
+    db: Session = Depends(get_db),
+):
+    """Mint a short, shareable capability link for a report.
+
+    The link embeds no JWT and requires no auth to view — possession of the
+    code is the authorization. Reuses an existing active share for the same
+    scan run by the same user if one exists, so the link stays stable.
+    """
+    # Verify the caller may access this scan run (reuses auth path).
+    _score_context(db, user, scan_run_id)
+
+    score = db.query(Score).filter(Score.scan_run_id == scan_run_id).first()
+    if not score:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found for this scan run")
+
+    existing = (
+        db.query(ReportShare)
+        .filter_by(scan_run_id=score.scan_run_id, created_by=user.id, revoked=False)
+        .order_by(ReportShare.created_at.desc())
+        .first()
+    )
+    if existing:
+        code = existing.code
+    else:
+        code = _generate_share_code(db)
+        db.add(ReportShare(
+            code=code,
+            scan_run_id=score.scan_run_id,
+            org_id=score.org_id,
+            created_by=user.id,
+        ))
+        db.commit()
+
+    return {"code": code, "path": f"/api/r/{code}"}
