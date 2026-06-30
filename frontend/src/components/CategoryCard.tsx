@@ -8,37 +8,55 @@ export function CategoryCard({ category }: CategoryCardProps) {
   const lostRatio = category.points_lost / category.points_total
   const statusColor =
     lostRatio === 0
-      ? 'bg-emerald-500'
+      ? '#00ff9c'
       : lostRatio < 0.3
-        ? 'bg-amber-500'
-        : 'bg-red-500'
+        ? '#ffb020'
+        : '#ff3060'
+
+  const remainingPct = (category.points_remaining / category.points_total) * 100
 
   return (
-    <div className="glass-card glass-card-hover p-5">
-      <div className="mb-2 flex items-start justify-between">
-        <div>
-          <div className="text-sm font-medium text-[var(--text-secondary)]">
-            {category.parent_group}
+    <div className="panel glass-card-hover p-4">
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="num text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">
+            ▸ {category.parent_group}
           </div>
-          <h3 className="text-base font-semibold">{category.category_name}</h3>
+          <h3 className="mt-0.5 truncate display-title text-[13px] tracking-[0.04em] text-white">
+            {category.category_name}
+          </h3>
         </div>
         <div className="text-right">
-          <div className="text-lg font-bold">
+          <div
+            className="num text-xl font-bold leading-none glitch"
+            data-text={`${category.points_remaining}/${category.points_total}`}
+            style={{ color: statusColor, textShadow: `0 0 10px ${statusColor}80` }}
+          >
             {category.points_remaining}/{category.points_total}
           </div>
-          <div className="text-xs text-[var(--text-muted)]">
-            {category.points_lost > 0 ? `-${category.points_lost} lost` : 'No deductions'}
+          <div className="num mt-1 text-[10px] uppercase tracking-[0.12em]" style={{ color: statusColor }}>
+            {category.points_lost > 0 ? `-${category.points_lost} lost` : 'no.deductions'}
           </div>
         </div>
       </div>
 
-      <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--glass-bg)]">
+      <div className="relative h-2 w-full overflow-hidden rounded-sm bg-[rgba(0,240,255,0.06)]">
         <div
-          className={`h-full rounded-full transition-all ${statusColor}`}
+          className="absolute left-0 top-0 h-full"
           style={{
-            width: `${(category.points_remaining / category.points_total) * 100}%`,
+            width: `${remainingPct}%`,
+            background: statusColor,
+            boxShadow: `0 0 12px ${statusColor}80`,
           }}
         />
+        {/* tick marks */}
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute top-0 h-full w-px bg-[rgba(0,0,0,0.5)]"
+            style={{ left: `${(i + 1) * 10}%` }}
+          />
+        ))}
       </div>
     </div>
   )

@@ -1,4 +1,4 @@
-import { Mail, Check } from 'lucide-react'
+import { Mail, Check, Terminal } from 'lucide-react'
 
 interface VerificationEmailProps {
   email: string
@@ -8,24 +8,42 @@ interface VerificationEmailProps {
 
 export function VerificationEmail({ email, sent, verified }: VerificationEmailProps) {
   return (
-    <div className="glass-card p-5">
-      <h3 className="mb-2 text-base font-semibold">Email Verification</h3>
-      <p className="mb-4 text-sm text-[var(--text-secondary)]">
-        A verification link has been sent to{' '}
-        <strong>{email}</strong>. Click the link in that email to confirm ownership.
-      </p>
-
-      {sent && !verified && (
-        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-          <Mail size={16} /> Verification email sent.
+    <div className="panel-terminal glass-card">
+      <div className="panel-header">
+        <div className="flex items-center gap-2">
+          <span className="dot dot-magenta" />
+          <span>email.verification</span>
         </div>
-      )}
+        <span>{email}</span>
+      </div>
+      <div className="panel-body">
+        <h3 className="display-title mb-2 text-[14px] tracking-[0.08em] text-white">
+          Email Verification
+        </h3>
+        <p className="mb-4 num text-[12px] text-[var(--text-secondary)]">
+          ▸ A verification link has been sent to{' '}
+          <span className="text-[var(--neon-cyan)]">{email}</span>. Click the link in that email to confirm ownership.
+        </p>
 
-      {verified && (
-        <div className="flex items-center gap-2 text-sm font-semibold text-[var(--success)]">
-          <Check size={16} /> Verified
+        <div className="rounded-sm border border-[var(--glass-border-subtle)] bg-black/40 p-3 num text-[12px]">
+          <div className="text-[var(--neon-magenta)]">
+            <Terminal size={11} className="mr-1 inline" />
+            mail.queue.status :: {sent ? 'sent' : 'pending'}
+          </div>
         </div>
-      )}
+
+        {sent && !verified && (
+          <div className="mt-3 flex items-center gap-2 num text-[12px] uppercase tracking-[0.12em] text-[var(--text-secondary)]">
+            <Mail size={13} /> verification email sent
+          </div>
+        )}
+
+        {verified && (
+          <div className="mt-3 flex items-center gap-2 num text-[12px] uppercase tracking-[0.12em] text-[var(--neon-green)]">
+            <Check size={14} /> verified.ok
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Search, Loader2, LogIn } from 'lucide-react'
+import { Search, Loader2, LogIn, Terminal, Globe, AlertTriangle, Sparkles } from 'lucide-react'
 import { api } from '@/api/client'
 import { ScoreGauge } from '@/components/ScoreGauge'
 import type { PublicScore } from '@/types'
@@ -10,7 +10,6 @@ export function PublicLookup() {
   const [error, setError] = useState('')
   const [score, setScore] = useState<PublicScore | null>(null)
 
-  // Dev login is only available when VITE_DEV_LOGIN is set (development mode)
   const showDevLogin = import.meta.env.VITE_DEV_LOGIN === 'true'
   const [devDomain, setDevDomain] = useState('')
   const [devRole, setDevRole] = useState<'owner' | 'owner_technical' | 'ops'>('owner')
@@ -61,90 +60,135 @@ export function PublicLookup() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-3xl stagger">
+      {/* Header */}
       <div className="mb-8 text-center">
-        <h1 className="mb-2 text-3xl font-bold">
-          <span className="gradient-text">External Digital Trust Score</span>
+        <div className="eyebrow mb-3 justify-center">
+          <span className="line" />
+          <span>module :: public.lookup</span>
+          <span className="line" />
+        </div>
+        <h1 className="display-title text-4xl gradient-text mb-2">
+          External Digital Trust Score
         </h1>
-        <p className="text-[var(--text-secondary)]">
-          Enter a Cameroonian domain to see its public MYEVIEW score, shield tier, and trend.
+        <p className="text-sm text-[var(--text-secondary)]">
+          Enter a Cameroonian domain to inspect its public MYEVIEW score, shield tier, and benchmark.
         </p>
       </div>
 
       {showDevLogin && (
-        <div className="glass-card mb-6 p-4">
-          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[var(--text-secondary)]">
-            <LogIn size={16} /> Dev Login — access dashboard, technical view, reports
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <div className="flex-1">
-              <label className="mb-1 block text-xs text-[var(--text-muted)]">Domain (your scanned org)</label>
-              <input
-                type="text"
-                value={devDomain}
-                onChange={(e) => setDevDomain(e.target.value)}
-                placeholder="matrixtelecoms.com"
-                className="glass-input w-full px-3 py-2 text-sm"
-              />
+        <div className="panel-terminal glass-card mb-6">
+          <div className="panel-header">
+            <div className="flex items-center gap-2">
+              <span className="dot dot-magenta" />
+              <span>dev.login</span>
             </div>
-            <div>
-              <label className="mb-1 block text-xs text-[var(--text-muted)]">Role</label>
-              <select
-                value={devRole}
-                onChange={(e) => setDevRole(e.target.value as 'owner' | 'owner_technical' | 'ops')}
-                className="glass-input px-3 py-2 text-sm"
+            <span>debug only</span>
+          </div>
+          <div className="panel-body space-y-3">
+            <div className="num text-[12px] uppercase tracking-[0.12em] text-[var(--neon-magenta)]">
+              <span className="prompt-prefix">!</span>development.access
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="flex-1">
+                <label className="eyebrow mb-1 block">
+                  <span className="line" />
+                  <span>domain</span>
+                </label>
+                <input
+                  type="text"
+                  value={devDomain}
+                  onChange={(e) => setDevDomain(e.target.value)}
+                  placeholder="matrixtelecoms.com"
+                  className="glass-input num w-full px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="eyebrow mb-1 block">
+                  <span className="line" />
+                  <span>role</span>
+                </label>
+                <select
+                  value={devRole}
+                  onChange={(e) => setDevRole(e.target.value as 'owner' | 'owner_technical' | 'ops')}
+                  className="glass-input num px-3 py-2 text-sm"
+                >
+                  <option value="owner">Owner</option>
+                  <option value="owner_technical">Owner / Technical</option>
+                  <option value="ops">Ops (admin)</option>
+                </select>
+              </div>
+              <button
+                onClick={devLogin}
+                disabled={devLoading}
+                className="btn-gradient"
               >
-                <option value="owner">Owner</option>
-                <option value="owner_technical">Technical</option>
-                <option value="ops">Ops (admin)</option>
-              </select>
+                {devLoading ? <Loader2 className="animate-spin" size={14} /> : <LogIn size={14} />}
+                Login
+              </button>
             </div>
-            <button
-              onClick={devLogin}
-              disabled={devLoading}
-              className="flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-              style={{ background: 'var(--gradient-accent)' }}
-            >
-              {devLoading ? <Loader2 className="animate-spin" size={16} /> : <LogIn size={16} />}
-              Login
-            </button>
+            {devError && (
+              <div className="num text-[12px]" style={{ color: 'var(--neon-red)' }}>
+                <span className="prompt-prefix">!</span>
+                {devError}
+              </div>
+            )}
           </div>
-          {devError && (
-            <div className="mt-2 text-sm text-[var(--danger)]">{devError}</div>
-          )}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="mb-8">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            placeholder="example.cm"
-            className="glass-input flex-1 px-4 py-3"
-          />
-          <button
-            type="submit"
-            disabled={loading || !domain}
-            className="flex items-center gap-2 rounded-xl px-6 py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{ background: 'var(--gradient-accent)' }}
-          >
-            {loading ? <Loader2 className="animate-spin" size={18} /> : <Search size={18} />}
-            Lookup
-          </button>
+      {/* Terminal-styled lookup */}
+      <div className="panel-terminal glass-card mb-8">
+        <div className="panel-header">
+          <div className="flex items-center gap-2">
+            <span className="dot dot-cyan" />
+            <span>trust --lookup</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Terminal size={10} className="text-[var(--text-muted)]" />
+            <span>interactive</span>
+          </div>
         </div>
-      </form>
+
+        <form onSubmit={handleSubmit} className="panel-body">
+          <div className="mb-2 flex items-center gap-2 num text-[12px] text-[var(--text-muted)]">
+            <span className="prompt-prefix">$</span>
+            <span>trust.os lookup --domain</span>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="relative flex-1">
+              <Globe size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--neon-cyan)]" />
+              <input
+                type="text"
+                value={domain}
+                onChange={(e) => setDomain(e.target.value)}
+                placeholder="example.cm"
+                className="glass-input num w-full py-3 pl-9 pr-3"
+              />
+              {!loading && domain && <span className="caret absolute right-3 top-1/2 -translate-y-1/2" />}
+            </div>
+            <button
+              type="submit"
+              disabled={loading || !domain}
+              className="btn-gradient"
+            >
+              {loading ? <Loader2 className="animate-spin" size={16} /> : <Search size={16} />}
+              Execute Lookup
+            </button>
+          </div>
+        </form>
+      </div>
 
       {error && (
-        <div className="mb-6 rounded-lg border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-4 text-sm text-[var(--danger)]">
-          {error}
-          <button
-            onClick={handleTrigger}
-            disabled={loading}
-            className="ml-2 font-semibold underline"
-          >
-            Trigger scan
+        <div
+          className="panel mb-6 p-4 flex items-center justify-between gap-3"
+          style={{ borderColor: 'var(--neon-red)', boxShadow: '0 0 30px rgba(255,48,96,0.15)' }}
+        >
+          <div className="flex items-center gap-2 num text-[13px]" style={{ color: 'var(--neon-red)' }}>
+            <AlertTriangle size={14} /> {error}
+          </div>
+          <button onClick={handleTrigger} disabled={loading} className="btn-ghost">
+            <Sparkles size={12} /> Trigger Scan
           </button>
         </div>
       )}
@@ -156,43 +200,113 @@ export function PublicLookup() {
             tier={score.shield_tier}
             label={score.shield_label}
             outlook={score.outlook}
+            sectorBenchmark={score.sector_benchmark ?? null}
           />
 
-          <div className="glass-card p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <div className="text-sm text-[var(--text-secondary)]">Domain</div>
-                <div className="text-lg font-semibold">{score.domain}</div>
+          <div className="panel-terminal glass-card">
+            <div className="panel-header">
+              <div className="flex items-center gap-2">
+                <span className="dot dot-violet" />
+                <span>record.observation</span>
               </div>
-              <div className="text-right">
-                <div className="text-sm text-[var(--text-secondary)]">Organization</div>
-                <div className="text-lg font-semibold">{score.org_name}</div>
-              </div>
+              <span>read.only</span>
             </div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="rounded-lg bg-[var(--glass-bg)] p-3">
-                <div className="text-[var(--text-muted)]">Band</div>
-                <div className="font-medium">{score.band}</div>
+            <div className="panel-body">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="eyebrow mb-1">
+                    <span className="line" />
+                    <span>domain</span>
+                  </div>
+                  <div
+                    className="num truncate text-xl font-semibold text-white glitch"
+                    data-text={score.domain}
+                  >
+                    {score.domain}
+                  </div>
+                </div>
+                <div className="min-w-0 text-right">
+                  <div className="eyebrow mb-1 justify-end">
+                    <span className="line" />
+                    <span>organization</span>
+                  </div>
+                  <div className="num truncate text-xl font-semibold text-white">
+                    {score.org_name}
+                  </div>
+                </div>
               </div>
-              <div className="rounded-lg bg-[var(--glass-bg)] p-3">
-                <div className="text-[var(--text-muted)]">Ruleset</div>
-                <div className="font-medium">{score.ruleset_version}</div>
+
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <DataCell label="band" value={score.band} accent="cyan" />
+                <DataCell label="ruleset" value={score.ruleset_version} accent="violet" />
+                <DataCell
+                  label="sector.benchmark"
+                  value={
+                    score.sector_benchmark !== null && score.sector_benchmark !== undefined
+                      ? String(score.sector_benchmark)
+                      : '—'
+                  }
+                  accent="green"
+                />
+                <DataCell
+                  label="computed"
+                  value={new Date(score.computed_at).toLocaleString()}
+                  accent="magenta"
+                />
               </div>
-              <div className="rounded-lg bg-[var(--glass-bg)] p-3">
-                <div className="text-[var(--text-muted)]">Sector Benchmark</div>
-                <div className="font-medium">{score.sector_benchmark ?? '—'}</div>
-              </div>
-              <div className="rounded-lg bg-[var(--glass-bg)] p-3">
-                <div className="text-[var(--text-muted)]">Computed</div>
-                <div className="font-medium">{new Date(score.computed_at).toLocaleString()}</div>
-              </div>
+
+              {score.sector_benchmark !== null && score.sector_benchmark !== undefined && (
+                <div className="mt-4 flex items-center gap-2 num text-[12px]">
+                  <span className="prompt-prefix">{`>`}</span>
+                  {score.overall_score > score.sector_benchmark ? (
+                    <span className="above-sector-avg">
+                      ▲ Above sector average by {(score.overall_score - score.sector_benchmark)} points
+                    </span>
+                  ) : score.overall_score < score.sector_benchmark ? (
+                    <span style={{ color: 'var(--neon-amber)' }}>▼ Below sector benchmark by {(score.sector_benchmark - score.overall_score)}</span>
+                  ) : (
+                    <span style={{ color: 'var(--text-secondary)' }}>= matches sector average</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      <div className="mt-8 text-center text-xs text-[var(--text-muted)]">
-        Public lookup shows score, tier, and trend only. Detailed findings require verified ownership.
+      <div className="mt-8 text-center num text-[11px] uppercase tracking-[0.16em] text-[var(--text-muted)]">
+        ▸ public lookup shows score, tier, trend only · detailed findings require verified ownership
+      </div>
+    </div>
+  )
+}
+
+function DataCell({
+  label,
+  value,
+  accent,
+}: {
+  label: string
+  value: string
+  accent: 'cyan' | 'violet' | 'magenta' | 'green' | 'amber'
+}) {
+  const colorVar =
+    accent === 'cyan' ? 'var(--neon-cyan)'
+    : accent === 'violet' ? 'var(--neon-violet)'
+    : accent === 'magenta' ? 'var(--neon-magenta)'
+    : accent === 'green' ? 'var(--neon-green)'
+    : 'var(--neon-amber)'
+
+  return (
+    <div
+      className="rounded-sm border bg-black/30 p-3"
+      style={{ borderColor: colorVar }}
+    >
+      <div className="num text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">
+        {label}
+      </div>
+      <div className="num mt-1 font-semibold" style={{ color: colorVar, textShadow: `0 0 8px ${colorVar}80` }}>
+        {value}
       </div>
     </div>
   )

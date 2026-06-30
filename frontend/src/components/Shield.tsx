@@ -3,57 +3,98 @@ import clsx from 'clsx'
 interface ShieldProps {
   tier: number
   size?: 'sm' | 'md' | 'lg' | 'xl'
+  active?: boolean
   className?: string
 }
 
-const sizeClasses = {
-  sm: 'w-6 h-8 text-[10px]',
-  md: 'w-10 h-14 text-xs',
-  lg: 'w-16 h-22 text-sm',
-  xl: 'w-24 h-32 text-base',
+const sizeStyle: Record<NonNullable<ShieldProps['size']>, { w: number; h: number }> = {
+  sm: { w: 28, h: 36 },
+  md: { w: 40, h: 48 },
+  lg: { w: 56, h: 72 },
+  xl: { w: 80, h: 104 },
 }
 
-export function Shield({ tier, size = 'md', className }: ShieldProps) {
-  const marks = Array.from({ length: 5 }, (_, i) => i < tier)
+/**
+ * SVG shield glyph — designed to scale, recolor, and compose.
+ * Used as a row of `tier` glyphs (active=true) followed by (5-tier)
+ * dimmed glyphs, so the visual itself shows the score.
+ */
+export function Shield({ tier, size = 'md', active = true, className }: ShieldProps) {
+  const dims = sizeStyle[size]
+  const tierColor =
+    tier === 1 ? '#ff3060'
+    : tier === 2 ? '#ffb020'
+    : tier === 3 ? '#00d4ff'
+    : tier === 4 ? '#00ff9c'
+    : tier === 5 ? '#b400ff'
+    : '#4a5b80'
+
+  const opacity = active ? 1 : 0.18
+  const glow = active ? `drop-shadow(0 0 6px ${tierColor})` : 'none'
 
   return (
-    <div
-      className={clsx(
-        'relative flex flex-col items-center justify-center rounded-t-lg border-2 border-current',
-        sizeClasses[size],
-        className,
-      )}
+    <svg
+      viewBox="0 0 40 52"
+      width={dims.w}
+      height={dims.h}
+      className={clsx(className)}
+      style={{ filter: glow }}
       aria-label={`Shield tier ${tier}`}
     >
-      <span className="font-mono font-bold">{tier}</span>
-      <div className="mt-1 flex gap-0.5">
-        {marks.map((filled, idx) => (
-          <div
-            key={idx}
-            className={clsx(
-              'h-1 w-1 rounded-full',
-              filled ? 'bg-current' : 'bg-current/20',
-            )}
-          />
-        ))}
-      </div>
-    </div>
+      <defs>
+        <linearGradient id={`shield-grad-${tier}-${active}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={tierColor} stopOpacity={opacity} />
+          <stop offset="100%" stopColor={tierColor} stopOpacity={opacity * 0.4} />
+        </linearGradient>
+      </defs>
+      <path
+        d="M20 1 L37 7 V25 C37 38 29 47 20 51 C11 47 3 38 3 25 V7 Z"
+        fill={`url(#shield-grad-${tier}-${active})`}
+        stroke={tierColor}
+        strokeWidth={active ? 1.5 : 1}
+        opacity={opacity}
+      />
+      {/* Inner circuit */}
+      <path
+        d="M20 8 L30 12 V25 C30 33 25 40 20 43 C15 40 10 33 10 25 V12 Z"
+        fill="none"
+        stroke={tierColor}
+        strokeOpacity={opacity * 0.6}
+        strokeWidth={0.5}
+      />
+      {/* Tier mark */}
+      <text
+        x="20"
+        y="29"
+        textAnchor="middle"
+        fontFamily="Share Tech Mono, monospace"
+        fontWeight="bold"
+        fontSize="11"
+        fill={tierColor}
+        opacity={opacity}
+      >
+        {tier}
+      </text>
+    </svg>
   )
 }
 
+/**
+ * Tier color helper (kept for back-compat consumers).
+ */
 export function shieldColor(tier: number): string {
   switch (tier) {
     case 1:
-      return 'text-shield-1'
+      return '#ff3060'
     case 2:
-      return 'text-shield-2'
+      return '#ffb020'
     case 3:
-      return 'text-shield-3'
+      return '#00d4ff'
     case 4:
-      return 'text-shield-4'
+      return '#00ff9c'
     case 5:
-      return 'text-shield-5'
+      return '#b400ff'
     default:
-      return 'text-[var(--text-muted)]'
+      return '#4a5b80'
   }
 }

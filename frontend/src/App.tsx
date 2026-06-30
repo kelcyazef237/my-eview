@@ -43,8 +43,24 @@ function RoleRoute({ requiredRole, children }: { requiredRole: string; children:
 
   if (state === 'loading') {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--border-color)] border-t-[var(--accent)]" />
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
+        <div className="num text-[11px] uppercase tracking-[0.32em] text-[var(--text-muted)]">
+          ▸ authenticating.session
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="prompt-prefix">$</span>
+          <span className="num text-[var(--neon-cyan)]">verifying token</span>
+          <span className="caret" />
+        </div>
+        <div className="mt-2 h-1 w-48 overflow-hidden bg-[rgba(0,240,255,0.08)]">
+          <div
+            className="h-full w-1/3"
+            style={{
+              background: 'var(--gradient-neon)',
+              animation: 'scan-sweep 1.4s linear infinite',
+            }}
+          />
+        </div>
       </div>
     )
   }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Loader2, Zap, ShieldCheck } from 'lucide-react'
+import { Loader2, Zap, ShieldCheck, LogOut, Cpu } from 'lucide-react'
 import { api } from '@/api/client'
 import type { User } from '@/types'
 
@@ -32,59 +32,139 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8 animate-fade-in">
-      <h1 className="text-2xl font-bold">Settings</h1>
+    <div className="mx-auto max-w-2xl stagger">
+      <div className="mb-6">
+        <div className="eyebrow mb-1">
+          <span className="line" />
+          <span>module :: settings</span>
+        </div>
+        <h1 className="display-title text-3xl gradient-text">Settings</h1>
+      </div>
 
       {user && (
-        <div className="glass-card p-5">
-          <div className="section-title mb-3">Current Session</div>
-          <div className="mb-4 space-y-1 text-sm">
-            {user.full_name && <div><strong>Name:</strong> {user.full_name}</div>}
-            {user.username && <div><strong>Username:</strong> <span className="font-mono text-[var(--accent)]">{user.username}</span></div>}
-            {user.email && <div><strong>Email:</strong> {user.email}</div>}
-            <div><strong>Role:</strong> <span className="badge badge-pass">{user.role}</span></div>
-            <div><strong>Status:</strong> {user.registration_status}</div>
-            <div><strong>Org ID:</strong> {user.org_id || 'none'}</div>
+        <div className="panel-terminal glass-card mb-6">
+          <div className="panel-header">
+            <div className="flex items-center gap-2">
+              <span className="dot dot-cyan" />
+              <span>current.session</span>
+            </div>
+            <span className="num">{user.registration_status}</span>
           </div>
-          <button
-            onClick={handleLogout}
-            className="rounded-lg border border-[var(--glass-border)] px-4 py-2 text-sm font-medium transition-colors hover:bg-[var(--glass-bg)]"
-          >
-            Log out
-          </button>
+          <div className="panel-body space-y-3 text-[13px]">
+            <Row label="name" value={user.full_name} color="var(--neon-cyan)" />
+            <Row label="username" value={user.username ? `@${user.username}` : null} mono color="var(--neon-cyan)" />
+            <Row label="email" value={user.email} color="var(--neon-magenta)" />
+            <Row label="role" value={user.role} color="var(--neon-violet)" />
+            <Row label="status" value={user.registration_status} color="var(--neon-green)" />
+            <Row label="org.id" value={user.org_id || 'none'} mono color="var(--text-secondary)" />
+            <div className="pt-3">
+              <button onClick={handleLogout} className="btn-ghost">
+                <LogOut size={13} /> Log Out
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
-      <div className="glass-card p-5">
-        <div className="section-title mb-3">Verified Port Scan</div>
-        <p className="mb-4 text-sm text-[var(--text-secondary)]">
-          Trigger the gated TCP-connect + banner-read scan for legacy services. Requires
-          organization authorization and owner/technical role.
-        </p>
-        <button
-          onClick={handlePortscan}
-          disabled={portscanLoading}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--glass-border)] px-4 py-2 font-medium transition-colors hover:bg-[var(--glass-bg)] disabled:opacity-50"
-        >
-          {portscanLoading ? (
-            <Loader2 className="animate-spin" size={18} />
-          ) : (
-            <Zap size={18} />
-          )}
-          Trigger Verified Port Scan
-        </button>
-        {portscanMessage && (
-          <div className="mt-3 flex items-center gap-2 text-sm text-[var(--success)]">
-            <ShieldCheck size={16} /> {portscanMessage}
+      <div className="panel-terminal glass-card mb-6">
+        <div className="panel-header">
+          <div className="flex items-center gap-2">
+            <span className="dot dot-magenta" />
+            <span>module :: verified.port-scan</span>
           </div>
-        )}
+          <span>gated</span>
+        </div>
+        <div className="panel-body">
+          <div className="mb-2 flex items-center gap-2">
+            <Zap size={14} className="text-[var(--neon-magenta)]" />
+            <span className="display-title text-[12px] tracking-[0.08em] text-white">
+              Verified Port Scan
+            </span>
+          </div>
+          <p className="mb-4 num text-[12px] text-[var(--text-secondary)]">
+            ▸ Trigger the gated TCP-connect + banner-read scan for legacy services. Requires organization authorization and owner/technical role.
+          </p>
+          <button
+            onClick={handlePortscan}
+            disabled={portscanLoading}
+            className="btn-gradient w-full"
+          >
+            {portscanLoading ? (
+              <>
+                <Loader2 className="animate-spin" size={14} /> Queuing
+              </>
+            ) : (
+              <>
+                <Zap size={14} /> Trigger Verified Port Scan
+              </>
+            )}
+          </button>
+          {portscanMessage && (
+            <div
+              className="mt-3 flex items-center gap-2 num text-[12px]"
+              style={{ color: 'var(--neon-green)' }}
+            >
+              <ShieldCheck size={14} /> {portscanMessage}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Decorative system card */}
+      <div className="panel glass-card p-4">
+        <div className="flex items-center gap-3 num text-[11px] uppercase tracking-[0.16em] text-[var(--text-muted)]">
+          <Cpu size={14} className="text-[var(--neon-cyan)]" />
+          <span>build :: myeview.trust-os v1.0.4</span>
+          <span className="text-[var(--neon-magenta)]">·</span>
+          <span>node :: cm-01</span>
+          <span className="text-[var(--neon-cyan)]">·</span>
+          <span>channel :: stable</span>
+          <span className="ml-auto inline-flex items-center gap-1 text-[var(--neon-green)]">
+            <span className="dot dot-green" /> online
+          </span>
+        </div>
       </div>
 
       {error && (
-        <div className="rounded-lg border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-4 text-sm text-[var(--danger)]">
+        <div
+          className="panel mt-6 p-4 num text-[12px] uppercase tracking-[0.12em]"
+          style={{
+            borderColor: 'var(--neon-red)',
+            background: 'rgba(255,48,96,0.08)',
+            color: 'var(--neon-red)',
+          }}
+        >
+          <span className="prompt-prefix">!</span>
           {error}
         </div>
       )}
+    </div>
+  )
+}
+
+function Row({
+  label,
+  value,
+  mono,
+  color,
+}: {
+  label: string
+  value: string | null
+  mono?: boolean
+  color: string
+}) {
+  if (!value) return null
+  return (
+    <div className="flex items-center justify-between gap-2 border-b border-[var(--glass-border-subtle)] pb-2 last:border-0">
+      <span className="num text-[11px] uppercase tracking-[0.14em] text-[var(--text-muted)]">
+        ▸ {label}
+      </span>
+      <span
+        className={mono ? 'num' : ''}
+        style={{ color, textShadow: `0 0 8px ${color}40` }}
+      >
+        {value}
+      </span>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, ShieldCheck } from 'lucide-react'
 import { api } from '@/api/client'
 import { VerificationDNS } from '@/components/VerificationDNS'
 import { VerificationEmail } from '@/components/VerificationEmail'
@@ -44,48 +44,74 @@ export function VerifyPage() {
   }, [])
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold">Verify Domain Ownership</h1>
+    <div className="mx-auto max-w-2xl stagger">
+      <div className="eyebrow mb-2">
+        <span className="line" />
+        <span>module :: verify.domain</span>
+      </div>
+      <h1 className="display-title mb-6 text-3xl gradient-text">
+        Verify Domain Ownership
+      </h1>
 
       {status?.ownership_verified && (
-        <div className="rounded-lg border border-[var(--success)]/30 bg-[var(--success)]/10 p-4 text-[var(--success)]">
-          Ownership verified. {status.just_verified && 'Just verified now.'}
+        <div
+          className="panel mb-6 flex items-center gap-3 p-4"
+          style={{ borderColor: 'var(--neon-green)', boxShadow: '0 0 30px rgba(0,255,156,0.15)' }}
+        >
+          <ShieldCheck size={18} className="text-[var(--neon-green)]" />
+          <div className="num text-[13px] text-[var(--neon-green)]">
+            <span className="prompt-prefix">{`>`}</span>
+            ownership.verified {status.just_verified && '· just now'}
+          </div>
         </div>
       )}
 
-      <div className="glass-card p-5">
-        <div className="mb-4">
-          <label className="mb-2 block text-sm font-medium">Verification Method</label>
-          <select
-            value={method}
-            onChange={(e) => setMethod(e.target.value as 'dns_txt' | 'email')}
-            className="glass-input w-full px-3 py-2"
-          >
-            <option value="dns_txt">DNS TXT Record</option>
-            <option value="email">Email to admin@ / security@</option>
-          </select>
+      <div className="panel-terminal glass-card mb-6">
+        <div className="panel-header">
+          <div className="flex items-center gap-2">
+            <span className="dot dot-cyan" />
+            <span>verify.start</span>
+          </div>
+          <span>choose.method</span>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={start}
-            disabled={loading}
-            className="flex-1 rounded-lg px-4 py-2 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{ background: 'var(--gradient-accent)' }}
-          >
-            {loading ? <Loader2 className="mx-auto animate-spin" size={18} /> : 'Start Verification'}
-          </button>
-          <button
-            onClick={check}
-            disabled={checking}
-            className="rounded-lg border border-[var(--glass-border)] px-4 py-2 font-medium transition-colors hover:bg-[var(--glass-bg)] disabled:opacity-50"
-          >
-            {checking ? <Loader2 className="animate-spin" size={18} /> : 'Check Status'}
-          </button>
+        <div className="panel-body space-y-4">
+          <div>
+            <label className="eyebrow mb-2 block">
+              <span className="line" />
+              <span>method</span>
+            </label>
+            <select
+              value={method}
+              onChange={(e) => setMethod(e.target.value as 'dns_txt' | 'email')}
+              className="glass-input num w-full px-3 py-2"
+            >
+              <option value="dns_txt">DNS TXT Record</option>
+              <option value="email">Email to admin@ / security@</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button onClick={start} disabled={loading} className="btn-gradient flex-1">
+              {loading ? <Loader2 className="animate-spin" size={14} /> : null}
+              {loading ? 'Starting' : 'Start Verification'}
+            </button>
+            <button onClick={check} disabled={checking} className="btn-ghost">
+              {checking ? <Loader2 className="animate-spin" size={14} /> : null}
+              {checking ? 'Checking' : 'Check Status'}
+            </button>
+          </div>
         </div>
       </div>
 
       {error && (
-        <div className="rounded-lg border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-4 text-sm text-[var(--danger)]">
+        <div
+          className="panel mb-6 p-4 num text-[12px] uppercase tracking-[0.12em]"
+          style={{
+            borderColor: 'var(--neon-red)',
+            color: 'var(--neon-red)',
+            boxShadow: '0 0 20px rgba(255,48,96,0.15)',
+          }}
+        >
+          <span className="prompt-prefix">!</span>
           {error}
         </div>
       )}

@@ -90,25 +90,35 @@ export function OwnerDashboard() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="animate-spin text-[var(--accent)]" size={32} />
+      <div className="flex h-64 flex-col items-center justify-center gap-3 num text-[var(--text-muted)]">
+        <Loader2 className="animate-spin text-[var(--neon-cyan)]" size={32} />
+        <span className="text-[11px] uppercase tracking-[0.24em]">
+          ▸ loading.dashboard
+          <span className="caret" />
+        </span>
       </div>
     )
   }
 
   if (error || !data) {
     return (
-      <div className="rounded-lg border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-6 text-[var(--danger)]">
-        {error || 'No dashboard data available'}
+      <div
+        className="panel p-6 num text-[12px] uppercase tracking-[0.12em]"
+        style={{ borderColor: 'var(--neon-red)', color: 'var(--neon-red)' }}
+      >
+        <span className="prompt-prefix">!</span>
+        {error || 'no.dashboard.data'}
       </div>
     )
   }
 
-  const canSeeTechnical = data.user_role === 'owner_technical' || data.user_role === 'ops' || data.user_role === 'global_admin'
+  const canSeeTechnical =
+    data.user_role === 'owner_technical' ||
+    data.user_role === 'ops' ||
+    data.user_role === 'global_admin'
 
   const totalPointsLost = data.categories.reduce((sum, c) => sum + c.points_lost, 0)
 
-  // Sort TIA by criticality (most points lost first)
   const sortedTIA = [...data.tia].sort((a, b) => {
     const catA = data.categories.find((c) => c.category_id === a.category_id)
     const catB = data.categories.find((c) => c.category_id === b.category_id)
@@ -118,47 +128,50 @@ export function OwnerDashboard() {
   const hiddenTIACount = sortedTIA.length - 2
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-8 stagger">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{data.org.name}</h1>
-          <p className="text-[var(--text-secondary)]">{data.org.domain}</p>
+          <div className="eyebrow mb-1">
+            <span className="line" />
+            <span>module :: owner.dashboard</span>
+          </div>
+          <h1
+            className="display-title text-3xl glitch"
+            data-text={data.org.name}
+            style={{ letterSpacing: '0.06em' }}
+          >
+            {data.org.name}
+          </h1>
+          <p className="num mt-1 text-[12px] uppercase tracking-[0.18em] text-[var(--neon-cyan)]">
+            ▸ {data.org.domain}
+          </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <OrgSelector orgId={orgId} onSelect={handleSelectOrg} />
           {data.org.ownership_verified ? (
             <span className="badge badge-pass">
-              <CheckCircle2 size={14} /> Verified
+              <CheckCircle2 size={11} /> verified
             </span>
           ) : (
             <span className="badge badge-warn">
-              <AlertTriangle size={14} /> Unverified
+              <AlertTriangle size={11} /> unverified
             </span>
           )}
           <button
             onClick={handlePortscan}
             disabled={scanning}
-            className="flex items-center gap-2 rounded-lg border border-[var(--glass-border)] px-4 py-2 text-sm font-medium transition-colors hover:bg-[var(--glass-bg)] disabled:opacity-50"
+            className="btn-ghost"
             title="Run verified port scan"
           >
-            {scanning ? (
-              <Loader2 className="animate-spin" size={16} />
-            ) : (
-              <Radar size={16} />
-            )}
+            {scanning ? <Loader2 className="animate-spin" size={13} /> : <Radar size={13} />}
             Port Scan
           </button>
           <button
             onClick={handleRescan}
             disabled={rescanning}
-            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{ background: 'var(--gradient-accent)' }}
+            className="btn-gradient"
           >
-            {rescanning ? (
-              <Loader2 className="animate-spin" size={16} />
-            ) : (
-              <RefreshCw size={16} />
-            )}
+            {rescanning ? <Loader2 className="animate-spin" size={14} /> : <RefreshCw size={14} />}
             Rescan
           </button>
         </div>
@@ -171,16 +184,18 @@ export function OwnerDashboard() {
         outlook={data.score.outlook}
         pointsLost={totalPointsLost}
         categoryCount={data.categories.length}
+        sectorBenchmark={undefined}
       />
 
-      {data.history.length > 0 && (
-        <ScoreHistoryChart data={data.history} />
-      )}
+      {data.history.length > 0 && <ScoreHistoryChart data={data.history} />}
 
       <CategoryBreakdown categories={data.categories} />
 
       <div>
-        <div className="section-title mb-4">Trust Impact Analysis</div>
+        <div className="eyebrow mb-4">
+          <span className="line" />
+          <span>module :: tia.analysis</span>
+        </div>
         <div className="grid gap-4 lg:grid-cols-2">
           {visibleTIA.map((entry) => (
             <TIAPanel key={entry.category_id} tia={entry} />
@@ -189,39 +204,38 @@ export function OwnerDashboard() {
         {hiddenTIACount > 0 && (
           <button
             onClick={() => setShowAllTIA(!showAllTIA)}
-            className="mt-4 flex items-center gap-2 text-sm font-semibold text-[var(--accent)] hover:underline"
+            className="mt-4 flex items-center gap-2 num text-[12px] uppercase tracking-[0.12em] text-[var(--neon-cyan)] hover:underline"
           >
             {showAllTIA ? (
               <>
-                <ChevronUp size={16} /> Show Less
+                <ChevronUp size={14} /> show.less
               </>
             ) : (
               <>
-                <ChevronDown size={16} /> View All ({hiddenTIACount} more)
+                <ChevronDown size={14} /> expand.all ({hiddenTIACount} more)
               </>
             )}
           </button>
         )}
       </div>
 
-      {data.entity_intelligence && (
-        <EntityIntelligence entity={data.entity_intelligence} />
-      )}
+      {data.entity_intelligence && <EntityIntelligence entity={data.entity_intelligence} />}
 
       {canSeeTechnical && (
         <div>
           <button
             onClick={handleTechnicalToggle}
-            className="flex items-center gap-2 text-sm font-semibold text-[var(--accent)] hover:underline"
+            className="btn-gradient"
           >
-            {showTechnical ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            Technical View (24-Vector Drill-Down)
+            {showTechnical ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            {showTechnical ? 'Hide' : 'Expand'} · 24-vector drill-down
           </button>
           {showTechnical && (
             <div className="mt-4">
               {loadingVectors ? (
-                <div className="flex h-32 items-center justify-center">
-                  <Loader2 className="animate-spin text-[var(--accent)]" size={24} />
+                <div className="flex h-32 items-center justify-center gap-2 num text-[12px] text-[var(--text-muted)]">
+                  <Loader2 className="animate-spin text-[var(--neon-cyan)]" size={20} />
+                  loading.vectors
                 </div>
               ) : (
                 <TechnicalTable vectors={vectors} />

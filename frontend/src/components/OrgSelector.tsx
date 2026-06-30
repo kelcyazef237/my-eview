@@ -4,26 +4,16 @@ import { api } from '@/api/client'
 import type { AdminOrg } from '@/types'
 
 interface OrgSelectorProps {
-  /** Currently selected org id (from ?org_id=), or undefined for "auto". */
   orgId: string | undefined
-  /** Called when the user picks a different org. */
   onSelect: (orgId: string) => void
 }
 
-/**
- * Organization switcher dropdown.
- *
- * Fetches the org list via the admin endpoint. Only users who can call that
- * endpoint (global_admin / ops) see the selector; for regular owners the
- * component renders nothing and the page falls back to its default org.
- */
 export function OrgSelector({ orgId, onSelect }: OrgSelectorProps) {
   const [orgs, setOrgs] = useState<AdminOrg[] | null>(null)
 
   useEffect(() => {
     let alive = true
-    api
-      .admin
+    api.admin
       .orgs()
       .then((list) => alive && setOrgs(list))
       .catch(() => alive && setOrgs(null))
@@ -32,22 +22,22 @@ export function OrgSelector({ orgId, onSelect }: OrgSelectorProps) {
     }
   }, [])
 
-  // No list (forbidden / fetch failed) → hide the selector entirely.
   if (!orgs || orgs.length === 0) return null
 
   return (
     <div className="relative inline-flex items-center">
       <Building2
-        size={16}
-        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+        size={14}
+        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--neon-cyan)]"
       />
       <select
         value={orgId ?? ''}
         onChange={(e) => onSelect(e.target.value)}
-        className="glass-input appearance-none rounded-lg py-2 pl-9 pr-9 text-sm font-medium transition-colors hover:bg-[var(--glass-bg)]"
+        className="glass-input appearance-none rounded-sm py-2 pl-9 pr-9 text-[12px] uppercase tracking-[0.12em] font-semibold transition-colors hover:bg-[rgba(0,240,255,0.06)]"
+        style={{ fontFamily: 'var(--font-display)' }}
         title="Select organization"
       >
-        {!orgId && <option value="">Auto (most recent)</option>}
+        {!orgId && <option value="">Auto · most.recent</option>}
         {orgs.map((o) => (
           <option key={o.id} value={o.id}>
             {o.domain}
@@ -55,7 +45,7 @@ export function OrgSelector({ orgId, onSelect }: OrgSelectorProps) {
         ))}
       </select>
       <ChevronDown
-        size={15}
+        size={14}
         className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
       />
     </div>

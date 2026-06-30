@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Download, Loader2, ExternalLink, Gauge, Shield as ShieldIcon, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { Download, Loader2, Gauge, Shield as ShieldIcon, TrendingUp, TrendingDown, Minus, FileText } from 'lucide-react'
 import { api } from '@/api/client'
 import { CategoryBreakdown } from '@/components/CategoryBreakdown'
 import { OrgSelector } from '@/components/OrgSelector'
@@ -49,16 +49,24 @@ export function ReportPage() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="animate-spin text-[var(--accent)]" size={32} />
+      <div className="flex h-64 flex-col items-center justify-center gap-3 num text-[var(--text-muted)]">
+        <Loader2 className="animate-spin text-[var(--neon-cyan)]" size={32} />
+        <span className="text-[11px] uppercase tracking-[0.24em]">
+          ▸ compiling.report
+          <span className="caret" />
+        </span>
       </div>
     )
   }
 
   if (error || !data) {
     return (
-      <div className="rounded-lg border border-[var(--danger)]/30 bg-[var(--danger)]/10 p-6 text-[var(--danger)]">
-        {error || 'No report data available'}
+      <div
+        className="panel p-6 num text-[12px] uppercase tracking-[0.12em]"
+        style={{ borderColor: 'var(--neon-red)', color: 'var(--neon-red)' }}
+      >
+        <span className="prompt-prefix">!</span>
+        {error || 'no.report.data'}
       </div>
     )
   }
@@ -66,38 +74,41 @@ export function ReportPage() {
   const scanRunId = data.score.scan_run_id
   const totalPointsLost = data.categories.reduce((sum, c) => sum + c.points_lost, 0)
   const OutlookIcon = outlookIcon(data.score.outlook)
+  const tierColor = ['var(--neon-red)', 'var(--neon-amber)', 'var(--neon-cyan)', 'var(--neon-green)', 'var(--neon-violet)'][Math.max(0, data.score.shield_tier - 1)] || 'var(--text-muted)'
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8 stagger">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-slide-up">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">
-            <span className="gradient-text">Report Center</span>
-          </h1>
-          <p className="text-[var(--text-secondary)]">{data.org.name} · {data.org.domain}</p>
+          <div className="eyebrow mb-1">
+            <span className="line" />
+            <span>module :: report.center</span>
+          </div>
+          <h1 className="display-title text-3xl gradient-text">Report Center</h1>
+          <p className="num mt-1 text-[12px] uppercase tracking-[0.14em] text-[var(--text-secondary)]">
+            ▸ {data.org.name} <span className="text-[var(--neon-magenta)]">·</span> {data.org.domain}
+          </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <OrgSelector orgId={orgId} onSelect={handleSelectOrg} />
           <a
             href={api.reportHtml(scanRunId)}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-2 rounded-lg border border-[var(--glass-border)] px-4 py-2 text-sm font-medium transition-colors hover:bg-[var(--glass-bg)]"
+            className="btn-ghost"
           >
-            <ExternalLink size={16} /> Web View
+            <FileText size={13} /> Web View
           </a>
           <a
             href={api.reportPdf(scanRunId)}
-            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-            style={{ background: 'var(--gradient-accent)' }}
+            className="btn-gradient"
           >
-            <Download size={16} /> PDF
+            <Download size={13} /> PDF
           </a>
         </div>
       </div>
 
-      {/* Score Hero */}
       <ScoreGauge
         score={data.score.overall}
         tier={data.score.shield_tier}
@@ -105,46 +116,79 @@ export function ReportPage() {
         outlook={data.score.outlook}
         pointsLost={totalPointsLost}
         categoryCount={data.categories.length}
+        sectorBenchmark={undefined}
       />
 
-      {/* Score History */}
-      {history.length > 0 && (
-        <ScoreHistoryChart data={history} />
-      )}
+      {history.length > 0 && <ScoreHistoryChart data={history} />}
 
-      {/* Category Breakdown (radar default) */}
       <CategoryBreakdown categories={data.categories} defaultView="radar" />
 
-      {/* Snapshot cards with icons */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="glass-card p-5 flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]">
-            <Gauge size={24} />
-          </div>
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Score</div>
-            <div className="text-2xl font-bold">{data.score.overall}<span className="text-sm font-medium text-[var(--text-muted)]"> / 1000</span></div>
-          </div>
-        </div>
+      <div className="grid gap-4 sm:grid-cols-3 stagger">
+        <Snapshot
+          icon={Gauge}
+          color="var(--neon-cyan)"
+          label="score"
+          value={
+            <div className="num text-3xl font-bold glitch" data-text={String(data.score.overall)} style={{ color: 'var(--neon-cyan)', textShadow: '0 0 12px rgba(0,240,255,0.5)' }}>
+              {data.score.overall}
+              <span className="ml-1 text-[12px] text-[var(--text-muted)]"> / 1000</span>
+            </div>
+          }
+        />
+        <Snapshot
+          icon={ShieldIcon}
+          color={tierColor}
+          label="shield.tier"
+          value={
+            <div className="num text-3xl font-bold glitch" data-text={String(data.score.shield_tier)} style={{ color: tierColor, textShadow: `0 0 12px ${tierColor}` }}>
+              {data.score.shield_tier}
+              <span className="ml-2 text-[12px] text-[var(--text-muted)]"> · {tierNames[data.score.shield_tier] || '—'}</span>
+            </div>
+          }
+        />
+        <Snapshot
+          icon={OutlookIcon}
+          color="var(--neon-green)"
+          label="outlook"
+          value={
+            <div className="num text-lg font-semibold" style={{ color: 'var(--neon-green)' }}>
+              {data.score.outlook}
+            </div>
+          }
+        />
+      </div>
+    </div>
+  )
+}
 
-        <div className="glass-card p-5 flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]">
-            <ShieldIcon size={24} />
-          </div>
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Shield Tier</div>
-            <div className="text-2xl font-bold">{data.score.shield_tier}<span className="text-sm font-medium text-[var(--text-muted)]"> · {tierNames[data.score.shield_tier] || '—'}</span></div>
-          </div>
+function Snapshot({
+  icon: Icon,
+  color,
+  label,
+  value,
+}: {
+  icon: React.ElementType
+  color: string
+  label: string
+  value: React.ReactNode
+}) {
+  return (
+    <div className="panel glass-card-hover p-5">
+      <div className="flex items-center gap-4">
+        <div
+          className="flex h-12 w-12 items-center justify-center rounded-sm"
+          style={{
+            border: `1px solid ${color}`,
+            background: `${color}15`,
+            color,
+            boxShadow: `0 0 16px ${color}55`,
+          }}
+        >
+          <Icon size={22} />
         </div>
-
-        <div className="glass-card p-5 flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--accent)]/10 text-[var(--accent)]">
-            <OutlookIcon size={24} />
-          </div>
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Outlook</div>
-            <div className="text-lg font-semibold">{data.score.outlook}</div>
-          </div>
+        <div>
+          <div className="eyebrow">{label}</div>
+          <div className="mt-1">{value}</div>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { Globe, Server, Brain, Info } from 'lucide-react'
+import { Globe, Server, Brain } from 'lucide-react'
 import type { EntityIntelligence as EntityIntelligenceData } from '@/types'
 
 interface EntityIntelligenceProps {
@@ -7,59 +7,78 @@ interface EntityIntelligenceProps {
 
 export function EntityIntelligence({ entity }: EntityIntelligenceProps) {
   return (
-    <div className="animate-slide-up">
-      <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)]/10 text-[var(--accent)]">
-          <Brain size={18} />
+    <div className="animate-fade-up">
+      <div className="panel-terminal mb-4">
+        <div className="panel-header">
+          <div className="flex items-center gap-2">
+            <span className="dot dot-violet" />
+            <span>module :: entity.intelligence</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span>read.only</span>
+            <span className="badge badge-neutral">not.scored</span>
+          </div>
         </div>
-        <div className="section-title">Entity Intelligence</div>
-        <span className="badge badge-neutral">Not Scored</span>
       </div>
 
-      <div className="glass-card grid gap-4 p-5 sm:grid-cols-2">
-        {/* Related Domains */}
-        <div className="rounded-xl bg-[var(--glass-bg)] p-4">
+      <div className="grid gap-4 sm:grid-cols-2 stagger">
+        <div className="panel glass-card-hover p-5">
           <div className="mb-3 flex items-center gap-2">
-            <Globe size={18} className="text-[var(--accent)]" />
-            <span className="text-sm font-semibold">Related Domains</span>
+            <Globe size={16} className="text-[var(--neon-cyan)]" />
+            <span className="display-title text-[12px] tracking-[0.08em] text-white">
+              related.domains
+            </span>
           </div>
-          <div className="text-2xl font-bold">{entity.related_domains.count}</div>
-          <div className="text-xs text-[var(--text-muted)]">discovered subdomains</div>
+          <div
+            className="num text-3xl font-bold leading-none glitch"
+            data-text={String(entity.related_domains.count)}
+            style={{ color: 'var(--neon-cyan)', textShadow: '0 0 12px rgba(0,240,255,0.5)' }}
+          >
+            {entity.related_domains.count}
+          </div>
+          <div className="num mt-1 text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">
+            ▸ discovered subdomains
+          </div>
           {entity.related_domains.items.length > 0 && (
-            <ul className="mt-3 max-h-28 space-y-1 overflow-y-auto font-mono text-xs text-[var(--text-muted)]">
+            <ul className="mt-4 max-h-32 space-y-1 overflow-y-auto rounded-sm border border-[var(--glass-border-subtle)] bg-black/30 p-2 num text-[12px] text-[var(--text-muted)]">
               {entity.related_domains.items.map((d) => (
-                <li key={d} className="truncate">{d}</li>
+                <li key={d} className="truncate">▸ {d}</li>
               ))}
             </ul>
           )}
         </div>
 
-        {/* Shared Infrastructure */}
-        <div className="rounded-xl bg-[var(--glass-bg)] p-4">
+        <div className="panel glass-card-hover p-5">
           <div className="mb-3 flex items-center gap-2">
-            <Server size={18} className="text-[var(--accent)]" />
-            <span className="text-sm font-semibold">Shared Infrastructure</span>
+            <Server size={16} className="text-[var(--neon-violet)]" />
+            <span className="display-title text-[12px] tracking-[0.08em] text-white">
+              shared.infrastructure
+            </span>
           </div>
-          <div className="text-sm text-[var(--text-secondary)]">
-            <span className="text-[var(--text-muted)]">Registrar: </span>
-            <span className="font-medium">{entity.shared_infrastructure.registrar || '—'}</span>
+          <div className="num text-[13px] text-[var(--text-secondary)]">
+            <span className="text-[var(--text-muted)]">registrar ::</span>{' '}
+            <span style={{ color: 'var(--neon-violet)' }} className="font-medium">
+              {entity.shared_infrastructure.registrar || '—'}
+            </span>
           </div>
-          <div className="mt-2 text-sm text-[var(--text-secondary)]">
-            <span className="text-[var(--text-muted)]">Name servers: </span>
-            <span className="font-medium">{entity.shared_infrastructure.name_servers.length}</span>
+          <div className="num mt-2 text-[13px] text-[var(--text-secondary)]">
+            <span className="text-[var(--text-muted)]">name.servers ::</span>{' '}
+            <span style={{ color: 'var(--neon-violet)' }} className="font-medium">
+              {entity.shared_infrastructure.name_servers.length}
+            </span>
           </div>
           {entity.shared_infrastructure.name_servers.length > 0 && (
-            <ul className="mt-3 max-h-28 space-y-1 overflow-y-auto font-mono text-xs text-[var(--text-muted)]">
+            <ul className="mt-4 max-h-32 space-y-1 overflow-y-auto rounded-sm border border-[var(--glass-border-subtle)] bg-black/30 p-2 num text-[12px] text-[var(--text-muted)]">
               {entity.shared_infrastructure.name_servers.map((ns) => (
-                <li key={ns} className="truncate">{ns}</li>
+                <li key={ns} className="truncate">▸ {ns}</li>
               ))}
             </ul>
           )}
         </div>
       </div>
 
-      <div className="mt-2 flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
-        <Info size={12} />
+      <div className="mt-3 flex items-center gap-1.5 num text-[11px] uppercase tracking-[0.12em] text-[var(--text-muted)]">
+        <Brain size={12} className="text-[var(--neon-violet)]" />
         <span>{entity.label}</span>
       </div>
     </div>

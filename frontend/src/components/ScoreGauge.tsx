@@ -9,22 +9,35 @@ import {
   TrendingDown,
   Minus,
 } from 'lucide-react'
+import { Shield } from './Shield'
 
 interface ScoreGaugeProps {
   score: number
   tier: number
   label: string
   outlook: string
+  /** Points deducted (used for the "X lost across N categories" line) */
   pointsLost?: number
   categoryCount?: number
+  /** Sector benchmark — when defined and below `score`, show
+   *  "Above sector average" pill in green + bold. */
+  sectorBenchmark?: number | null
 }
 
 const tierColors: Record<number, string> = {
-  1: '#9f4a4a',
-  2: '#c67a2e',
-  3: '#3b6e91',
-  4: '#2e8a7a',
-  5: '#1d5c3f',
+  1: '#ff3060',
+  2: '#ffb020',
+  3: '#00d4ff',
+  4: '#00ff9c',
+  5: '#b400ff',
+}
+
+const tierNames: Record<number, string> = {
+  1: 'Critical',
+  2: 'Elevated',
+  3: 'Moderate',
+  4: 'Strong',
+  5: 'Exceptional',
 }
 
 function tierIcon(tier: number) {
@@ -59,11 +72,19 @@ function outlookIcon(outlook: string) {
   return Minus
 }
 
-export function ScoreGauge({ score, tier, label, outlook, pointsLost, categoryCount }: ScoreGaugeProps) {
-  const radius = 60
+export function ScoreGauge({
+  score,
+  tier,
+  label,
+  outlook,
+  pointsLost,
+  categoryCount,
+  sectorBenchmark,
+}: ScoreGaugeProps) {
+  const radius = 70
   const stroke = 8
   const circumference = 2 * Math.PI * radius
-  const color = tierColors[tier] || '#64748b'
+  const color = tierColors[tier] || '#4a5b80'
   const targetOffset = circumference * (1 - score / 1000)
 
   const [offset, setOffset] = useState(circumference)
@@ -76,75 +97,200 @@ export function ScoreGauge({ score, tier, label, outlook, pointsLost, categoryCo
   const TierIcon = tierIcon(tier)
   const OutlookIcon = outlookIcon(outlook)
   const band = scoreBand(score)
+  const tierName = tierNames[tier] || '—'
+  const aboveAvg =
+    sectorBenchmark !== undefined &&
+    sectorBenchmark !== null &&
+    score > sectorBenchmark
 
   return (
-    <div className="glass-card-hero p-8 animate-slide-up">
-      <div className="relative flex flex-col items-center gap-6 sm:flex-row sm:items-center">
-        {/* Circular progress ring */}
-        <div className="relative flex-shrink-0" style={{ width: 150, height: 150 }}>
-          <svg width="150" height="150" className="-rotate-90">
-            <circle
-              cx="75"
-              cy="75"
-              r={radius}
-              fill="none"
-              stroke="var(--glass-border)"
-              strokeWidth={stroke}
-            />
-            <circle
-              cx="75"
-              cy="75"
-              r={radius}
-              fill="none"
-              stroke={color}
-              strokeWidth={stroke}
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={offset}
+    <div className="panel-terminal glass-card-hero animate-fade-up overflow-hidden">
+      {/* HUD header strip */}
+      <div className="panel-header">
+        <div className="flex items-center gap-3">
+          <span className="dot dot-cyan" />
+          <span>module :: trust.score</span>
+          <span className="dot dot-violet" />
+        </div>
+        <div className="flex items-center gap-3">
+          <span>live</span>
+          <span className="dot dot-green animate-pulse-soft" />
+        </div>
+      </div>
+
+      <div className="panel-body relative">
+        <div className="relative flex flex-col gap-8 sm:flex-row sm:items-center">
+          {/* ==== Circular conic ring ==== */}
+          <div
+            className="relative flex-shrink-0"
+            style={{ width: 180, height: 180 }}
+          >
+            {/* rotating conic gradient backdrop */}
+            <div
+              className="absolute inset-0 rounded-full opacity-50 blur-xl"
               style={{
-                transition: 'stroke-dashoffset 1.2s ease-out',
-                filter: `drop-shadow(0 0 6px ${color}40)`,
+                background: `conic-gradient(from 0deg, ${color}, ${tierColors[5] || '#b400ff'}, ${tierColors[1] || '#ff3060'}, ${color})`,
+                animation: 'spin 8s linear infinite',
               }}
             />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-3xl font-bold tracking-tight">{score}</span>
-            <span className="text-xs font-medium text-[var(--text-muted)]">/ 1000</span>
-          </div>
-        </div>
-
-        {/* Info column */}
-        <div className="flex flex-1 flex-col gap-2 relative">
-          <div className="flex items-center gap-3">
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-lg"
-              style={{ color, background: `${color}15` }}
-            >
-              <TierIcon size={24} />
+            <svg width="180" height="180" className="-rotate-90 relative">
+              <defs>
+                <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#00f0ff" />
+                  <stop offset="50%" stopColor="#b400ff" />
+                  <stop offset="100%" stopColor="#ff00d4" />
+                </linearGradient>
+              </defs>
+              <circle
+                cx="90"
+                cy="90"
+                r={radius}
+                fill="none"
+                stroke="rgba(0,240,255,0.08)"
+                strokeWidth={stroke}
+              />
+              {/* ticks */}
+              {Array.from({ length: 40 }).map((_, i) => {
+                const a = (i / 40) * Math.PI * 2
+                const r1 = radius + 8
+                const r2 = radius + (i % 5 === 0 ? 16 : 12)
+                const x1 = 90 + Math.cos(a) * r1
+                const y1 = 90 + Math.sin(a) * r1
+                const x2 = 90 + Math.cos(a) * r2
+                const y2 = 90 + Math.sin(a) * r2
+                return (
+                  <line
+                    key={i}
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    stroke={i % 5 === 0 ? 'rgba(0,240,255,0.7)' : 'rgba(0,240,255,0.3)'}
+                    strokeWidth={i % 5 === 0 ? 1.2 : 0.6}
+                  />
+                )
+              })}
+              <circle
+                cx="90"
+                cy="90"
+                r={radius}
+                fill="none"
+                stroke="url(#ringGrad)"
+                strokeWidth={stroke}
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={offset}
+                style={{
+                  transition: 'stroke-dashoffset 1.4s ease-out',
+                  filter: `drop-shadow(0 0 8px ${color})`,
+                }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span
+                className="num text-4xl font-bold leading-none text-white glitch"
+                data-text={String(score)}
+              >
+                {score}
+              </span>
+              <span className="mt-1 num text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">
+                / 1000 pts
+              </span>
+              <span
+                className="num mt-2 text-[10px] uppercase tracking-[0.16em]"
+                style={{ color }}
+              >
+                ▸ tier {tier}
+              </span>
             </div>
-            <div className="section-title">Overall Trust Score</div>
           </div>
 
-          <div className="text-2xl font-bold gradient-text">{band}</div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold" style={{ color }}>
-              Tier {tier}
-            </span>
-            <span className="text-[var(--text-muted)]">·</span>
-            <span className="text-sm text-[var(--text-secondary)]">{label}</span>
-          </div>
-
-          <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-            <OutlookIcon size={16} className="text-[var(--accent)]" />
-            <span>Outlook: {outlook}</span>
-          </div>
-
-          {pointsLost !== undefined && categoryCount !== undefined && (
-            <div className="mt-1 text-xs text-[var(--text-muted)]">
-              {pointsLost} points deducted across {categoryCount} categories
+          {/* ==== Info column ==== */}
+          <div className="flex flex-1 flex-col gap-3 relative">
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-sm"
+                style={{
+                  color: color,
+                  background: `${color}22`,
+                  border: `1px solid ${color}`,
+                }}
+              >
+                <TierIcon size={22} />
+              </div>
+              <div>
+                <div className="eyebrow">
+                  <span className="line" />
+                  <span>Overall Trust Score</span>
+                </div>
+                <div className="display-title text-2xl gradient-text leading-tight">
+                  {band}
+                </div>
+              </div>
             </div>
-          )}
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className="rounded-sm px-2 py-1 num text-[12px]"
+                style={{
+                  border: `1px solid ${color}`,
+                  background: `${color}15`,
+                  color,
+                }}
+              >
+                tier {tier} · {tierName}
+              </span>
+              <span className="badge badge-info">{label}</span>
+              {aboveAvg && (
+                <span
+                  className="above-sector-avg inline-flex items-center gap-1 rounded-sm border px-2 py-1 text-[12px]"
+                  style={{
+                    borderColor: 'var(--neon-green)',
+                    background: 'rgba(0,255,156,0.10)',
+                  }}
+                  title={`Score ${score} > sector benchmark ${sectorBenchmark}`}
+                >
+                  ▲ Above Sector Average
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+              <OutlookIcon size={16} className="text-[var(--neon-cyan)]" />
+              <span className="num text-[12px] uppercase tracking-[0.14em]">
+                outlook :: {outlook}
+              </span>
+            </div>
+
+            {pointsLost !== undefined && categoryCount !== undefined && (
+              <div className="num text-[11px] uppercase tracking-[0.12em] text-[var(--text-muted)]">
+                ▸ {pointsLost} points deducted across {categoryCount} categories
+              </div>
+            )}
+
+            {/* ==== Shield glyph row — actual number of shields based on tier ==== */}
+            <div className="mt-2 flex items-center gap-1.5 rounded-sm border border-[var(--glass-border-subtle)] bg-[rgba(0,0,0,0.25)] px-3 py-2">
+              <span className="num text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">
+                shield.tier
+              </span>
+              <div className="ml-2 flex items-end gap-1">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Shield
+                    key={i}
+                    tier={i}
+                    size="md"
+                    active={i <= tier}
+                  />
+                ))}
+              </div>
+              <span
+                className="ml-auto num text-[11px] uppercase tracking-[0.16em]"
+                style={{ color }}
+              >
+                ×{tier}/5
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

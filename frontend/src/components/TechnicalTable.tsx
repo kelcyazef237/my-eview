@@ -7,31 +7,26 @@ interface TechnicalTableProps {
 
 function stateBadgeClass(state: string): string {
   switch (state) {
-    case 'PASS':
-      return 'badge badge-pass'
-    case 'WARN':
-      return 'badge badge-warn'
-    case 'FAIL':
-      return 'badge badge-fail'
-    case 'NOT_APPLICABLE':
-      return 'badge badge-neutral'
-    case 'NOT_OBSERVED':
-    default:
-      return 'badge badge-neutral'
+    case 'PASS':  return 'badge badge-pass'
+    case 'WARN':  return 'badge badge-warn'
+    case 'FAIL':  return 'badge badge-fail'
+    default:      return 'badge badge-neutral'
   }
 }
 
 function StateIcon({ state }: { state: string }) {
   switch (state) {
-    case 'PASS':
-      return <CheckCircle2 size={12} />
-    case 'WARN':
-      return <AlertTriangle size={12} />
-    case 'FAIL':
-      return <XCircle size={12} />
-    default:
-      return <MinusCircle size={12} />
+    case 'PASS':  return <CheckCircle2 size={11} />
+    case 'WARN':  return <AlertTriangle size={11} />
+    case 'FAIL':  return <XCircle size={11} />
+    default:      return <MinusCircle size={11} />
   }
+}
+
+const STATE_COLOR: Record<string, string> = {
+  PASS: 'var(--neon-green)',
+  WARN: 'var(--neon-amber)',
+  FAIL: 'var(--neon-red)',
 }
 
 export function TechnicalTable({ vectors }: TechnicalTableProps) {
@@ -47,54 +42,75 @@ export function TechnicalTable({ vectors }: TechnicalTableProps) {
   )
 
   const summaryPills = [
-    { label: 'PASS', count: counts.pass, icon: CheckCircle2, className: 'badge badge-pass' },
-    { label: 'WARN', count: counts.warn, icon: AlertTriangle, className: 'badge badge-warn' },
-    { label: 'FAIL', count: counts.fail, icon: XCircle, className: 'badge badge-fail' },
-    { label: 'N/A', count: counts.other, icon: MinusCircle, className: 'badge badge-neutral' },
+    { label: 'PASS', count: counts.pass, icon: CheckCircle2, className: 'badge badge-pass', color: 'var(--neon-green)' },
+    { label: 'WARN', count: counts.warn, icon: AlertTriangle, className: 'badge badge-warn', color: 'var(--neon-amber)' },
+    { label: 'FAIL', count: counts.fail, icon: XCircle, className: 'badge badge-fail', color: 'var(--neon-red)' },
+    { label: 'N/A',  count: counts.other, icon: MinusCircle, className: 'badge badge-neutral', color: 'var(--text-secondary)' },
   ]
 
   return (
-    <div className="animate-slide-up">
-      {/* Summary bar */}
-      <div className="mb-3 flex flex-wrap gap-2">
-        {summaryPills.map(({ label, count, icon: Icon, className }) => (
-          <span key={label} className={className}>
-            <Icon size={12} />
-            {label}: {count}
+    <div className="animate-fade-up">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <span className="eyebrow mr-1">
+          <span className="line" />
+          <span>summary</span>
+        </span>
+        {summaryPills.map(({ label, count, icon: Icon, color }) => (
+          <span
+            key={label}
+            className="badge"
+            style={{
+              borderColor: color,
+              color,
+              background: 'rgba(0,0,0,0.3)',
+              boxShadow: `inset 0 0 12px ${color}25, 0 0 8px ${color}30`,
+            }}
+          >
+            <Icon size={11} />
+            {label} :: <span className="num">{count}</span>
           </span>
         ))}
+        <span className="ml-auto num text-[11px] uppercase tracking-[0.12em] text-[var(--text-muted)]">
+          ▸ {vectors.length} vectors scanned
+        </span>
       </div>
 
-      <div className="glass-card overflow-hidden">
+      <div className="panel-terminal glass-card">
+        <div className="panel-header">
+          <div className="flex items-center gap-2">
+            <span className="dot dot-cyan" />
+            <span>module :: technical.drill-down</span>
+          </div>
+          <span>28 vectors</span>
+        </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-[var(--glass-bg)]">
+          <table className="hud-table">
+            <thead>
               <tr>
-                <th className="px-4 py-3 font-mono text-xs font-semibold text-[var(--text-muted)]">Vector</th>
-                <th className="px-4 py-3 font-mono text-xs font-semibold text-[var(--text-muted)]">Category</th>
-                <th className="px-4 py-3 font-mono text-xs font-semibold text-[var(--text-muted)]">State</th>
-                <th className="px-4 py-3 font-mono text-xs font-semibold text-[var(--text-muted)]">Evidence</th>
+                <th>vector</th>
+                <th>category</th>
+                <th>state</th>
+                <th>evidence</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--glass-border-subtle)]">
-              {vectors.map((vf, idx) => (
-                <tr
-                  key={vf.vector_key}
-                  className={`transition-colors hover:bg-[var(--accent)]/5 ${
-                    idx % 2 === 1 ? 'bg-[var(--glass-bg)]' : ''
-                  }`}
-                >
-                  <td className="px-4 py-3 font-medium">{vf.vector_name}</td>
-                  <td className="px-4 py-3 text-[var(--text-secondary)]">{vf.category_key}</td>
-                  <td className="px-4 py-3">
-                    <span className={stateBadgeClass(vf.state)}>
+            <tbody>
+              {vectors.map((vf) => (
+                <tr key={vf.vector_key}>
+                  <td className="font-medium text-white">{vf.vector_name}</td>
+                  <td className="num text-[var(--text-secondary)]">{vf.category_key}</td>
+                  <td>
+                    <span
+                      className={stateBadgeClass(vf.state)}
+                      style={{
+                        color: STATE_COLOR[vf.state] || 'var(--text-secondary)',
+                        borderColor: STATE_COLOR[vf.state] || 'var(--text-secondary)',
+                      }}
+                    >
                       <StateIcon state={vf.state} />
                       {vf.state}
                     </span>
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-[var(--text-muted)]">
-                    {vf.evidence_ref || '—'}
-                  </td>
+                  <td className="mono text-[var(--text-muted)]">{vf.evidence_ref || '—'}</td>
                 </tr>
               ))}
             </tbody>
