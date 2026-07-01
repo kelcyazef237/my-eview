@@ -58,7 +58,13 @@ def _handshake_info(host: str, port: int) -> dict:
             cipher = ssock.cipher()
             cert = ssock.getpeercert()
             cert_binary = ssock.getpeercert(binary_form=True)
-            chain = [cert.get("issuer") for cert in ssock._sslobj.get_unverified_chain()] if hasattr(ssock._sslobj, "get_unverified_chain") else []
+            # `ssock._sslobj.get_unverified_chain()` returns a list of
+            # `_ssl.Certificate` objects (NOT dicts). In Python 3.13 the
+            # only way to read structured fields is `cert.get_info()` which
+            # returns a dict. The loop variable must not shadow the outer
+            # `cert` dict, otherwise `cert.get(...)` raises AttributeError
+            # on the first chain element.
+            chain = [c.get_info().get("issuer") for c in ssock._sslobj.get_unverified_chain()] if hasattr(ssock._sslobj, "get_unverified_chain") else []
 
             not_after = cert.get("notAfter")
             expires_at = None
