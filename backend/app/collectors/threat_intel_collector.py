@@ -95,7 +95,10 @@ async def _query_otx_domain(domain: str) -> dict:
 
     result, attempts, error = await with_retry(_run)
     if result is None:
-        result = {"domain": domain, "error": str(error)}
+        result = {
+            "domain": domain,
+            "error": f"{type(error).__name__}: {error}" if error else "unknown failure",
+        }
     result["attempts"] = attempts
     return result
 

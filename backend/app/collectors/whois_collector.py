@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 import whois
 
 from app.collectors.base import run_in_thread, with_retry
+from app.collectors.rdap_collector import collect as rdap_collect
 
 
 def _coerce_date(value) -> datetime | None:
@@ -42,10 +43,28 @@ def _whois_raw(domain: str) -> dict:
 
 async def collect(domain: str) -> dict:
     async def _run() -> dict:
-        return await run_in_thread(_whois_raw, domain)
+        whois_result = await run_in_thread(_whois_raw, domain)
+        # python-whois returns empty fields for RDAP-only TLDs (.int, .gov,
+        # .mil, and a handful of ccTLDs). When the WHOIS query produced no
+        # usable dates, try RDAP before giving up.
+        if whois_result.get("creation_date") or whois_result.get("expiration_date"):
+            return whois_result
+        if "error" in whois_result:
+            return whois_result
+        rdap_result = await rdap_collect(domain)
+        if "error" not in rdap_result and (
+            rdap_result.get("creation_date") or rdap_result.get("expiration_date")
+        ):
+            return rdap_result
+        # RDAP also failed — return the original WHOIS result so the
+        # normalizer can mark it NOT_OBSERVED.
+        return whois_result
 
     result, attempts, error = await with_retry(_run)
     if result is None:
-        result = {"domain": domain, "error": str(error)}
+        result = {
+            "domain": domain,
+            "error": f"{type(error).__name__}: {error}" if error else "unknown failure",
+        }
     result["attempts"] = attempts
     return result

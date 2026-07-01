@@ -1,12 +1,14 @@
 """DNS collector for SPF, DKIM, DMARC, DNSSEC, and Zone Transfer evidence."""
 
+import asyncio
+
 import dns.exception
 import dns.resolver
 import dns.query
 import dns.zone
 
 from app.constants import DKIM_SELECTORS
-from app.collectors.base import with_retry
+from app.collectors.base import run_in_thread, with_retry
 
 
 def _txt_records(name: str) -> list[str]:
@@ -108,34 +110,56 @@ def _resolve_ns_ip(ns_hostname: str) -> str | None:
     return None
 
 
-def _zone_transfer_status(domain: str) -> dict:
-    """Test AXFR against every authoritative nameserver.
+def _probe_one_ns(ns_ip: str, domain: str) -> str | None:
+    """Probe a single nameserver for AXFR allowance. Returns ns_ip on allow.
+
+    Runs in a thread; AXFR is a blocking dnspython call. `lifetime=15` (down
+    from 30) because the rare 30s response is more often a network issue
+    than a legitimate slow server.
+    """
+    try:
+        dns.zone.from_xfr(dns.query.xfr(ns_ip, domain, timeout=5, lifetime=15))
+        return ns_ip
+    except Exception:
+        return None
+
+
+async def _zone_transfer_status(domain: str) -> dict:
+    """Test AXFR against every authoritative nameserver in parallel.
 
     Returns {"tested": int, "allowed": list[str], "refused": list[str]}.
     PASS if all refuse, FAIL if any allows.
 
     dns.query.xfr requires an IP address (not a hostname), so we resolve
-    each NS hostname to its IP first.
+    each NS hostname to its IP first, then probe all IPs concurrently.
     """
     nameservers = _authoritative_nameservers(domain)
     if not nameservers:
         return {"tested": 0, "allowed": [], "refused": []}
 
-    allowed = []
-    refused = []
-    for ns in nameservers:
-        ns_ip = _resolve_ns_ip(ns)
-        if not ns_ip:
-            # Can't resolve the NS IP — treat as refused (can't test)
-            refused.append(ns)
-            continue
-        try:
-            dns.zone.from_xfr(dns.query.xfr(ns_ip, domain, timeout=10, lifetime=30))
-            allowed.append(ns)
-        except Exception:
-            refused.append(ns)
+    # Resolve NS hostnames to IPs in parallel (each is a blocking resolver call).
+    ips = await asyncio.gather(
+        *(run_in_thread(_resolve_ns_ip, ns) for ns in nameservers)
+    )
 
-    return {"tested": len(nameservers), "allowed": allowed, "refused": refused}
+    # Probe each IP for AXFR in parallel.
+    results = await asyncio.gather(
+        *(run_in_thread(_probe_one_ns, ip, domain) for ip in ips if ip)
+    )
+    allowed_ips = {r for r in results if r}
+
+    # Map back to NS hostnames for the result.
+    allowed = [ns for ns, ip in zip(nameservers, ips) if ip in allowed_ips]
+    refused = [
+        ns for ns, ip in zip(nameservers, ips) if ip and ip not in allowed_ips
+    ]
+    no_ip = [ns for ns, ip in zip(nameservers, ips) if not ip]
+
+    return {
+        "tested": len(nameservers),
+        "allowed": allowed,
+        "refused": refused + no_ip,
+    }
 
 
 async def collect(domain: str) -> dict:
@@ -147,7 +171,7 @@ async def collect(domain: str) -> dict:
         dmarc_record = _dmarc_record(domain)
         dmarc_policy = _dmarc_policy(dmarc_record)
         dnssec = _dnssec_signals(domain)
-        zone_transfer = _zone_transfer_status(domain)
+        zone_transfer = await _zone_transfer_status(domain)
         return {
             "domain": domain,
             "spf_present": spf,

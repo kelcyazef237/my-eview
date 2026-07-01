@@ -66,10 +66,14 @@ def normalize_asset_surface(
 
     indicators = 0
     expired_or_untrusted = 0
+    probes_attempted = 0
+    probes_failed = 0
     for sub in subdomain_results or []:
+        probes_attempted += 1
         sub_tls = sub.get("tls") or {}
         sub_http = sub.get("http") or {}
-        if "error" in sub_tls:
+        if "error" in sub_tls or "error" in sub_http:
+            probes_failed += 1
             continue
         if not sub_tls.get("cert_trusted"):
             expired_or_untrusted += 1
@@ -87,8 +91,27 @@ def normalize_asset_surface(
     else:
         unmanaged_state = VectorState.PASS
 
+    # Data-loss guard: if we attempted many probes and most failed, the
+    # "PASS" outcome above is driven by silence, not by evidence. Escalate
+    # to WARN so the user sees that we couldn't tell, not that everything
+    # was clean. Threshold chosen so a single 1-of-1 failure does not
+    # trip this — we only escalate when the failure pattern is genuine.
+    # We do NOT downgrade a real FAIL to WARN — the data-loss guard only
+    # escalates a PASS to WARN.
+    if probes_attempted >= 5 and probes_failed / probes_attempted > 0.5:
+        if unmanaged_state == VectorState.PASS:
+            unmanaged_state = VectorState.WARN
+
     return {
         "asset_count": _f(count_state, {"count": count}),
         "shadow_assets": _f(shadow_state, {"shadow_count": shadow_count, "total": count}),
-        "unmanaged_assets": _f(unmanaged_state, {"indicators": indicators, "expired_or_untrusted": expired_or_untrusted}),
+        "unmanaged_assets": _f(
+            unmanaged_state,
+            {
+                "indicators": indicators,
+                "expired_or_untrusted": expired_or_untrusted,
+                "probes_attempted": probes_attempted,
+                "probes_failed": probes_failed,
+            },
+        ),
     }

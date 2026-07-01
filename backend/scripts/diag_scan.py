@@ -96,6 +96,23 @@ class DiagLogger:
         self._fh.close()
 
 
+def _empty_err_diagnostic(result: dict, label: str) -> str:
+    """Return a diagnostic suffix when a result's `error` field is empty
+    or absent. The collectors now embed `type(error).__name__` so an empty
+    err= should never happen — but if it does, we want enough context to
+    debug it (attempts count, top-level keys, truncated payload).
+    """
+    err = result.get("error")
+    if err:
+        return ""
+    attempts = result.get("attempts", "?")
+    keys = ",".join(sorted(result.keys()))
+    payload = json.dumps({k: v for k, v in result.items() if k != "domain"}, default=str)
+    if len(payload) > 400:
+        payload = payload[:400] + "...(truncated)"
+    return f" attempts={attempts} keys={keys} payload={payload}"
+
+
 def preflight(logger: DiagLogger, db, domain: str) -> bool:
     """Run pre-flight checks. Return True if all critical ones pass."""
     ok = True
@@ -154,7 +171,7 @@ async def probe_dns(logger: DiagLogger, domain: str) -> dict | None:
         elapsed = time.perf_counter() - t0
         attempts = result.get("attempts", 1)
         if "error" in result:
-            logger.emit("FAIL", f"collect(dns) attempts={attempts} elapsed={elapsed:.2f}s err={result['error']}")
+            logger.emit("FAIL", f"collect(dns) attempts={attempts} elapsed={elapsed:.2f}s err={result['error']}{_empty_err_diagnostic(result, 'dns')}")
             return None
         logger.emit("PASS", f"collect(dns) attempts={attempts} elapsed={elapsed:.2f}s")
         spf = "present" if result.get("spf_present") else "absent"
@@ -203,7 +220,7 @@ async def probe_whois(logger: DiagLogger, domain: str) -> dict | None:
         elapsed = time.perf_counter() - t0
         attempts = result.get("attempts", 1)
         if "error" in result:
-            logger.emit("FAIL", f"collect(whois) attempts={attempts} elapsed={elapsed:.2f}s err={result['error']}")
+            logger.emit("FAIL", f"collect(whois) attempts={attempts} elapsed={elapsed:.2f}s err={result['error']}{_empty_err_diagnostic(result, 'whois')}")
             return None
         logger.emit("PASS", f"collect(whois) attempts={attempts} elapsed={elapsed:.2f}s")
         logger.emit("DETAIL", f"whois.creation_date={result.get('creation_date')} whois.expiration_date={result.get('expiration_date')} whois.registrar={result.get('registrar')}")
@@ -223,7 +240,7 @@ async def probe_tls(logger: DiagLogger, domain: str) -> dict | None:
         elapsed = time.perf_counter() - t0
         attempts = result.get("attempts", 1)
         if "error" in result:
-            logger.emit("FAIL", f"collect(tls) attempts={attempts} elapsed={elapsed:.2f}s err={result['error']}")
+            logger.emit("FAIL", f"collect(tls) attempts={attempts} elapsed={elapsed:.2f}s err={result['error']}{_empty_err_diagnostic(result, 'tls')}")
             return None
         logger.emit("PASS", f"collect(tls) attempts={attempts} elapsed={elapsed:.2f}s")
         supported = result.get("supported_versions", [])
@@ -246,7 +263,7 @@ async def probe_http(logger: DiagLogger, domain: str) -> dict | None:
         elapsed = time.perf_counter() - t0
         attempts = result.get("attempts", 1)
         if "error" in result:
-            logger.emit("FAIL", f"collect(http) attempts={attempts} elapsed={elapsed:.2f}s err={result['error']}")
+            logger.emit("FAIL", f"collect(http) attempts={attempts} elapsed={elapsed:.2f}s err={result['error']}{_empty_err_diagnostic(result, 'http')}")
             return None
         logger.emit("PASS", f"collect(http) attempts={attempts} elapsed={elapsed:.2f}s")
         https_root = result.get("https_root", {})
@@ -276,7 +293,7 @@ async def probe_asset_discovery(logger: DiagLogger, domain: str) -> dict | None:
         elapsed = time.perf_counter() - t0
         attempts = result.get("attempts", 1)
         if "error" in result:
-            logger.emit("FAIL", f"discover(asset_discovery) attempts={attempts} elapsed={elapsed:.2f}s err={result['error']}")
+            logger.emit("FAIL", f"discover(asset_discovery) attempts={attempts} elapsed={elapsed:.2f}s err={result['error']}{_empty_err_diagnostic(result, 'asset_discovery')}")
             return None
         count = result.get("count", 0)
         assets = result.get("discovered_assets", [])
@@ -306,6 +323,15 @@ async def probe_threat_intel(logger: DiagLogger, domain: str, db) -> dict | None
         derived = result.get("derived", {})
         logger.emit("PASS", f"collect(threat_intel) elapsed={elapsed:.2f}s")
         logger.emit("DETAIL", f"threat_intel.otx={otx_summary} threat_intel.spam={derived.get('spam_listed_count', 0)} threat_intel.botnet={derived.get('botnet_listed')} threat_intel.blacklist_aggregate={derived.get('blacklist_aggregate_count')}")
+        if otx.get("skipped"):
+            # Surface the silent NOT_OBSERVED on malware. Without OTX, the
+            # malware vector is genuinely unobservable; the user should
+            # know the green threat_intel PASS is conditional.
+            logger.emit(
+                "WARN",
+                "threat_intel.malware=NOT_OBSERVED (otx_api_key not set) — "
+                "set OTX_API_KEY in backend/.env to enable",
+            )
         return result
     except Exception as exc:
         elapsed = time.perf_counter() - t0
