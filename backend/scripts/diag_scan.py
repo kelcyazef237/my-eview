@@ -413,9 +413,19 @@ async def run_end_to_end(logger: DiagLogger, db, domain: str) -> tuple[int, dict
         "vector_states": dict(vec_states),
     }
 
-    # Roll back the SAVEPOINT — this is the contract: no DB writes persist
+    # Roll back the outer transaction — discards all writes including those
+    # the orchestrator committed into the SAVEPOINT.
+    #
+    # Why not `savepoint.rollback()`: the orchestrator calls `db.commit()`
+    # several times during `run_scan` (e.g. scan_orchestrator.py:271). Each
+    # of those commits releases the SAVEPOINT (the nested transaction
+    # completes successfully). After the last commit, the SAVEPOINT object
+    # is closed, and calling `.rollback()` on it raises
+    # `ResourceClosedError: This transaction is closed`. The right call is
+    # `db.rollback()` on the outer session, which discards everything the
+    # orchestrator wrote because we never committed the outer transaction.
     try:
-        savepoint.rollback()
+        db.rollback()
         logger.emit("CLEANUP", "SAVEPOINT rolled back — no DB changes persisted")
     except Exception as cleanup_exc:
         logger.emit("CLEAN-FAIL", f"rollback failed err={type(cleanup_exc).__name__}({cleanup_exc})")
@@ -490,6 +500,23 @@ def main() -> int:
         if not args.no_e2e:
             logger.emit("STAGE", "=== pass 2: end-to-end orchestrator ===")
             exit_code, summary = asyncio.run(run_end_to_end(logger, db, domain))
+
+            # Verify the rollback actually left the DB clean. The orchestrator
+            # may have called commit() inside the SAVEPOINT, which releases
+            # the SAVEPOINT; db.rollback() then discards the outer
+            # transaction. If the contract is broken, scan_runs count > 0.
+            from sqlalchemy import text
+            try:
+                n_runs = db.execute(text("SELECT count(*) FROM scan_runs")).scalar()
+                n_orgs = db.execute(text("SELECT count(*) FROM organizations")).scalar()
+                n_scores = db.execute(text("SELECT count(*) FROM scores")).scalar()
+                logger.emit(
+                    "CLEANUP",
+                    f"post-cleanup verification: scan_runs={n_runs} organizations={n_orgs} scores={n_scores} "
+                    f"(all should match the pre-run counts)",
+                )
+            except Exception as verify_exc:
+                logger.emit("WARN", f"post-cleanup verification query failed: {type(verify_exc).__name__}({verify_exc})")
         else:
             logger.emit("STAGE", "=== pass 2 skipped (--no-e2e) ===")
 
