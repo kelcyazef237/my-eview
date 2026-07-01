@@ -1,5 +1,6 @@
 """TLS collector for TLS version strength and certificate health."""
 
+import asyncio
 import socket
 import ssl
 from datetime import datetime, timezone
@@ -37,10 +38,25 @@ def _probe_tls_version(host: str, port: int, version: ssl.TLSVersion) -> bool:
         return False
 
 
-def _supported_tls_versions(host: str, port: int) -> list[str]:
-    supported = []
-    for name, version in _TLS_VERSION_ORDER:
-        if _probe_tls_version(host, port, version):
+async def _supported_tls_versions(host: str, port: int) -> list[str]:
+    """Probe TLS 1.3, 1.2, 1.1, 1.0 in parallel and return the supported ones.
+
+    Each probe is a blocking socket+SSL handshake (up to
+    `collector_timeout_seconds`). Probing them serially is the
+    single biggest TLS latency cost — a target that only supports
+    1.2 still pays the cost of attempting 1.3 first. Running all
+    four concurrently with `asyncio.gather` + `run_in_executor`
+    cuts the worst case to one timeout instead of four.
+    """
+    loop = asyncio.get_running_loop()
+    tasks = [
+        loop.run_in_executor(None, _probe_tls_version, host, port, version)
+        for _name, version in _TLS_VERSION_ORDER
+    ]
+    results = await asyncio.gather(*tasks)
+    supported: list[str] = []
+    for (name, _version), ok in zip(_TLS_VERSION_ORDER, results):
+        if ok:
             supported.append(name)
     return supported
 
@@ -103,9 +119,16 @@ def _cert_trusted(host: str, port: int) -> bool:
 
 async def collect(host: str, port: int = 443) -> dict:
     async def _run() -> dict:
-        supported = _supported_tls_versions(host, port)
-        info = _handshake_info(host, port)
-        trusted = _cert_trusted(host, port)
+        # Run the TLS version probe, the handshake, and the cert-trust
+        # check concurrently. They each open their own socket so there's
+        # no contention, and the handshake + trust check both depend on
+        # the version probe only loosely (they negotiate whatever the
+        # server offers).
+        supported, info = await asyncio.gather(
+            _supported_tls_versions(host, port),
+            asyncio.to_thread(_handshake_info, host, port),
+        )
+        trusted = await asyncio.to_thread(_cert_trusted, host, port)
         return {
             "host": host,
             "port": port,

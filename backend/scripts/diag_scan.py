@@ -196,7 +196,10 @@ async def probe_axfr(logger: DiagLogger, domain: str) -> dict | None:
     logger.emit("STAGE", "axfr (direct)")
     t0 = time.perf_counter()
     try:
-        result = await asyncio.to_thread(_zone_transfer_status, domain)
+        # _zone_transfer_status is async (parallel NS probes since the
+        # last round of fixes). Await it directly — wrapping in to_thread
+        # would return a coroutine object that has no .get().
+        result = await _zone_transfer_status(domain)
         elapsed = time.perf_counter() - t0
         tested = result.get("tested", 0)
         allowed = result.get("allowed", [])

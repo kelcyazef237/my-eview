@@ -26,6 +26,54 @@ from app.scoring.outlook_mapper import outlook_for_score
 from app.scoring.shield_mapper import shield_for_score
 from app.tia.template_engine import TemplateEngine
 
+# How many subdomains to probe in parallel during pass 2.
+# 20 subdomains / 5 = 4 batches. Each batch runs TLS+HTTP (~8s) so
+# total wall-clock for the subdomain pass drops from ~160s serial to
+# ~40s with this cap. 5 in-flight connections per target is well
+# within "polite scanner" territory and small enough to not exhaust
+# the AWS outbound connection limit.
+SUBDOMAIN_CONCURRENCY = 5
+
+
+async def _probe_subdomains(
+    target_subdomains: list[str],
+    tls_collector_module,
+    http_collector_module,
+    concurrency: int = SUBDOMAIN_CONCURRENCY,
+) -> list[dict]:
+    """Probe TLS + HTTP for each subdomain in parallel, capped at
+    `concurrency` simultaneous probes.
+
+    Extracted from `run_scan` so the parallelism can be unit-tested
+    without bringing up the full DB / schema. Each item in the result
+    is `{"subdomain": str, "tls": dict, "http": dict}` where the tls
+    and http dicts are the unwrapped (exception-safe) collector output.
+    """
+    sem = asyncio.Semaphore(concurrency)
+
+    async def _probe_one(sub: str) -> dict:
+        async with sem:
+            sub_tls, sub_http = await asyncio.gather(
+                tls_collector_module.collect(sub),
+                http_collector_module.collect(sub),
+                return_exceptions=True,
+            )
+
+        def _unwrap(result):
+            if isinstance(result, Exception):
+                return {"error": str(result)}
+            return result
+
+        return {
+            "subdomain": sub,
+            "tls": _unwrap(sub_tls),
+            "http": _unwrap(sub_http),
+        }
+
+    if not target_subdomains:
+        return []
+    return list(await asyncio.gather(*(_probe_one(s) for s in target_subdomains)))
+
 
 async def run_scan(db: Session, domain: str, is_full_report: bool = False) -> ScanRun:
     # Get or create organization
@@ -110,41 +158,69 @@ async def run_scan(db: Session, domain: str, is_full_report: bool = False) -> Sc
     subdomain_results: list[dict] = []
     discovered = discovery_evidence.get("discovered_assets") or []
     # Limit to 20 subdomains to stay within scan-time budget.
-    for sub in discovered[:20]:
-        if sub == domain.lower():
-            continue
-        sub_asset = db.query(Asset).filter_by(org_id=org.id, type="subdomain", value=sub).first()
-        if not sub_asset:
-            sub_asset = Asset(
-                org_id=org.id,
-                type="subdomain",
-                value=sub,
-                discovered_via="ct_logs",
+    target_subdomains = [s for s in discovered[:20] if s != domain.lower()]
+
+    # Up-front: ensure all sub-assets exist (cheap, sync, single batch).
+    existing_sub_values = {
+        a.value
+        for a in db.query(Asset).filter_by(org_id=org.id, type="subdomain").all()
+    }
+    for sub in target_subdomains:
+        if sub not in existing_sub_values:
+            db.add(
+                Asset(
+                    org_id=org.id,
+                    type="subdomain",
+                    value=sub,
+                    discovered_via="ct_logs",
+                )
             )
-            db.add(sub_asset)
-            db.commit()
-            db.refresh(sub_asset)
+    db.commit()
 
-        sub_tls, sub_http = await asyncio.gather(
-            tls_collector.collect(sub),
-            http_collector.collect(sub),
-            return_exceptions=True,
+    # Reload the full subdomain→asset map (covers both pre-existing and
+    # just-created rows). Used below when writing raw_evidence.
+    sub_assets_by_value = {
+        a.value: a
+        for a in db.query(Asset).filter_by(org_id=org.id, type="subdomain").all()
+    }
+
+    # Fan out the probes. With SUBDOMAIN_CONCURRENCY=5, 20 subdomains
+    # complete in ~4 batches instead of 20 serial rounds. The helper
+    # is unit-testable in isolation; see app/tests/test_scan_orchestrator.py.
+    probed = await _probe_subdomains(
+        target_subdomains, tls_collector, http_collector
+    )
+
+    # Single batch commit for all raw_evidence rows (was 3 commits
+    # per subdomain inside the old loop = 60 commits for 20 subs).
+    for result in probed:
+        sub = result["subdomain"]
+        sub_asset = sub_assets_by_value.get(sub)
+        if sub_asset is None:
+            continue
+        sub_tls = result["tls"]
+        sub_http = result["http"]
+        db.add(
+            RawEvidence(
+                scan_run_id=scan_run.id,
+                asset_id=sub_asset.id,
+                collector_name="tls",
+                raw_payload=sub_tls,
+                attempt_count=sub_tls.get("attempts", 1),
+            )
         )
-        sub_tls = _unwrap(sub_tls)
-        sub_http = _unwrap(sub_http)
-
-        # Store subdomain raw evidence
-        db.add(RawEvidence(
-            scan_run_id=scan_run.id, asset_id=sub_asset.id,
-            collector_name="tls", raw_payload=sub_tls,
-            attempt_count=sub_tls.get("attempts", 1),
-        ))
-        db.add(RawEvidence(
-            scan_run_id=scan_run.id, asset_id=sub_asset.id,
-            collector_name="http", raw_payload=sub_http,
-            attempt_count=sub_http.get("attempts", 1),
-        ))
-        subdomain_results.append({"subdomain": sub, "tls": sub_tls, "http": sub_http})
+        db.add(
+            RawEvidence(
+                scan_run_id=scan_run.id,
+                asset_id=sub_asset.id,
+                collector_name="http",
+                raw_payload=sub_http,
+                attempt_count=sub_http.get("attempts", 1),
+            )
+        )
+        subdomain_results.append(
+            {"subdomain": sub, "tls": sub_tls, "http": sub_http}
+        )
     db.commit()
 
     # Normalize
