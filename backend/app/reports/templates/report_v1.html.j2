@@ -383,6 +383,31 @@ body::after{
   </p>
 </div>
 
+{% if history and history|length > 1 %}
+<div class="section reveal">
+  <div class="section-label">Trust Score Trend</div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6;">
+    Myescore™ history across the last {{ history|length }} assessment{{ 's' if history|length > 1 else '' }}. Full reports are highlighted.
+  </p>
+  <div style="display:flex;align-items:flex-end;gap:6px;height:84px;border-bottom:1px solid var(--border);padding-bottom:4px;">
+    {% set max_h = 1000 %}
+    {% for h in history %}
+    {% set pct = (h.overall_score / max_h * 100)|int %}
+    {% set is_current = loop.last %}
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:{{ '#5AC8EC' if is_current else 'var(--muted)' }};">{{ h.overall_score }}</div>
+      <div style="width:100%;max-width:22px;height:{{ [4, (pct * 0.6)|int] | max }}px;border-radius:2px 2px 0 0;{% if is_current %}background:#5AC8EC;box-shadow:0 0 8px rgba(90,200,236,.5);{% elif h.is_full_report %}background:var(--cyan2);{% else %}background:var(--bg3);{% endif %}"></div>
+    </div>
+    {% endfor %}
+  </div>
+  <div style="display:flex;gap:6px;margin-top:6px;">
+    {% for h in history %}
+    <div style="flex:1;text-align:center;font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:0;color:var(--muted);min-width:0;">{{ h.computed_at.strftime('%b %y') if h.computed_at else '—' }}</div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
 {% if risk_factors %}
 <div class="section">
   <div class="section-label">Priority Trust Risk Factors</div>

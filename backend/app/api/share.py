@@ -54,7 +54,12 @@ def share_pdf(code: str, db: Session = Depends(get_db)):
     if not org:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
     context = _load_report_context(db, score, org)
-    pdf_bytes = render_pdf(context)
+    try:
+        pdf_bytes = render_pdf(context)
+    except Exception:
+        import logging
+        logging.getLogger("myeview.reports").exception("PDF render failed for share code %s", share.code)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Report PDF could not be generated")
     filename = f"myeview-report-{context['org']['domain']}-{share.code}.pdf"
     return Response(
         content=pdf_bytes,

@@ -1,10 +1,12 @@
 """Report rendering pipeline: Jinja2 HTML + WeasyPrint PDF."""
 
+import logging
 from pathlib import Path
 from typing import Any
 
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML, CSS
+from weasyprint.urls import default_url_fetcher
 
 from app.models.category_score import CategoryScore
 from app.models.organization import Organization
@@ -14,9 +16,25 @@ from app.models.tia_entry import TiaEntry
 from app.models.vector_finding import VectorFinding
 from app.scoring.shield_mapper import shield_for_score
 
+logger = logging.getLogger("myeview.reports")
+
 
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)))
+
+
+# External resources (Google Fonts) are fetched with a short socket timeout so a
+# blocked/hanging connection can't stall PDF generation for tens of seconds. On
+# failure WeasyPrint logs a warning and falls back to system fonts — the PDF
+# still renders, just with a substitute typeface.
+def _timed_url_fetcher(url, timeout=3, ssl_context=None, http_headers=None, allowed_protocols=None):
+    return default_url_fetcher(
+        url,
+        timeout=timeout,
+        ssl_context=ssl_context,
+        http_headers=http_headers,
+        allowed_protocols=allowed_protocols,
+    )
 
 
 def _severity_for_category(points_lost: int, points_total: int) -> str:
@@ -196,4 +214,8 @@ def render_html(context: dict[str, Any]) -> str:
 
 def render_pdf(context: dict[str, Any]) -> bytes:
     html = render_html(context)
-    return HTML(string=html).write_pdf()
+    try:
+        return HTML(string=html, url_fetcher=_timed_url_fetcher).write_pdf()
+    except Exception:
+        logger.exception("WeasyPrint PDF rendering failed")
+        raise

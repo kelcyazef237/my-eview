@@ -36,7 +36,8 @@ export function ReportPage() {
   const [history, setHistory] = useState<ScoreHistoryPoint[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [shareUrl, setShareUrl] = useState<string | null>(null)
+  const [reportHtmlUrl, setReportHtmlUrl] = useState<string | null>(null)
+  const [reportPdfUrl, setReportPdfUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -49,30 +50,39 @@ export function ReportPage() {
       .finally(() => setLoading(false))
   }, [orgId])
 
-  // Mint a short shareable capability link for this report once the scan run id is known.
+  // Build the report view URLs. Prefer a short capability share link (no JWT in the
+  // URL, safe to copy/share); fall back to the long token-bearing URL if share
+  // minting is unavailable. orgId is passed so a global admin can view any org.
   const scanRunId = data?.score.scan_run_id
   useEffect(() => {
-    setShareUrl(null)
+    setReportHtmlUrl(null)
+    setReportPdfUrl(null)
     if (!scanRunId) return
     let cancelled = false
     api
-      .shareReport(scanRunId)
+      .shareReport(scanRunId, orgId)
       .then((res) => {
-        if (!cancelled) setShareUrl(`${window.location.origin}${res.path}`)
+        if (cancelled) return
+        const base = `${window.location.origin}${res.path}`
+        setReportHtmlUrl(base)
+        setReportPdfUrl(`${base}/pdf`)
       })
       .catch(() => {
-        // Fall back to the long token-bearing URL if share minting is unavailable.
-        if (!cancelled) setShareUrl(`${window.location.origin}${api.reportHtml(scanRunId)}`)
+        // Fall back to the authenticated, token-bearing URLs. Use the proper
+        // reportPdf helper so /pdf lands before the query string.
+        if (cancelled) return
+        setReportHtmlUrl(`${window.location.origin}${api.reportHtml(scanRunId, orgId)}`)
+        setReportPdfUrl(`${window.location.origin}${api.reportPdf(scanRunId, orgId)}`)
       })
     return () => {
       cancelled = true
     }
-  }, [scanRunId])
+  }, [scanRunId, orgId])
 
   async function copyShareLink() {
-    if (!shareUrl) return
+    if (!reportHtmlUrl) return
     try {
-      await navigator.clipboard.writeText(shareUrl)
+      await navigator.clipboard.writeText(reportHtmlUrl)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
@@ -108,8 +118,8 @@ export function ReportPage() {
   const OutlookIcon = outlookIcon(data.score.outlook)
   const tierColor = ['var(--neon-red)', 'var(--neon-amber)', 'var(--neon-cyan)', 'var(--neon-green)', 'var(--neon-violet)'][Math.max(0, data.score.shield_tier - 1)] || 'var(--text-muted)'
 
-  const shareHref = shareUrl ?? '#'
-  const pdfHref = shareUrl ? `${shareUrl}/pdf` : '#'
+  const shareHref = reportHtmlUrl ?? '#'
+  const pdfHref = reportPdfUrl ?? '#'
 
   return (
     <div className="space-y-8 stagger">
@@ -130,9 +140,9 @@ export function ReportPage() {
           <button
             type="button"
             onClick={copyShareLink}
-            disabled={!shareUrl}
+            disabled={!reportHtmlUrl}
             className="btn-ghost"
-            title={shareUrl ?? 'Generating link…'}
+            title={reportHtmlUrl ?? 'Generating link…'}
           >
             {copied ? <Check size={13} /> : <LinkIcon size={13} />} {copied ? 'Copied' : 'Copy Link'}
           </button>

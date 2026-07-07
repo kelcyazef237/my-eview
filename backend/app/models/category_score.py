@@ -17,4 +17,6 @@ class CategoryScore(Base):
     points_remaining = Column(Integer, nullable=False, default=0)
 
     scan_run = relationship("ScanRun", back_populates="category_scores")
-    category = relationship("Category", back_populates="category_scores")
+    # Eager-load the category so build_report_context can read .category.key/.name
+    # without firing a query per row.
+    category = relationship("Category", back_populates="category_scores", lazy="selectin")

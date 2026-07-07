@@ -104,21 +104,35 @@ export const api = {
   history: (orgId?: string) =>
     fetchJson<ScoreHistoryPoint[]>(`/owner/history${orgId ? `?org_id=${orgId}` : ''}`),
 
-  // Reports — short shareable capability links (no JWT in the URL)
-  reportHtml: (scanRunId: string) => {
+  // Reports — short shareable capability links (no JWT in the URL).
+  // orgId is appended so a global admin can open any org's report; without it
+  // the backend assumes the caller's own org and cross-org reports 404.
+  reportHtml: (scanRunId: string, orgId?: string) => {
     const token = localStorage.getItem('myeview_token')
-    return `${API_BASE}/reports/${scanRunId}${token ? `?token=${encodeURIComponent(token)}` : ''}`
+    const qs = new URLSearchParams()
+    if (token) qs.set('token', token)
+    if (orgId) qs.set('org_id', orgId)
+    const q = qs.toString()
+    return `${API_BASE}/reports/${scanRunId}${q ? `?${q}` : ''}`
   },
-  reportPdf: (scanRunId: string) => {
+  reportPdf: (scanRunId: string, orgId?: string) => {
     const token = localStorage.getItem('myeview_token')
-    return `${API_BASE}/reports/${scanRunId}/pdf${token ? `?token=${encodeURIComponent(token)}` : ''}`
+    const qs = new URLSearchParams()
+    if (token) qs.set('token', token)
+    if (orgId) qs.set('org_id', orgId)
+    const q = qs.toString()
+    return `${API_BASE}/reports/${scanRunId}/pdf${q ? `?${q}` : ''}`
   },
   // Mint (or reuse) a short capability share link for a report.
   // Returns a relative path like "/r/<code>" — the frontend builds the full URL.
-  shareReport: (scanRunId: string) =>
-    fetchJson<{ code: string; path: string }>(`/reports/${scanRunId}/share`, {
+  shareReport: (scanRunId: string, orgId?: string) => {
+    const qs = new URLSearchParams()
+    if (orgId) qs.set('org_id', orgId)
+    const q = qs.toString()
+    return fetchJson<{ code: string; path: string }>(`/reports/${scanRunId}/share${q ? `?${q}` : ''}`, {
       method: 'POST',
-    }),
+    })
+  },
 
   // Admin (global_admin only)
   admin: {

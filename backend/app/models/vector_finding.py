@@ -20,4 +20,6 @@ class VectorFinding(Base):
 
     scan_run = relationship("ScanRun", back_populates="vector_findings")
     asset = relationship("Asset", back_populates="vector_findings")
-    vector = relationship("Vector", back_populates="findings")
+    # Eager-load the vector so report rendering (_entity_counts, _hygiene_observations)
+    # doesn't fire one query per finding (N+1) and risk a browser timeout.
+    vector = relationship("Vector", back_populates="findings", lazy="selectin")

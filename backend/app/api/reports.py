@@ -132,16 +132,19 @@ def _load_report_context(db: Session, score: Score, org: Organization) -> dict:
 def report_html(
     scan_run_id: str,
     token: str | None = Query(None),
+    org_id: str | None = Query(None),
     user: User | None = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Render the HTML report for a specific scan run.
 
     Accepts a ``token`` query parameter as fallback when the Authorization
-    header isn't sent (e.g. browser <a> links, iframes).
+    header isn't sent (e.g. browser <a> links, iframes), and an optional
+    ``org_id`` so a global admin can view any org's report (without it, the
+    admin's own org is assumed and cross-org reports 404).
     """
     resolved_user = _resolve_user_for_report(token, user, db)
-    context = _score_context(db, resolved_user, scan_run_id)
+    context = _score_context(db, resolved_user, scan_run_id, org_id=org_id)
     html = render_html(context)
     return Response(content=html, media_type="text/html")
 
@@ -150,13 +153,19 @@ def report_html(
 def report_pdf(
     scan_run_id: str,
     token: str | None = Query(None),
+    org_id: str | None = Query(None),
     user: User | None = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Render the PDF report for a specific scan run."""
     resolved_user = _resolve_user_for_report(token, user, db)
-    context = _score_context(db, resolved_user, scan_run_id)
-    pdf_bytes = render_pdf(context)
+    context = _score_context(db, resolved_user, scan_run_id, org_id=org_id)
+    try:
+        pdf_bytes = render_pdf(context)
+    except Exception as exc:  # noqa: BLE001 - surface a clear error instead of a hang
+        import logging
+        logging.getLogger("myeview.reports").exception("PDF render failed for scan_run %s", scan_run_id)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Report PDF could not be generated")
     filename = f"myeview-report-{context['org']['domain']}-{scan_run_id}.pdf"
     return Response(
         content=pdf_bytes,
@@ -180,6 +189,7 @@ def _generate_share_code(db: Session) -> str:
 @router.post("/{scan_run_id}/share")
 def create_report_share(
     scan_run_id: str,
+    org_id: str | None = Query(None),
     user: User = Depends(require_owner),
     db: Session = Depends(get_db),
 ):
@@ -188,9 +198,10 @@ def create_report_share(
     The link embeds no JWT and requires no auth to view — possession of the
     code is the authorization. Reuses an existing active share for the same
     scan run by the same user if one exists, so the link stays stable.
+    ``org_id`` lets a global admin mint a share for any org's report.
     """
     # Verify the caller may access this scan run (reuses auth path).
-    _score_context(db, user, scan_run_id)
+    _score_context(db, user, scan_run_id, org_id=org_id)
 
     score = db.query(Score).filter(Score.scan_run_id == scan_run_id).first()
     if not score:
