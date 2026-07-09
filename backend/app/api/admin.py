@@ -14,10 +14,20 @@ from sqlalchemy.orm import Session
 from app.api.dependencies import require_global_admin
 from app.constants import UserRole
 from app.database import get_db
+from app.models.app_setting import AppSetting
 from app.models.organization import Organization
 from app.models.scan_run import ScanRun
 from app.models.score import Score
 from app.models.user import User
+from app.services.ai_report import (
+    DEFAULT_ENDPOINT,
+    DEFAULT_MODEL,
+    DEFAULT_PROVIDER,
+    PROVIDER_PRESETS,
+    build_scan_summary,
+    generate_ai_report,
+    get_ai_config,
+)
 from app.services.scan_orchestrator import run_scan
 
 router = APIRouter()
@@ -428,3 +438,116 @@ def toggle_portscan_auth(
         "domain": org.primary_domain,
         "verified_portscan_authorized": org.verified_portscan_authorized,
     }
+
+
+# ===== AI REPORT SETTINGS =====
+
+class AISettingsRequest(BaseModel):
+    api_key: str
+    provider: str | None = None
+    endpoint: str | None = None
+    model: str | None = None
+
+
+@router.get("/ai-settings")
+def get_ai_settings(
+    user: User = Depends(require_global_admin),
+    db: Session = Depends(get_db),
+):
+    """Read the AI report config. The API key is masked for safety."""
+    config = get_ai_config(db)
+    key = config.get("api_key")
+    provider = config.get("provider") or DEFAULT_PROVIDER
+    preset = PROVIDER_PRESETS.get(provider, PROVIDER_PRESETS[DEFAULT_PROVIDER])
+    return {
+        "has_key": bool(key),
+        "api_key_masked": (key[:4] + "…" + key[-4:]) if key else None,
+        "provider": provider,
+        "endpoint": config.get("endpoint") or preset["endpoint"],
+        "model": config.get("model") or preset["model"],
+        "providers": list(PROVIDER_PRESETS.keys()),
+    }
+
+
+@router.post("/ai-settings")
+def set_ai_settings(
+    req: AISettingsRequest,
+    user: User = Depends(require_global_admin),
+    db: Session = Depends(get_db),
+):
+    """Store the AI API key + provider + endpoint + model in app_settings.
+
+    The key is never returned in full by the GET endpoint and is never
+    committed to the repo. Updating overwrites the previous value.
+
+    When a `provider` is supplied ("deepseek" or "ollama"), the
+    endpoint/model are reset to that provider's preset unless the caller
+    also passes explicit endpoint/model overrides.
+    """
+    provider = (req.provider or DEFAULT_PROVIDER).lower()
+    if provider not in PROVIDER_PRESETS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Provider must be one of: {', '.join(sorted(PROVIDER_PRESETS))}",
+        )
+    preset = PROVIDER_PRESETS[provider]
+    endpoint = req.endpoint or preset["endpoint"]
+    model = req.model or preset["model"]
+
+    for k, v in {
+        "ai_api_key": req.api_key,
+        "ai_provider": provider,
+        "ai_endpoint": endpoint,
+        "ai_model": model,
+    }.items():
+        row = db.query(AppSetting).filter(AppSetting.key == k).first()
+        if row:
+            row.value = v
+            row.updated_by = user.id
+            row.updated_at = datetime.now(timezone.utc)
+        else:
+            db.add(AppSetting(key=k, value=v, updated_by=user.id))
+    db.commit()
+    return {"status": "saved", "provider": provider, "endpoint": endpoint, "model": model}
+
+
+@router.get("/scan-runs/{scan_run_id}/ai-summary")
+def ai_scan_summary(
+    scan_run_id: str,
+    user: User = Depends(require_global_admin),
+    db: Session = Depends(get_db),
+):
+    """Preview the JSON summary that would be sent to the LLM.
+
+    Useful for debugging what the AI actually sees without spending a
+    provider call.
+    """
+    run = db.query(ScanRun).filter(ScanRun.id == scan_run_id).first()
+    if not run:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scan run not found")
+    return build_scan_summary(db, scan_run_id)
+
+
+@router.post("/scan-runs/{scan_run_id}/ai-report")
+def ai_report_generate(
+    scan_run_id: str,
+    user: User = Depends(require_global_admin),
+    db: Session = Depends(get_db),
+):
+    """Generate an AI-assisted report for a scan run.
+
+    Assembles the scan evidence, calls GLM-4.7-Flash with it, and
+    returns the model's structured assessment (tier, outlook, risk
+    narratives, hygiene, exec summary, conclusion). The frontend can
+    then render it via the same template or display the raw JSON.
+    """
+    run = db.query(ScanRun).filter(ScanRun.id == scan_run_id).first()
+    if not run:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scan run not found")
+    if not run.score:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Scan has no score yet")
+    try:
+        result = generate_ai_report(db, scan_run_id)
+    except RuntimeError as e:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e))
+    return result

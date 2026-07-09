@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Loader2, Zap, ShieldCheck, LogOut, Cpu, AlertTriangle } from 'lucide-react'
+import { Loader2, Zap, ShieldCheck, LogOut, Cpu, AlertTriangle, Sparkles, Key, Cloud } from 'lucide-react'
 import { api } from '@/api/client'
 import type { User } from '@/types'
 
@@ -11,10 +11,31 @@ export function SettingsPage() {
   const [wipeLoading, setWipeLoading] = useState(false)
   const [wipeConfirm, setWipeConfirm] = useState('')
   const [wipeResult, setWipeResult] = useState('')
+  const [aiKey, setAiKey] = useState('')
+  const [aiEndpoint, setAiEndpoint] = useState('')
+  const [aiModel, setAiModel] = useState('')
+  const [aiProvider, setAiProvider] = useState('deepseek')
+  const [aiProviders, setAiProviders] = useState<string[]>(['deepseek', 'ollama'])
+  const [aiHasKey, setAiHasKey] = useState(false)
+  const [aiMasked, setAiMasked] = useState<string | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiMessage, setAiMessage] = useState('')
 
   useEffect(() => {
     api.me().then(setUser).catch(() => setUser(null))
   }, [])
+
+  useEffect(() => {
+    if (user?.role !== 'global_admin') return
+    api.admin.getAISettings().then((s) => {
+      setAiHasKey(s.has_key)
+      setAiMasked(s.api_key_masked)
+      setAiEndpoint(s.endpoint)
+      setAiModel(s.model)
+      setAiProvider(s.provider)
+      if (s.providers?.length) setAiProviders(s.providers)
+    }).catch(() => {})
+  }, [user])
 
   const handlePortscan = async () => {
     setPortscanLoading(true)
@@ -26,6 +47,42 @@ export function SettingsPage() {
       setError(err instanceof Error ? err.message : 'Portscan trigger failed')
     } finally {
       setPortscanLoading(false)
+    }
+  }
+
+  const handleSaveAI = async () => {
+    if (!aiKey.trim()) {
+      setError('Enter an API key to save.')
+      return
+    }
+    setAiLoading(true)
+    setError('')
+    setAiMessage('')
+    try {
+      const res = await api.admin.setAISettings(aiKey.trim(), aiProvider, aiEndpoint.trim() || undefined, aiModel.trim() || undefined)
+      setAiMessage(`Saved. Provider: ${res.provider}, model: ${res.model}`)
+      setAiKey('')
+      const s = await api.admin.getAISettings()
+      setAiHasKey(s.has_key)
+      setAiMasked(s.api_key_masked)
+      setAiEndpoint(s.endpoint)
+      setAiModel(s.model)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save AI settings')
+    } finally {
+      setAiLoading(false)
+    }
+  }
+
+  const handleProviderChange = (prov: string) => {
+    setAiProvider(prov)
+    // Reset endpoint/model to the provider preset when switching
+    if (prov === 'deepseek') {
+      setAiEndpoint('https://api.deepseek.com/chat/completions')
+      setAiModel('deepseek-v4-flash')
+    } else if (prov === 'ollama') {
+      setAiEndpoint('https://ollama.com/api/chat')
+      setAiModel('glm-4.7-flash')
     }
   }
 
@@ -134,6 +191,120 @@ export function SettingsPage() {
           )}
         </div>
       </div>
+
+      {user?.role === 'global_admin' && (
+        <div className="panel-terminal glass-card mb-6">
+          <div className="panel-header">
+            <div className="flex items-center gap-2">
+              <span className="dot dot-violet" />
+              <span>module :: ai.report</span>
+            </div>
+            <span className="num">{aiProvider === 'ollama' ? 'GLM-4.7-Flash' : 'deepseek-v4-flash'}</span>
+          </div>
+          <div className="panel-body">
+            <div className="mb-2 flex items-center gap-2">
+              <Sparkles size={14} className="text-[var(--neon-violet)]" />
+              <span className="display-title text-[12px] tracking-[0.08em] text-white">
+                AI Report Configuration
+              </span>
+            </div>
+            <p className="mb-4 num text-[12px] text-[var(--text-secondary)]">
+              ▸ The API key for the AI-assisted report (DeepSeek or Ollama Cloud).
+              The key is stored server-side only and never committed to the repo.
+              {aiHasKey ? (
+                <span style={{ color: 'var(--neon-green)' }}> Current key set: {aiMasked}</span>
+              ) : (
+                <span style={{ color: 'var(--neon-amber)' }}> No key configured yet.</span>
+              )}
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className="num text-[11px] uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                  provider
+                </label>
+                <div className="mt-1 flex gap-2">
+                  {aiProviders.map((prov) => (
+                    <button
+                      key={prov}
+                      type="button"
+                      onClick={() => handleProviderChange(prov)}
+                      disabled={aiLoading}
+                      className="num flex items-center gap-1.5 border px-3 py-2 text-[12px] tracking-[0.06em] transition"
+                      style={{
+                        borderColor: aiProvider === prov ? 'var(--neon-violet)' : 'var(--border)',
+                        color: aiProvider === prov ? 'var(--neon-violet)' : 'var(--text-secondary)',
+                        background: aiProvider === prov ? 'rgba(139,92,246,0.08)' : 'transparent',
+                      }}
+                    >
+                      <Cloud size={12} /> {prov}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="num text-[11px] uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                  api key
+                </label>
+                <div className="relative mt-1">
+                  <Key size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--neon-violet)]" />
+                  <input
+                    type="password"
+                    value={aiKey}
+                    onChange={(e) => setAiKey(e.target.value)}
+                    placeholder={aiHasKey ? '•••••••• (enter new key to replace)' : 'sk-...secret'}
+                    className="num w-full bg-transparent border border-[var(--border)] pl-9 pr-3 py-2 text-[12px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--neon-violet)]"
+                    disabled={aiLoading}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="num text-[11px] uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                    endpoint
+                  </label>
+                  <input
+                    type="text"
+                    value={aiEndpoint}
+                    onChange={(e) => setAiEndpoint(e.target.value)}
+                    placeholder="https://api.deepseek.com/chat/completions"
+                    className="num w-full mt-1 bg-transparent border border-[var(--border)] px-3 py-2 text-[12px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--neon-violet)]"
+                    disabled={aiLoading}
+                  />
+                </div>
+                <div>
+                  <label className="num text-[11px] uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                    model
+                  </label>
+                  <input
+                    type="text"
+                    value={aiModel}
+                    onChange={(e) => setAiModel(e.target.value)}
+                    placeholder="deepseek-v4-flash"
+                    className="num w-full mt-1 bg-transparent border border-[var(--border)] px-3 py-2 text-[12px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--neon-violet)]"
+                    disabled={aiLoading}
+                  />
+                </div>
+              </div>
+              <button
+                onClick={handleSaveAI}
+                disabled={aiLoading || !aiKey.trim()}
+                className="btn-gradient w-full"
+              >
+                {aiLoading ? (
+                  <><Loader2 className="animate-spin" size={14} /> Saving</>
+                ) : (
+                  <><Key size={14} /> Save AI Key</>
+                )}
+              </button>
+              {aiMessage && (
+                <div className="flex items-center gap-2 num text-[12px]" style={{ color: 'var(--neon-green)' }}>
+                  <ShieldCheck size={14} /> {aiMessage}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {user?.role === 'global_admin' && (
         <div

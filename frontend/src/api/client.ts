@@ -186,6 +186,20 @@ export const api = {
         `/admin/scan`,
         { method: 'POST', body: JSON.stringify({ name, domain }) },
       ),
+    getAISettings: () =>
+      fetchJson<{ has_key: boolean; api_key_masked: string | null; provider: string; endpoint: string; model: string; providers: string[] }>(
+        `/admin/ai-settings`,
+      ),
+    setAISettings: (api_key: string, provider?: string, endpoint?: string, model?: string) =>
+      fetchJson<{ status: string; provider: string; endpoint: string; model: string }>(`/admin/ai-settings`, {
+        method: 'POST',
+        body: JSON.stringify({ api_key, provider, endpoint, model }),
+      }),
+    generateAIReport: (scanRunId: string) =>
+      fetchJson<{ ai: Record<string, unknown>; provider: { endpoint: string; model: string }; scan_run_id: string }>(
+        `/admin/scan-runs/${scanRunId}/ai-report`,
+        { method: 'POST' },
+      ),
     authorizePortscan: (orgId: string, authorized: boolean) =>
       fetchJson<{ id: string; domain: string; verified_portscan_authorized: boolean }>(
         `/admin/orgs/${orgId}/portscan-auth`,

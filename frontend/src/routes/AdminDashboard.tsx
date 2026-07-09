@@ -16,6 +16,7 @@ import {
   Trash2,
   Pencil,
   Radar,
+  Sparkles,
 } from 'lucide-react'
 import { api } from '@/api/client'
 import { AdminChartSystem } from '@/components/AdminChartSystem'
@@ -273,6 +274,29 @@ export function AdminDashboard() {
       setActionError(err instanceof Error ? err.message : 'Port scan auth failed')
     } finally {
       setBusyId(null)
+    }
+  }
+
+  const [aiGenerating, setAiGenerating] = useState<string | null>(null)
+  const handleGenerateAI = async (scanRunId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setAiGenerating(scanRunId)
+    setActionError('')
+    try {
+      const result = await api.admin.generateAIReport(scanRunId)
+      const ai = result.ai as { overall_score?: number; shield_tier?: number; outlook?: string; executive_summary?: string }
+      setActionError('')
+      alert(
+        `AI Report generated.\n` +
+        `Score: ${ai.overall_score ?? '—'}\n` +
+        `Tier: ${ai.shield_tier ?? '—'}\n` +
+        `Outlook: ${ai.outlook ?? '—'}\n\n` +
+        `${(ai.executive_summary ?? '').slice(0, 300)}`
+      )
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'AI report generation failed')
+    } finally {
+      setAiGenerating(null)
     }
   }
 
@@ -640,11 +664,12 @@ export function AdminDashboard() {
                   <th>status</th>
                   <th>score</th>
                   <th>started</th>
+                  <th>ai</th>
                 </tr>
               </thead>
               <tbody>
                 {scanRuns.length === 0 ? (
-                  <tr><td colSpan={4} className="px-5 py-8 text-center num text-[12px] uppercase tracking-[0.14em] text-[var(--text-muted)]">▸ no scans yet</td></tr>
+                  <tr><td colSpan={5} className="px-5 py-8 text-center num text-[12px] uppercase tracking-[0.14em] text-[var(--text-muted)]">▸ no scans yet</td></tr>
                 ) : (
                   scanRuns.map((r) => (
                     <tr key={r.id} className="cursor-pointer" onClick={() => goToOrgDashboard(r.org_id)}>
@@ -667,6 +692,18 @@ export function AdminDashboard() {
                       </td>
                       <td className="num text-[var(--text-muted)]">
                         {new Date(r.started_at).toLocaleString()}
+                      </td>
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={(e) => handleGenerateAI(r.id, e)}
+                          disabled={aiGenerating === r.id || r.overall_score === null}
+                          title={r.overall_score === null ? 'No score yet' : 'Generate AI-assisted report'}
+                          className="btn-ghost"
+                          style={{ borderColor: 'var(--neon-violet)', color: 'var(--neon-violet)' }}
+                        >
+                          {aiGenerating === r.id ? <Loader2 className="animate-spin" size={11} /> : <Sparkles size={11} />}
+                          AI
+                        </button>
                       </td>
                     </tr>
                   ))

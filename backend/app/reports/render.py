@@ -212,6 +212,74 @@ def render_html(context: dict[str, Any]) -> str:
     return template.render(context)
 
 
+def merge_ai_into_context(base: dict[str, Any], ai: dict[str, Any]) -> dict[str, Any]:
+    """Produce a template-ready context that uses the AI's assessment.
+
+    The rule-based `base` context supplies structural data the AI doesn't
+    produce (points, benchmarks, entity counts, history, shield_label).
+    The AI `ai` dict supplies the judgment layer: tier, outlook, risk
+    narratives, hygiene observations, executive summary, conclusion.
+
+    The risk_factors from the AI are merged onto the base risk_factors
+    (which carry points_total/points_lost) so the template still has the
+    scoring scaffolding but shows the AI's TIA narrative instead of the
+    rule-based template text.
+    """
+    ctx = dict(base)  # shallow copy — we override specific keys
+
+    score = dict(base["score"])
+    score["overall"] = int(ai.get("overall_score", score["overall"]))
+    ai_tier = ai.get("shield_tier")
+    if isinstance(ai_tier, (int, float)) and 1 <= int(ai_tier) <= 5:
+        score["tier"] = int(ai_tier)
+        shield = shield_for_score(score["overall"])
+        score["shield_label"] = shield.short_label
+    if ai.get("outlook"):
+        score["outlook"] = ai["outlook"]
+    ctx["score"] = score
+    ctx["is_ai_report"] = True
+
+    # Index AI risk factors by category key so we can merge narratives
+    # onto the base risk factors (which carry points).
+    ai_risks = {r.get("key"): r for r in ai.get("risk_factors", []) if r.get("key")}
+    merged_risks = []
+    for rf in base.get("risk_factors", []):
+        ai_rf = ai_risks.get(rf["key"])
+        if ai_rf:
+            tia = ai_rf.get("tia", {})
+            merged_risks.append({
+                **rf,
+                "severity": ai_rf.get("severity", rf["severity"]),
+                "tia": {"rendered_text": tia},
+            })
+        else:
+            merged_risks.append(rf)
+    # Also include AI risk factors that don't have a matching base entry
+    # (the model may flag something the rules missed).
+    existing_keys = {rf["key"] for rf in merged_risks}
+    for key, ai_rf in ai_risks.items():
+        if key not in existing_keys:
+            tia = ai_rf.get("tia", {})
+            merged_risks.append({
+                "key": key,
+                "name": ai_rf.get("name", key),
+                "parent_group": ai_rf.get("parent_group", ""),
+                "points_total": 0,
+                "points_lost": 0,
+                "points_remaining": 0,
+                "severity": ai_rf.get("severity", "medium"),
+                "tia": {"rendered_text": tia},
+            })
+    ctx["risk_factors"] = merged_risks
+
+    if ai.get("hygiene"):
+        ctx["hygiene"] = ai["hygiene"]
+
+    ctx["ai_executive_summary"] = ai.get("executive_summary")
+    ctx["ai_conclusion"] = ai.get("conclusion")
+    return ctx
+
+
 def render_pdf(context: dict[str, Any]) -> bytes:
     html = render_html(context)
     try:

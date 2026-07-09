@@ -692,8 +692,12 @@
 
   <!-- EXECUTIVE SUMMARY -->
   <div class="section exec-summary">
-    <div class="section-label">Executive Summary</div>
+    <div class="section-label">Executive Summary{% if is_ai_report %} <span>· AI-assessed</span>{% endif %}</div>
+    {% if ai_executive_summary %}
+    <p>{{ ai_executive_summary }}</p>
+    {% else %}
     <p>{{ org.name }} ({{ org.domain }}) currently scores {{ score.overall }} of 1000, placing the institution at {{ score.shield_label }} with a trust outlook of {{ score.outlook }}. {% if risk_factors %}The assessment identified {{ risk_factors|length }} priority trust risk factor{{ 's' if risk_factors|length > 1 else '' }} requiring attention, primarily in {{ risk_factors[0].name }}{% if risk_factors|length > 1 %} and {{ risk_factors[1].name }}{% endif %}.{% else %}No priority risk factors were identified; the external posture reflects strong configuration hygiene across assessed vectors.{% endif %} Entity intelligence did not surface elevated-risk relationships or suspicious infrastructure associations during this assessment period.</p>
+    {% endif %}
   </div>
 
   <!-- SECTOR POSITION -->
@@ -819,7 +823,11 @@
   <!-- CONCLUSION -->
   <div class="conclusion">
     <div class="section-label" style="color:var(--slate-light)">Conclusion</div>
+    {% if ai_conclusion %}
+    <p>{{ ai_conclusion }}</p>
+    {% else %}
     <p>{{ org.name }} presents a {% if score.tier >= 4 %}strong{% else %}developing{% endif %} digital trust profile at {{ score.shield_label }}. {% if risk_factors %}The priority risk factors identified are addressable through configuration-level interventions that require no significant infrastructure investment, and their resolution would materially advance the institution's trust standing. {% endif %}The entity intelligence profile is {% if entity_counts.risk_related_entities + entity_counts.suspicious_relationships == 0 %}clean{% else %}largely clean{% endif %}, and the observable posture reflects an institution that takes its external digital responsibilities seriously. The Trust Outlook remains {{ score.outlook }}.</p>
+    {% endif %}
     <div class="conclusion-foot">
       <div class="brand">Myeview</div>
       <div>Myescore™ {{ score.overall }} / 1000 · {{ score.shield_label }}</div>
