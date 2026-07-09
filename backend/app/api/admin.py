@@ -233,9 +233,31 @@ def delete_user(
 
 
 @router.get("/orgs")
-def list_orgs(user: User = Depends(require_global_admin), db: Session = Depends(get_db)):
-    """List all organizations with their latest score."""
-    orgs = db.query(Organization).order_by(Organization.created_at.desc()).all()
+def list_orgs(
+    q: str | None = None,
+    limit: int = 20,
+    offset: int = 0,
+    user: User = Depends(require_global_admin),
+    db: Session = Depends(get_db),
+):
+    """List organizations with their latest score.
+
+    Supports optional substring search (name/domain) and pagination via
+    `limit`/`offset`. Returns `{items, total}` so the client can show
+    "Load more" and total counts.
+    """
+    limit = max(1, min(limit, 100))
+    offset = max(0, offset)
+    query = db.query(Organization)
+    if q:
+        like = f"%{q.lower()}%"
+        query = query.filter(
+            (Organization.name.ilike(like))
+            | (Organization.primary_domain.ilike(like))
+        )
+    total = query.count()
+    orgs = query.order_by(Organization.created_at.desc()).offset(offset).limit(limit).all()
+
     result = []
     for o in orgs:
         latest_score = (
@@ -257,7 +279,46 @@ def list_orgs(user: User = Depends(require_global_admin), db: Session = Depends(
                 "created_at": o.created_at.isoformat(),
             }
         )
-    return result
+    return {"items": result, "total": total, "limit": limit, "offset": offset}
+
+
+class CleanScanDataRequest(BaseModel):
+    confirm: str
+
+
+@router.post("/clean-scan-data")
+def clean_scan_data(
+    req: CleanScanDataRequest,
+    user: User = Depends(require_global_admin),
+    db: Session = Depends(get_db),
+):
+    """Wipe all organizations and their scan data.
+
+    Detaches global admins (sets org_id = NULL) so they survive the cascade,
+    then deletes every organization. DB-level CASCADE on Organization
+    removes scan_runs, findings, scores, score_history, assets,
+    report_shares, and non-global owner/ops users attached to those orgs.
+    """
+    if req.confirm != "WIPE":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Confirmation token must be the literal string 'WIPE'",
+        )
+
+    # Detach global admins so they aren't cascaded away with their orgs.
+    db.query(User).filter(User.role == UserRole.GLOBAL_ADMIN.value).update(
+        {User.org_id: None}
+    )
+
+    org_count = db.query(Organization).count()
+    db.query(Organization).delete()
+    db.commit()
+    return {
+        "status": "wiped",
+        "deleted_organizations": org_count,
+        "deleted_by": str(user.id),
+        "deleted_at": datetime.now(timezone.utc).isoformat(),
+    }
 
 
 @router.get("/scan-runs")
@@ -292,6 +353,55 @@ async def admin_rescan(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found")
     scan_run = await run_scan(db, org.primary_domain, is_full_report=False)
     return {"scan_run_id": str(scan_run.id), "status": scan_run.status, "domain": org.primary_domain}
+
+
+class AdminScanRequest(BaseModel):
+    name: str
+    domain: str
+
+
+@router.post("/scan")
+async def admin_scan(
+    req: AdminScanRequest,
+    user: User = Depends(require_global_admin),
+    db: Session = Depends(get_db),
+):
+    """Create or update an organization by name + domain, then run a full scan.
+
+    Unlike the public lookup (which creates an org with name=domain and a
+    partial report), this is the admin onboarding path: the organization is
+    registered with its real name, and the scan produces a full report.
+    If the domain already exists, the org name is updated to the provided
+    value (so reports speak about the institution, not the domain).
+    """
+    domain = req.domain.lower().strip()
+    name = req.name.strip()
+    if not domain or not name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Both organization name and domain are required.",
+        )
+
+    org = db.query(Organization).filter(Organization.primary_domain == domain).first()
+    if org:
+        if org.name != name:
+            org.name = name
+            db.commit()
+            db.refresh(org)
+    else:
+        org = Organization(name=name, primary_domain=domain, country="CM")
+        db.add(org)
+        db.commit()
+        db.refresh(org)
+
+    scan_run = await run_scan(db, domain, is_full_report=True)
+    return {
+        "scan_run_id": str(scan_run.id),
+        "status": scan_run.status,
+        "org_id": str(org.id),
+        "name": org.name,
+        "domain": org.primary_domain,
+    }
 
 
 class PortscanAuthRequest(BaseModel):

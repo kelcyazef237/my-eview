@@ -47,7 +47,7 @@ export function Layout({ children }: LayoutProps) {
         { label: 'Public_Lookup', path: '/' },
       ]
     : [
-        ...(isAdmin ? [{ label: 'Admin', path: '/admin' }] : []),
+        ...(isAdmin ? [{ label: 'Admin', path: '/admin' }, { label: 'New_Scan', path: '/admin/scan' }] : []),
         { label: 'Dashboard', path: '/dashboard' },
         { label: 'Technical', path: '/technical' },
         { label: 'Report', path: '/report' },

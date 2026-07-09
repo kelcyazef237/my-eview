@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Building2,
@@ -83,6 +83,12 @@ export function AdminDashboard() {
   const [pending, setPending] = useState<PendingRegistration[]>([])
   const [users, setUsers] = useState<AdminUser[]>([])
   const [orgs, setOrgs] = useState<AdminOrg[]>([])
+  const [orgTotal, setOrgTotal] = useState(0)
+  const [orgQuery, setOrgQuery] = useState('')
+  const [orgSearch, setOrgSearch] = useState('')
+  const [orgLoading, setOrgLoading] = useState(false)
+  const ORG_LIMIT = 20
+  const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [scanRuns, setScanRuns] = useState<AdminScanRun[]>([])
   const [loading, setLoading] = useState(true)
   const [actionError, setActionError] = useState('')
@@ -94,17 +100,15 @@ export function AdminDashboard() {
 
   const refreshAll = useCallback(async () => {
     try {
-      const [m, p, u, o, s] = await Promise.all([
+      const [m, p, u, s] = await Promise.all([
         api.admin.metrics(),
         api.admin.registrations(),
         api.admin.users(),
-        api.admin.orgs(),
         api.admin.scanRuns(),
       ])
       setMetrics(m)
       setPending(p)
       setUsers(u)
-      setOrgs(o)
       setScanRuns(s)
       const defaults: Record<string, string> = {}
       for (const reg of p) defaults[reg.id] = 'owner'
@@ -115,6 +119,39 @@ export function AdminDashboard() {
       setLoading(false)
     }
   }, [])
+
+  const fetchOrgs = useCallback(
+    async (q: string, offset: number, append: boolean) => {
+      setOrgLoading(true)
+      try {
+        const page = await api.admin.orgs({ q: q || undefined, limit: ORG_LIMIT, offset })
+        setOrgs((prev) => (append ? [...prev, ...page.items] : page.items))
+        setOrgTotal(page.total)
+      } catch (err) {
+        setActionError(err instanceof Error ? err.message : 'Failed to load organizations')
+      } finally {
+        setOrgLoading(false)
+      }
+    },
+    [],
+  )
+
+  // Initial load + debounced search.
+  useEffect(() => {
+    refreshAll()
+    fetchOrgs('', 0, false)
+  }, [refreshAll, fetchOrgs])
+
+  useEffect(() => {
+    if (searchDebounce.current) clearTimeout(searchDebounce.current)
+    searchDebounce.current = setTimeout(() => {
+      setOrgSearch(orgQuery)
+      fetchOrgs(orgQuery, 0, false)
+    }, 300)
+    return () => {
+      if (searchDebounce.current) clearTimeout(searchDebounce.current)
+    }
+  }, [orgQuery, fetchOrgs])
 
   useEffect(() => {
     refreshAll()
@@ -217,6 +254,7 @@ export function AdminDashboard() {
     try {
       await api.admin.rescan(orgId)
       await refreshAll()
+      await fetchOrgs(orgSearch, 0, false)
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Rescan failed')
     } finally {
@@ -230,6 +268,7 @@ export function AdminDashboard() {
     try {
       await api.admin.authorizePortscan(orgId, !current)
       await refreshAll()
+      await fetchOrgs(orgSearch, 0, false)
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Port scan auth failed')
     } finally {
@@ -267,9 +306,18 @@ export function AdminDashboard() {
             ▸ system-wide oversight — users, organizations, scans
           </p>
         </div>
-        <button onClick={refreshAll} className="btn-ghost">
-          <RefreshCw size={13} /> Refresh
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate('/admin/scan')}
+            className="btn-gradient"
+            type="button"
+          >
+            <Radar size={13} /> New Scan
+          </button>
+          <button onClick={refreshAll} className="btn-ghost">
+            <RefreshCw size={13} /> Refresh
+          </button>
+        </div>
       </div>
 
       {actionError && (
@@ -480,7 +528,17 @@ export function AdminDashboard() {
               <span className="dot dot-cyan" />
               <span>module :: organizations</span>
             </div>
-            <span className="num text-[var(--text-muted)]">▸ {orgs.length} total</span>
+            <span className="num text-[var(--text-muted)]">▸ {orgs.length} / {orgTotal} shown</span>
+          </div>
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border)]">
+            <input
+              type="search"
+              value={orgQuery}
+              onChange={(e) => setOrgQuery(e.target.value)}
+              placeholder="search by name or domain…"
+              className="num w-full bg-transparent border border-[var(--border)] px-3 py-1.5 text-[12px] uppercase tracking-[0.12em] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--neon-cyan)]"
+            />
+            {orgLoading && <Loader2 size={13} className="animate-spin text-[var(--neon-cyan)]" />}
           </div>
           <div className="overflow-x-auto">
             <table className="hud-table">
@@ -551,6 +609,19 @@ export function AdminDashboard() {
               </tbody>
             </table>
           </div>
+          {orgs.length < orgTotal && (
+            <div className="px-4 py-3 border-t border-[var(--border)] flex justify-center">
+              <button
+                type="button"
+                onClick={() => fetchOrgs(orgSearch, orgs.length, true)}
+                disabled={orgLoading}
+                className="btn-ghost"
+              >
+                {orgLoading ? <Loader2 className="animate-spin" size={11} /> : <RefreshCw size={11} />}
+                Load more ({orgTotal - orgs.length} remaining)
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="panel-terminal glass-card overflow-hidden">

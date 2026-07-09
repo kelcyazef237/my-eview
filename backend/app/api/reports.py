@@ -166,7 +166,7 @@ def report_pdf(
         import logging
         logging.getLogger("myeview.reports").exception("PDF render failed for scan_run %s", scan_run_id)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Report PDF could not be generated")
-    filename = f"myeview-report-{context['org']['domain']}-{scan_run_id}.pdf"
+    filename = f"myeview-report-{context['org']['name'].replace(' ', '-').lower()}-{scan_run_id}.pdf"
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",

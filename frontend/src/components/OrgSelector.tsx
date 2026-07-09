@@ -14,8 +14,8 @@ export function OrgSelector({ orgId, onSelect }: OrgSelectorProps) {
   useEffect(() => {
     let alive = true
     api.admin
-      .orgs()
-      .then((list) => alive && setOrgs(list))
+      .orgs({ limit: 500 })
+      .then((page) => alive && setOrgs(page.items))
       .catch(() => alive && setOrgs(null))
     return () => {
       alive = false

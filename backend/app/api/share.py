@@ -60,7 +60,7 @@ def share_pdf(code: str, db: Session = Depends(get_db)):
         import logging
         logging.getLogger("myeview.reports").exception("PDF render failed for share code %s", share.code)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Report PDF could not be generated")
-    filename = f"myeview-report-{context['org']['domain']}-{share.code}.pdf"
+    filename = f"myeview-report-{context['org']['name'].replace(' ', '-').lower()}-{share.code}.pdf"
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",

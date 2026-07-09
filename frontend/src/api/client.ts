@@ -1,6 +1,6 @@
 import type {
   AdminMetrics,
-  AdminOrg,
+  AdminOrgPage,
   AdminScanRun,
   AdminUser,
   OwnerDashboardData,
@@ -163,12 +163,29 @@ export const api = {
       fetchJson<{ id: string; deleted: boolean }>(`/admin/users/${userId}`, {
         method: 'DELETE',
       }),
-    orgs: () => fetchJson<AdminOrg[]>('/admin/orgs'),
+    orgs: (params?: { q?: string; limit?: number; offset?: number }) => {
+      const qs = new URLSearchParams()
+      if (params?.q) qs.set('q', params.q)
+      if (params?.limit != null) qs.set('limit', String(params.limit))
+      if (params?.offset != null) qs.set('offset', String(params.offset))
+      const q = qs.toString()
+      return fetchJson<AdminOrgPage>(`/admin/orgs${q ? `?${q}` : ''}`)
+    },
     scanRuns: () => fetchJson<AdminScanRun[]>('/admin/scan-runs'),
+    cleanScanData: (confirm: string) =>
+      fetchJson<{ status: string; deleted_organizations: number }>(`/admin/clean-scan-data`, {
+        method: 'POST',
+        body: JSON.stringify({ confirm }),
+      }),
     rescan: (orgId: string) =>
       fetchJson<{ scan_run_id: string; status: string; domain: string }>(`/admin/rescan/${orgId}`, {
         method: 'POST',
       }),
+    scan: (name: string, domain: string) =>
+      fetchJson<{ scan_run_id: string; status: string; org_id: string; name: string; domain: string }>(
+        `/admin/scan`,
+        { method: 'POST', body: JSON.stringify({ name, domain }) },
+      ),
     authorizePortscan: (orgId: string, authorized: boolean) =>
       fetchJson<{ id: string; domain: string; verified_portscan_authorized: boolean }>(
         `/admin/orgs/${orgId}/portscan-auth`,

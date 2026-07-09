@@ -6,6 +6,7 @@ import { LoginPage } from '@/routes/LoginPage'
 import { RegisterPage } from '@/routes/RegisterPage'
 import { WaitingPage } from '@/routes/WaitingPage'
 import { AdminDashboard } from '@/routes/AdminDashboard'
+import { AdminScanPage } from '@/routes/AdminScanPage'
 import { OwnerDashboard } from '@/routes/OwnerDashboard'
 import { TechnicalDashboard } from '@/routes/TechnicalDashboard'
 import { ReportPage } from '@/routes/ReportPage'
@@ -80,6 +81,14 @@ export default function App() {
           element={
             <RoleRoute requiredRole="global_admin">
               <AdminDashboard />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/admin/scan"
+          element={
+            <RoleRoute requiredRole="global_admin">
+              <AdminScanPage />
             </RoleRoute>
           }
         />

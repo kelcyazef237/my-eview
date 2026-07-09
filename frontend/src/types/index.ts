@@ -162,6 +162,13 @@ export interface AdminOrg {
   created_at: string
 }
 
+export interface AdminOrgPage {
+  items: AdminOrg[]
+  total: number
+  limit: number
+  offset: number
+}
+
 export interface AdminScanRun {
   id: string
   org_id: string
