@@ -11,7 +11,7 @@ from app.models.score_history import ScoreHistory
 from app.models.tia_entry import TiaEntry
 from app.models.user import User
 from app.models.vector_finding import VectorFinding
-from app.reports.render import build_report_context, render_html, render_pdf
+from app.reports.render import build_report_context, merge_ai_into_context, render_html, render_pdf
 from app.services.jwt import decode_access_token
 
 router = APIRouter()
@@ -184,6 +184,68 @@ def _generate_share_code(db: Session) -> str:
         if not db.query(ReportShare).filter_by(code=code).first():
             return code
     raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not generate unique share code")
+
+
+def _ai_score_context(db: Session, user: User, scan_run_id: str, org_id: str | None = None) -> dict:
+    """Build a report context merged with the stored AI assessment.
+
+    Same access checks and base context as _score_context, but loads the
+    AI result from Score.ai_result and merges it via merge_ai_into_context.
+    Raises 404 if no AI report has been generated for this scan run.
+    """
+    base = _score_context(db, user, scan_run_id, org_id=org_id)
+    # Fetch the score row to get ai_result
+    score = db.query(Score).filter(Score.scan_run_id == scan_run_id).first()
+    if not score or not score.ai_result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No AI report generated yet. Use the AI button in the admin dashboard to generate one.",
+        )
+    return merge_ai_into_context(base, score.ai_result)
+
+
+@router.get("/{scan_run_id}/ai")
+def report_ai_html(
+    scan_run_id: str,
+    token: str | None = Query(None),
+    org_id: str | None = Query(None),
+    user: User | None = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Render the AI-assisted HTML report for a scan run.
+
+    Uses the AI result previously generated and stored on the Score row.
+    If no AI report has been generated, returns 404.
+    """
+    resolved_user = _resolve_user_for_report(token, user, db)
+    context = _ai_score_context(db, resolved_user, scan_run_id, org_id=org_id)
+    html = render_html(context)
+    return Response(content=html, media_type="text/html")
+
+
+@router.get("/{scan_run_id}/ai/pdf")
+def report_ai_pdf(
+    scan_run_id: str,
+    token: str | None = Query(None),
+    org_id: str | None = Query(None),
+    user: User | None = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Render the AI-assisted PDF report for a scan run."""
+    resolved_user = _resolve_user_for_report(token, user, db)
+    context = _ai_score_context(db, resolved_user, scan_run_id, org_id=org_id)
+    try:
+        pdf_bytes = render_pdf(context)
+    except Exception as exc:  # noqa: BLE001
+        import logging
+        logging.getLogger("myeview.reports").exception("AI PDF render failed for scan_run %s", scan_run_id)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI report PDF could not be generated")
+    filename = f"myeview-ai-report-{context['org']['name'].replace(' ', '-').lower()}-{scan_run_id}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
 
 
 @router.post("/{scan_run_id}/share")

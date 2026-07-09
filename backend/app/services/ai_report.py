@@ -23,12 +23,14 @@ import json
 import logging
 import urllib.request
 import urllib.error
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.models.app_setting import AppSetting
 from app.models.scan_run import ScanRun
+from app.models.score import Score
 
 logger = logging.getLogger("myeview.ai_report")
 
@@ -116,6 +118,20 @@ def build_scan_summary(db: Session, scan_run_id: str) -> dict[str, Any]:
         for vf in run.vector_findings
     ]
 
+    # Scan completeness: which collectors actually produced data
+    collectors_with_data = set()
+    collectors_empty = []
+    for re_ in run.raw_evidence:
+        payload = re_.raw_payload if isinstance(re_.raw_payload, dict) else {}
+        if payload:
+            collectors_with_data.add(re_.collector_name)
+        else:
+            collectors_empty.append(re_.collector_name)
+    # Vectors that are NOT_OBSERVED (scan couldn't make a determination)
+    not_observed_vectors = [v["key"] for v in vectors if v["state"] == "NOT_OBSERVED"]
+    failed_vectors = [v["key"] for v in vectors if v["state"] == "FAIL"]
+    warn_vectors = [v["key"] for v in vectors if v["state"] == "WARN"]
+
     # Category scores: where points were lost
     categories = [
         {
@@ -148,6 +164,15 @@ def build_scan_summary(db: Session, scan_run_id: str) -> dict[str, Any]:
             "is_full_report": run.is_full_report,
             "started_at": run.started_at.isoformat() if run.started_at else None,
             "finished_at": run.finished_at.isoformat() if run.finished_at else None,
+            "completeness": {
+                "collectors_with_data": sorted(collectors_with_data),
+                "collectors_empty": sorted(set(collectors_empty)),
+                "not_observed_vectors": not_observed_vectors,
+                "failed_vectors": failed_vectors,
+                "warn_vectors": warn_vectors,
+                "total_vectors": len(vectors),
+                "total_collectors_with_data": len(collectors_with_data),
+            },
         },
         "rule_based_score": {
             "overall_score": score.overall_score if score else None,
@@ -160,45 +185,84 @@ def build_scan_summary(db: Session, scan_run_id: str) -> dict[str, Any]:
     }
 
 
-SYSTEM_PROMPT = """You are MYEVIEW's senior cyber-trust analyst. You assess the external digital posture of Cameroonian organizations (banks, credit unions, telcos, government) based on passive scan evidence.
+SYSTEM_PROMPT = """You are MYEVIEW's senior cyber-trust analyst — a CISO-grade advisor assessing the external digital posture of Cameroonian organizations (banks, credit unions, telcos, government bodies, SMEs). You are given passive scan evidence and must produce a comprehensive, actionable security report.
 
-You will receive a JSON summary of a scan: the organization, every vector finding (PASS/WARN/FAIL state), category point deductions, and the raw technical evidence from each collector (DNS records, TLS versions, HTTP headers, WHOIS, threat-intel feeds, asset discovery).
+You will receive a JSON summary of a scan containing:
+- Organization metadata (name, domain, sector)
+- Scan status and completeness
+- The rule-based score (for reference — you may override it)
+- Every vector finding (PASS/WARN/FAIL/NOT_OBSERVED state)
+- Category point deductions
+- Raw technical evidence from each collector (DNS records, TLS versions/ciphers, HTTP security headers, WHOIS/RDAP, threat-intel feeds, subdomain/asset discovery, email authentication records)
 
-Your job is to produce a MORE NUANCED assessment than the rule-based engine. Read the actual evidence — e.g. if TLS shows 1.0 and 1.1 are supported alongside 1.2/1.3, that's worse than the rule score may reflect. If HSTS is present but missing preload, note it. If a cert expires in 8 days, flag it as urgent. If threat intel shows a recent malware pulse, escalate. Use your judgment — you are not bound by the rule-based tier.
+YOUR ANALYSIS METHODOLOGY:
+1. Read the RAW EVIDENCE carefully — not just the pass/fail states. The raw_payload fields contain the actual technical observations (specific TLS versions, actual HTTP headers, real DNS records, threat feed timestamps). Quote specifics in your analysis.
+2. Cross-reference findings across collectors. E.g., if TLS shows 1.0/1.1 enabled alongside 1.3, that's worse than the rule score reflects. If a cert expires in <30 days, flag it as urgent. If HSTS exists but lacks preload, note the gap. If threat intel shows a recent malware pulse, escalate severity.
+3. Identify SCAN QUALITY issues — which collectors returned no data, which vectors are NOT_OBSERVED, whether the scan completed fully. This affects confidence in the assessment.
+4. For CRITICAL and HIGH severity findings, provide a Proof of Concept (PoC) showing how the weakness could be demonstrated or exploited. Be specific and technical.
+5. You are NOT bound by the rule-based tier. If the evidence warrants a different score, assign one. But justify it in the executive_summary and risk_factors.
 
 You MUST respond with a single JSON object (no markdown fences, no prose before or after) matching exactly this schema:
 {
   "overall_score": <integer 0-1000>,
   "shield_tier": <integer 1-5>,
-  "outlook": "<short string, e.g. 'Positive' or 'Watch' or 'MYETREND: available after 90 days' for a first scan>",
-  "executive_summary": "<2-4 sentence paragraph referencing the org name and the most material findings>",
+  "outlook": "<short string: 'Positive', 'Watch', 'Elevated Risk', or 'MYETREND: available after 90 days' for a first scan>",
+  "executive_summary": "<3-5 sentence paragraph referencing the org name, the most material findings, and the overall posture. Be specific — mention actual TLS versions, missing headers, threat hits, etc.>",
   "risk_factors": [
     {
-      "key": "<category key from the input, must match>",
+      "key": "<category key from the input, must match exactly>",
       "name": "<category name>",
       "severity": "critical|high|medium|low",
       "tia": {
-        "technical_observation": "<what was actually observed, cite specifics like 'TLS 1.0 enabled' or 'HSTS absent'>",
-        "business_impact": "<what risk this creates for the institution>",
+        "technical_observation": "<what was ACTUALLY observed in the evidence — cite specifics like 'TLS 1.0 and 1.1 are enabled on port 443 alongside TLS 1.3' or 'HSTS header absent from response; max-age not set' or 'SPF record is ~all (soft fail) allowing spoofing'>",
+        "business_impact": "<what real risk this creates for the institution — e.g. 'Man-in-the-middle attacks can intercept banking traffic' or 'Email spoofing enables phishing of customers'>",
         "stakeholders_affected": ["<group1>", "<group2>"],
-        "regulatory_relevance": "<relevant Cameroon/regional regulation if any, else 'Low'>",
-        "recommended_action": "<concrete fix step>"
+        "regulatory_relevance": "<relevant Cameroon/regional regulation if any: ANTIC Law 2010/012, Data Protection Law 2024/017, COBAC. Else 'Low'>",
+        "recommended_action": "<concrete fix step — not 'improve security' but 'Disable TLS 1.0/1.1 in nginx server block; set ssl_protocols TLSv1.2 TLSv1.3;' or 'Add DMARC record at _dmarc.domain with p=reject to block spoofed email'>"
       }
     }
   ],
-  "hygiene": [
-    {"title": "<short>", "description": "<short>", "status": "ok|warn|info"}
+  "proofs_of_concept": [
+    {
+      "title": "<short name of the PoC>",
+      "finding_ref": "<category key or vector key this PoC relates to>",
+      "severity": "critical|high",
+      "description": "<what the vulnerability or weakness is>",
+      "steps": [
+        "<step 1: concrete reproduction command or action, e.g. 'openssl s_client -connect domain:443 -tls1' to verify TLS 1.0 acceptance>",
+        "<step 2: ...>",
+        "<step 3: ...>"
+      ],
+      "impact": "<what an attacker could achieve if this is exploited>"
+    }
   ],
-  "conclusion": "<2-3 sentence closing paragraph in the institution's voice>"
+  "scan_quality_notes": {
+    "completeness": "<'complete' | 'partial' | 'incomplete' — based on how many collectors returned data>",
+    "missing_or_failed": [
+      "<collector or vector that returned no data or failed, e.g. 'WHOIS/RDAP returned no registrar data' or 'Subdomain discovery found 0 results (may indicate DNS is not enumerated)' or 'Threat intel feed returned no hits (not necessarily good — may be a new domain)'>"
+    ],
+    "coverage_gaps": [
+      "<area where the scan could not make a determination, e.g. 'DKIM selector not known — DKIM signing status cannot be verified without knowing the selector' or 'Port scan not authorized — open port inventory is unavailable'>"
+    ],
+    "confidence": "<'high' | 'medium' | 'low' — how confident you are in the overall score given the scan completeness>"
+  },
+  "hygiene": [
+    {"title": "<short>", "description": "<short, specific>", "status": "ok|warn|info"}
+  ],
+  "conclusion": "<3-4 sentence closing paragraph. Summarize the posture, acknowledge what was assessed vs what couldn't be assessed, and give a forward-looking recommendation. Speak in the institution's context — e.g. 'Bayelle Credit Union should prioritize...'"
 }
 
-Rules:
+RULES:
 - shield_tier 1 = Critical (score <400), 2 = Elevated (400-549), 3 = Moderate (550-699), 4 = Strong (700-849), 5 = Exceptional (850-1000).
 - Only include risk_factors for categories with material deductions or real observed problems. If everything is clean, return an empty array.
-- hygiene should cover: HTTPS enforcement, Security headers, TLS version, Exposed admin interfaces, Email authentication (SPF/DKIM/DMARC), DNSSEC.
+- proofs_of_concept: ONLY for critical and high severity findings. If none are critical/high, return an empty array. Be specific with commands (openssl, curl, dig, nmap, nslookup) that a technician can run to verify the issue.
+- hygiene should cover: HTTPS enforcement, Security headers (HSTS, CSP, X-Frame-Options), TLS version, Exposed admin interfaces, Email authentication (SPF/DKIM/DMARC), DNSSEC, Certificate validity.
 - For a first scan with no history, outlook must be "MYETREND: available after 90 days".
-- Be specific and technical in technical_observation — quote the actual evidence. Be institutional in business_impact and conclusion.
-- Output ONLY the JSON. No markdown, no explanation."""
+- Be SPECIFIC and TECHNICAL in technical_observation — quote the actual evidence (exact header values, TLS versions, DNS records). Be INSTITUTIONAL in business_impact and conclusion.
+- In recommended_action, provide CONCRETE fixes with actual config directives or DNS record formats, not vague advice.
+- scan_quality_notes: Be honest about what the scan couldn't determine. If a collector returned empty data, say so. This helps the reader understand the confidence level.
+- regulatory_relevance: Reference Cameroon laws specifically when applicable (ANTIC 2010/012 for cybersecurity, Law 2024/017 for data protection, COBAC for financial institutions).
+- Output ONLY the JSON. No markdown, no explanation, no text before or after."""
 
 
 def _call_llm(
@@ -271,7 +335,11 @@ def _call_llm(
 
 
 def generate_ai_report(db: Session, scan_run_id: str) -> dict[str, Any]:
-    """End-to-end: assemble evidence, call the LLM, return an AI report context.
+    """End-to-end: assemble evidence, call the LLM, persist and return the result.
+
+    The AI result is stored on the Score row (ai_result JSONB +
+    ai_generated_at) so it can be rendered later via the report endpoints
+    without re-calling the LLM.
 
     Raises RuntimeError with a human-readable message on any failure
     (missing key, auth error, non-JSON output). The caller maps this to
@@ -280,6 +348,13 @@ def generate_ai_report(db: Session, scan_run_id: str) -> dict[str, Any]:
     config = get_ai_config(db)
     if not config["api_key"]:
         raise RuntimeError("No AI API key configured. Set it in Admin Settings first.")
+
+    # Verify the scan run exists and has a score
+    run = db.query(ScanRun).filter(ScanRun.id == scan_run_id).first()
+    if not run:
+        raise ValueError(f"ScanRun {scan_run_id} not found")
+    if not run.score:
+        raise RuntimeError("Scan has no score yet — wait for the scan to complete first.")
 
     summary = build_scan_summary(db, scan_run_id)
     ai = _call_llm(
@@ -290,9 +365,12 @@ def generate_ai_report(db: Session, scan_run_id: str) -> dict[str, Any]:
         provider=config.get("provider") or DEFAULT_PROVIDER,
     )
 
-    # Stash the raw AI response + provider info so the caller can render
-    # or audit it. The render layer merges this with the rule-based
-    # context (for points/benchmarks/history that the AI doesn't produce).
+    # Persist the AI result onto the Score row so report endpoints can
+    # render it without re-calling the LLM.
+    run.score.ai_result = ai
+    run.score.ai_generated_at = datetime.now(timezone.utc)
+    db.commit()
+
     return {
         "ai": ai,
         "provider": {
@@ -302,4 +380,5 @@ def generate_ai_report(db: Session, scan_run_id: str) -> dict[str, Any]:
         },
         "scan_run_id": scan_run_id,
         "summary_size_bytes": len(json.dumps(summary)),
+        "ai_report_path": f"/api/reports/{scan_run_id}/ai",
     }

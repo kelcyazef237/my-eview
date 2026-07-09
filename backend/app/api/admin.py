@@ -536,10 +536,12 @@ def ai_report_generate(
 ):
     """Generate an AI-assisted report for a scan run.
 
-    Assembles the scan evidence, calls GLM-4.7-Flash with it, and
-    returns the model's structured assessment (tier, outlook, risk
-    narratives, hygiene, exec summary, conclusion). The frontend can
-    then render it via the same template or display the raw JSON.
+    Assembles the scan evidence, calls the configured LLM (DeepSeek or
+    Ollama) with it, persists the result to Score.ai_result, and returns
+    the model's structured assessment plus a path to the rendered report.
+    The frontend can open the AI report in a new tab using the returned
+    path — it renders through the same Jinja template with AI-assessed
+    tier, outlook, narratives, PoCs, and scan quality notes.
     """
     run = db.query(ScanRun).filter(ScanRun.id == scan_run_id).first()
     if not run:
@@ -550,4 +552,6 @@ def ai_report_generate(
         result = generate_ai_report(db, scan_run_id)
     except RuntimeError as e:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     return result

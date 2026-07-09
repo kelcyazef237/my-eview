@@ -522,6 +522,134 @@
     color:#D7DCE5;
     max-width:720px;
   }
+
+  /* ===== PROOF OF CONCEPT ===== */
+  .poc-section{
+    padding:44px 56px;
+    background:#fdf6f4;
+    border-top:1px solid #e8d5d0;
+  }
+  .poc-list{
+    margin-top:18px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+  }
+  .poc-card{
+    background:#fff;
+    border:1px solid #e0d0cc;
+    border-radius:8px;
+    padding:22px 26px;
+  }
+  .poc-card .poc-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .poc-card .poc-badge{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:3px 10px;
+    border-radius:4px;
+  }
+  .poc-card .poc-badge.critical{ background:#c0392b; color:#fff; }
+  .poc-card .poc-badge.high{ background:#e67e22; color:#fff; }
+  .poc-card .poc-title{
+    font-size:17px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .poc-card .poc-desc{
+    font-size:14px;
+    color:var(--slate);
+    line-height:1.55;
+    margin-bottom:12px;
+  }
+  .poc-card .poc-steps{
+    background:#f8f5f4;
+    border-left:3px solid #c0392b;
+    padding:14px 18px;
+    margin-bottom:10px;
+    border-radius:0 4px 4px 0;
+  }
+  .poc-card .poc-steps .step{
+    font-family:'Source Code Pro', monospace;
+    font-size:13px;
+    color:var(--ink);
+    line-height:1.7;
+    padding:2px 0;
+  }
+  .poc-card .poc-steps .step:before{
+    content:"$ ";
+    color:#999;
+    font-weight:700;
+  }
+  .poc-card .poc-impact{
+    font-size:13.5px;
+    color:#c0392b;
+    line-height:1.55;
+    font-style:italic;
+  }
+
+  /* ===== SCAN QUALITY ===== */
+  .scan-quality{
+    padding:36px 56px;
+    background:#f4f7fa;
+    border-top:1px solid #d5e0ea;
+  }
+  .scan-quality .sq-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+    margin-top:16px;
+  }
+  .scan-quality .sq-item{
+    background:#fff;
+    border:1px solid #d5e0ea;
+    border-radius:6px;
+    padding:16px 20px;
+  }
+  .scan-quality .sq-item .sq-label{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.10em;
+    text-transform:uppercase;
+    color:var(--slate-light);
+    margin-bottom:6px;
+  }
+  .scan-quality .sq-item .sq-value{
+    font-size:14px;
+    color:var(--ink);
+    line-height:1.6;
+  }
+  .scan-quality .sq-item .sq-value li{
+    margin-bottom:4px;
+    list-style:none;
+    padding-left:14px;
+    position:relative;
+  }
+  .scan-quality .sq-item .sq-value li:before{
+    content:"▸ ";
+    color:#aaa;
+    position:absolute;
+    left:0;
+  }
+  .scan-quality .confidence-badge{
+    display:inline-block;
+    font-size:12px;
+    font-weight:700;
+    padding:3px 12px;
+    border-radius:4px;
+    margin-top:8px;
+  }
+  .scan-quality .confidence-badge.high{ background:#27ae60; color:#fff; }
+  .scan-quality .confidence-badge.medium{ background:#f39c12; color:#fff; }
+  .scan-quality .confidence-badge.low{ background:#c0392b; color:#fff; }
+
   .conclusion-foot{
     margin-top:36px;
     padding-top:24px;
@@ -820,9 +948,77 @@
     <p class="reg-disclaimer">MYEVIEW identifies external exposure signals that may indicate areas warranting compliance review. This section does not constitute legal advice. All regulatory determinations should be made in consultation with qualified legal and compliance advisors.</p>
   </div>
 
+  {% if is_ai_report and ai_proofs_of_concept %}
+  <!-- PROOFS OF CONCEPT -->
+  <div class="poc-section">
+    <div class="section-label">Proofs of Concept <span style="color:var(--neon-red);font-size:12px">· AI-assessed</span></div>
+    <p style="font-size:14px;color:var(--slate);margin-top:8px;max-width:760px;line-height:1.6">
+      The following reproduction steps demonstrate how critical and high-severity findings can be
+      verified or exploited. These are provided for authorized defensive testing only.
+    </p>
+    <div class="poc-list">
+      {% for poc in ai_proofs_of_concept %}
+      <div class="poc-card">
+        <div class="poc-head">
+          <span class="poc-badge {{ poc.severity }}">{{ poc.severity }}</span>
+          <span class="poc-title">{{ poc.title }}</span>
+        </div>
+        <p class="poc-desc">{{ poc.description }}</p>
+        <div class="poc-steps">
+          {% for step in poc.steps %}
+          <div class="step">{{ step }}</div>
+          {% endfor %}
+        </div>
+        <p class="poc-impact"><strong>Impact:</strong> {{ poc.impact }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if is_ai_report and ai_scan_quality %}
+  <!-- SCAN QUALITY NOTES -->
+  <div class="scan-quality">
+    <div class="section-label">Scan Quality Assessment <span style="color:var(--neon-violet);font-size:12px">· AI-assessed</span></div>
+    <div class="sq-grid">
+      <div class="sq-item">
+        <div class="sq-label">Completeness</div>
+        <div class="sq-value">{{ ai_scan_quality.completeness|capitalize }}</div>
+        {% if ai_scan_quality.confidence %}
+        <span class="confidence-badge {{ ai_scan_quality.confidence }}">Confidence: {{ ai_scan_quality.confidence }}</span>
+        {% endif %}
+      </div>
+      {% if ai_scan_quality.missing_or_failed and ai_scan_quality.missing_or_failed|length > 0 %}
+      <div class="sq-item">
+        <div class="sq-label">Missing or Failed</div>
+        <div class="sq-value">
+          <ul>
+            {% for item in ai_scan_quality.missing_or_failed %}
+            <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+      {% if ai_scan_quality.coverage_gaps and ai_scan_quality.coverage_gaps|length > 0 %}
+      <div class="sq-item">
+        <div class="sq-label">Coverage Gaps</div>
+        <div class="sq-value">
+          <ul>
+            {% for item in ai_scan_quality.coverage_gaps %}
+            <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
   <!-- CONCLUSION -->
   <div class="conclusion">
-    <div class="section-label" style="color:var(--slate-light)">Conclusion</div>
+    <div class="section-label" style="color:var(--slate-light)">Conclusion{% if is_ai_report %} <span style="color:var(--neon-violet);font-size:12px">· AI-assessed</span>{% endif %}</div>
     {% if ai_conclusion %}
     <p>{{ ai_conclusion }}</p>
     {% else %}

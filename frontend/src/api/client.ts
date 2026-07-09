@@ -123,6 +123,23 @@ export const api = {
     const q = qs.toString()
     return `${API_BASE}/reports/${scanRunId}/pdf${q ? `?${q}` : ''}`
   },
+  // AI-assisted report views — same template but with AI tier/outlook/narratives/PoCs.
+  reportHtmlAI: (scanRunId: string, orgId?: string) => {
+    const token = localStorage.getItem('myeview_token')
+    const qs = new URLSearchParams()
+    if (token) qs.set('token', token)
+    if (orgId) qs.set('org_id', orgId)
+    const q = qs.toString()
+    return `${API_BASE}/reports/${scanRunId}/ai${q ? `?${q}` : ''}`
+  },
+  reportPdfAI: (scanRunId: string, orgId?: string) => {
+    const token = localStorage.getItem('myeview_token')
+    const qs = new URLSearchParams()
+    if (token) qs.set('token', token)
+    if (orgId) qs.set('org_id', orgId)
+    const q = qs.toString()
+    return `${API_BASE}/reports/${scanRunId}/ai/pdf${q ? `?${q}` : ''}`
+  },
   // Mint (or reuse) a short capability share link for a report.
   // Returns a relative path like "/r/<code>" — the frontend builds the full URL.
   shareReport: (scanRunId: string, orgId?: string) => {

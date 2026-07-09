@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Download, Loader2, Gauge, Shield as ShieldIcon, TrendingUp, TrendingDown, Minus, FileText, Link as LinkIcon, Check } from 'lucide-react'
+import { Download, Loader2, Gauge, Shield as ShieldIcon, TrendingUp, TrendingDown, Minus, FileText, Link as LinkIcon, Check, Sparkles } from 'lucide-react'
 import { api } from '@/api/client'
 import { CategoryBreakdown } from '@/components/CategoryBreakdown'
 import { OrgSelector } from '@/components/OrgSelector'
@@ -38,6 +38,8 @@ export function ReportPage() {
   const [error, setError] = useState('')
   const [reportHtmlUrl, setReportHtmlUrl] = useState<string | null>(null)
   const [reportPdfUrl, setReportPdfUrl] = useState<string | null>(null)
+  const [reportAiHtmlUrl, setReportAiHtmlUrl] = useState<string | null>(null)
+  const [reportAiPdfUrl, setReportAiPdfUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -57,6 +59,8 @@ export function ReportPage() {
   useEffect(() => {
     setReportHtmlUrl(null)
     setReportPdfUrl(null)
+    setReportAiHtmlUrl(null)
+    setReportAiPdfUrl(null)
     if (!scanRunId) return
     let cancelled = false
     api
@@ -68,12 +72,13 @@ export function ReportPage() {
         setReportPdfUrl(`${base}/pdf`)
       })
       .catch(() => {
-        // Fall back to the authenticated, token-bearing URLs. Use the proper
-        // reportPdf helper so /pdf lands before the query string.
         if (cancelled) return
         setReportHtmlUrl(`${window.location.origin}${api.reportHtml(scanRunId, orgId)}`)
         setReportPdfUrl(`${window.location.origin}${api.reportPdf(scanRunId, orgId)}`)
       })
+    // AI report URLs always use the authenticated path (no share link for AI)
+    setReportAiHtmlUrl(`${window.location.origin}${api.reportHtmlAI(scanRunId, orgId)}`)
+    setReportAiPdfUrl(`${window.location.origin}${api.reportPdfAI(scanRunId, orgId)}`)
     return () => {
       cancelled = true
     }
@@ -160,6 +165,28 @@ export function ReportPage() {
           >
             <Download size={13} /> PDF
           </a>
+          {reportAiHtmlUrl && (
+            <a
+              href={reportAiHtmlUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-ghost"
+              style={{ borderColor: 'var(--neon-violet)', color: 'var(--neon-violet)' }}
+              title="AI-assisted report with PoCs and scan quality analysis"
+            >
+              <Sparkles size={13} /> AI View
+            </a>
+          )}
+          {reportAiPdfUrl && (
+            <a
+              href={reportAiPdfUrl}
+              className="btn-ghost"
+              style={{ borderColor: 'var(--neon-violet)', color: 'var(--neon-violet)' }}
+              title="AI-assisted PDF report"
+            >
+              <Download size={13} /> AI PDF
+            </a>
+          )}
         </div>
       </div>
 

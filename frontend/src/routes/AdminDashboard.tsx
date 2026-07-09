@@ -17,6 +17,8 @@ import {
   Pencil,
   Radar,
   Sparkles,
+  FileText,
+  Download,
 } from 'lucide-react'
 import { api } from '@/api/client'
 import { AdminChartSystem } from '@/components/AdminChartSystem'
@@ -278,26 +280,32 @@ export function AdminDashboard() {
   }
 
   const [aiGenerating, setAiGenerating] = useState<string | null>(null)
-  const handleGenerateAI = async (scanRunId: string, e: React.MouseEvent) => {
+  const handleGenerateAI = async (scanRunId: string, orgId: string, e: React.MouseEvent) => {
     e.stopPropagation()
     setAiGenerating(scanRunId)
     setActionError('')
     try {
-      const result = await api.admin.generateAIReport(scanRunId)
-      const ai = result.ai as { overall_score?: number; shield_tier?: number; outlook?: string; executive_summary?: string }
-      setActionError('')
-      alert(
-        `AI Report generated.\n` +
-        `Score: ${ai.overall_score ?? '—'}\n` +
-        `Tier: ${ai.shield_tier ?? '—'}\n` +
-        `Outlook: ${ai.outlook ?? '—'}\n\n` +
-        `${(ai.executive_summary ?? '').slice(0, 300)}`
-      )
+      await api.admin.generateAIReport(scanRunId)
+      // Open the AI-assisted report in a new tab instead of showing an alert.
+      const url = api.reportHtmlAI(scanRunId, orgId)
+      window.open(url, '_blank')
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'AI report generation failed')
     } finally {
       setAiGenerating(null)
     }
+  }
+
+  const openReport = (scanRunId: string, orgId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const url = api.reportHtml(scanRunId, orgId)
+    window.open(url, '_blank')
+  }
+
+  const openReportPdf = (scanRunId: string, orgId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const url = api.reportPdf(scanRunId, orgId)
+    window.open(url, '_blank')
   }
 
   const goToOrgDashboard = (orgId: string) => {
@@ -664,7 +672,7 @@ export function AdminDashboard() {
                   <th>status</th>
                   <th>score</th>
                   <th>started</th>
-                  <th>ai</th>
+                  <th>report</th>
                 </tr>
               </thead>
               <tbody>
@@ -694,16 +702,35 @@ export function AdminDashboard() {
                         {new Date(r.started_at).toLocaleString()}
                       </td>
                       <td onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={(e) => handleGenerateAI(r.id, e)}
-                          disabled={aiGenerating === r.id || r.overall_score === null}
-                          title={r.overall_score === null ? 'No score yet' : 'Generate AI-assisted report'}
-                          className="btn-ghost"
-                          style={{ borderColor: 'var(--neon-violet)', color: 'var(--neon-violet)' }}
-                        >
-                          {aiGenerating === r.id ? <Loader2 className="animate-spin" size={11} /> : <Sparkles size={11} />}
-                          AI
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={(e) => openReport(r.id, r.org_id, e)}
+                            disabled={r.overall_score === null}
+                            title={r.overall_score === null ? 'No score yet' : 'View standard report'}
+                            className="btn-ghost"
+                            style={{ borderColor: 'var(--neon-cyan)', color: 'var(--neon-cyan)' }}
+                          >
+                            <FileText size={11} />
+                          </button>
+                          <button
+                            onClick={(e) => openReportPdf(r.id, r.org_id, e)}
+                            disabled={r.overall_score === null}
+                            title={r.overall_score === null ? 'No score yet' : 'Download standard PDF'}
+                            className="btn-ghost"
+                          >
+                            <Download size={11} />
+                          </button>
+                          <button
+                            onClick={(e) => handleGenerateAI(r.id, r.org_id, e)}
+                            disabled={aiGenerating === r.id || r.overall_score === null}
+                            title={r.overall_score === null ? 'No score yet' : 'Generate / view AI-assisted report'}
+                            className="btn-ghost"
+                            style={{ borderColor: 'var(--neon-violet)', color: 'var(--neon-violet)' }}
+                          >
+                            {aiGenerating === r.id ? <Loader2 className="animate-spin" size={11} /> : <Sparkles size={11} />}
+                            AI
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

@@ -277,6 +277,8 @@ def merge_ai_into_context(base: dict[str, Any], ai: dict[str, Any]) -> dict[str,
 
     ctx["ai_executive_summary"] = ai.get("executive_summary")
     ctx["ai_conclusion"] = ai.get("conclusion")
+    ctx["ai_proofs_of_concept"] = ai.get("proofs_of_concept", [])
+    ctx["ai_scan_quality"] = ai.get("scan_quality_notes")
     return ctx
 
 
