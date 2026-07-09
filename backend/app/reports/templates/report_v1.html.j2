@@ -542,9 +542,22 @@
 
   /* ===== PRINT =====
      Page 1 = cover (masthead + score plate). Analytical content starts on page 2.
-     WeasyPrint does not run JS, so everything here is static HTML/CSS. */
+     WeasyPrint does not run JS, so everything here is static HTML/CSS.
+     The cover is compressed in print so the masthead + score-plate + shield
+     all fit on a single page; without this the shield pushes content over
+     and page-break-after leaves an empty page 2. */
   @media print{
-    .score-plate{ page-break-after:always; }
+    .masthead{ padding:32px 56px 28px; }
+    .score-plate{ page-break-after:always; padding:36px 56px 32px; }
+    .score-number{ font-size:104px; }
+    .score-number sup{ font-size:28px; top:-46px; }
+    .score-bar-track{ margin-top:16px; }
+    .shield-wrap{ width:116px; height:138px; margin:16px auto 4px; }
+    .shield-caption{ font-size:11.5px; margin-top:2px; }
+    .plate-row{ margin-top:26px; gap:52px; }
+    .plate-stat .num{ font-size:28px; }
+    .plate-stat.is-text .num{ font-size:13px; }
+    .tier-badge{ margin-top:22px; padding:7px 18px; font-size:12px; }
     .section{ page-break-inside:avoid; }
     .sheet{ max-width:none; }
     .risk-item{ page-break-inside:avoid; }
