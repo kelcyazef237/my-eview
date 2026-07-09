@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MYEVIEW Shield Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body{
+    background:#FAFAF7;
+    font-family:'Inter', sans-serif;
+    color:#0B1220;
+    margin:0; padding:48px;
+  }
+  h1{ font-family:'Source Serif 4', serif; font-weight:500; font-size:28px; margin:0 0 8px; }
+  p.sub{ color:#5B6474; font-size:14px; margin:0 0 40px; }
+  .row{
+    display:grid;
+    grid-template-columns:repeat(5, 1fr);
+    gap:32px;
+    max-width:1100px;
+    margin:0 auto;
+  }
+  .tier-card{
+    text-align:center;
+    padding:28px 16px;
+    background:#F1EFE9;
+    border:1px solid #DEDACD;
+    border-radius:10px;
+  }
+  .tier-card .score{
+    font-family:'Source Serif 4', serif;
+    font-size:30px;
+    font-weight:500;
+    color:#0B1220;
+  }
+  .tier-card .score sup{ font-size:13px; color:#8B90A0; }
+  .shield-wrap{
+    margin:18px auto 8px;
+    width:150px;
+    height:178px;
+    display:block;
+  }
+  .shield-wrap svg{ width:100%; height:100%; display:block; }
+  .shield-caption{
+    font-size:13px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:#5B6474;
+    font-weight:600;
+    margin-top:6px;
+  }
+  .tier-card .band{
+    margin-top:14px;
+    font-size:12px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#5B6474;
+  }
+  .tier-card.critical .band{ color:#A83226; }
+  .tier-card.elevated .band{ color:#9A5B14; }
+  .tier-card.moderate .band{ color:#2B5F8A; }
+  .tier-card.strong .band{ color:#3B7A57; }
+  .tier-card.exceptional .band{ color:#5B4B8A; }
+  .legend{
+    max-width:1100px;
+    margin:48px auto 0;
+    font-size:13px;
+    color:#5B6474;
+    line-height:1.6;
+  }
+  .legend code{ background:#F1EFE9; padding:2px 6px; border-radius:4px; font-size:12px; }
+</style>
+</head>
+<body>
+  <h1>MYEVIEW Shield Tier Preview</h1>
+  <p class="sub">The silver metallic shield rendered for each tier (I–V). Accent ring + dot color shifts with the tier; the chrome body stays consistent.</p>
+
+  <div class="row">
+
+    <!-- TIER 1 — Critical -->
+    <div class="tier-card critical">
+      <div class="score">320<sup>/1000</sup></div>
+      <div class="shield-wrap">
+        <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" role="img">
+          <defs>
+            <linearGradient id="silverBody1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#F5F7FA"/>
+              <stop offset="32%" stop-color="#C9D2DC"/>
+              <stop offset="52%" stop-color="#8B95A4"/>
+              <stop offset="74%" stop-color="#D6DEE8"/>
+              <stop offset="100%" stop-color="#6B7585"/>
+            </linearGradient>
+            <linearGradient id="silverShine1" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
+              <stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/>
+              <stop offset="100%" stop-color="#000000" stop-opacity="0.18"/>
+            </linearGradient>
+            <linearGradient id="silverRim1" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#E9EEF4"/>
+              <stop offset="50%" stop-color="#7B8595"/>
+              <stop offset="100%" stop-color="#3C4654"/>
+            </linearGradient>
+          </defs>
+          <path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z"
+                fill="none" stroke="#A83226" stroke-width="3.2" stroke-linejoin="round"/>
+          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
+                fill="url(#silverBody1)" stroke="url(#silverRim1)" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
+                fill="url(#silverShine1)"/>
+          <path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 22.5 Z"
+                fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/>
+          <path d="M16 38 Q50 44 84 38" fill="none" stroke="#A83226" stroke-width="0.8" stroke-opacity="0.55"/>
+          <text x="50" y="74" text-anchor="middle"
+                font-family="'Source Serif 4', serif" font-size="42" font-weight="600"
+                fill="#0B1220">I</text>
+          <circle cx="50" cy="88" r="2.4" fill="#A83226"/>
+        </svg>
+      </div>
+      <div class="shield-caption">Critical · Tier I</div>
+      <div class="band">Action Required</div>
+    </div>
+
+    <!-- TIER 2 — Elevated -->
+    <div class="tier-card elevated">
+      <div class="score">480<sup>/1000</sup></div>
+      <div class="shield-wrap">
+        <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" role="img">
+          <defs>
+            <linearGradient id="silverBody2" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#F5F7FA"/>
+              <stop offset="32%" stop-color="#C9D2DC"/>
+              <stop offset="52%" stop-color="#8B95A4"/>
+              <stop offset="74%" stop-color="#D6DEE8"/>
+              <stop offset="100%" stop-color="#6B7585"/>
+            </linearGradient>
+            <linearGradient id="silverShine2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
+              <stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/>
+              <stop offset="100%" stop-color="#000000" stop-opacity="0.18"/>
+            </linearGradient>
+            <linearGradient id="silverRim2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#E9EEF4"/>
+              <stop offset="50%" stop-color="#7B8595"/>
+              <stop offset="100%" stop-color="#3C4654"/>
+            </linearGradient>
+          </defs>
+          <path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z"
+                fill="none" stroke="#9A5B14" stroke-width="3.2" stroke-linejoin="round"/>
+          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
+                fill="url(#silverBody2)" stroke="url(#silverRim2)" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
+                fill="url(#silverShine2)"/>
+          <path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 22.5 Z"
+                fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/>
+          <path d="M16 38 Q50 44 84 38" fill="none" stroke="#9A5B14" stroke-width="0.8" stroke-opacity="0.55"/>
+          <text x="50" y="74" text-anchor="middle"
+                font-family="'Source Serif 4', serif" font-size="42" font-weight="600"
+                fill="#0B1220">II</text>
+          <circle cx="50" cy="88" r="2.4" fill="#9A5B14"/>
+        </svg>
+      </div>
+      <div class="shield-caption">Elevated · Tier II</div>
+      <div class="band">Monitoring recommended</div>
+    </div>
+
+    <!-- TIER 3 — Moderate -->
+    <div class="tier-card moderate">
+      <div class="score">620<sup>/1000</sup></div>
+      <div class="shield-wrap">
+        <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" role="img">
+          <defs>
+            <linearGradient id="silverBody3" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#F5F7FA"/>
+              <stop offset="32%" stop-color="#C9D2DC"/>
+              <stop offset="52%" stop-color="#8B95A4"/>
+              <stop offset="74%" stop-color="#D6DEE8"/>
+              <stop offset="100%" stop-color="#6B7585"/>
+            </linearGradient>
+            <linearGradient id="silverShine3" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
+              <stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/>
+              <stop offset="100%" stop-color="#000000" stop-opacity="0.18"/>
+            </linearGradient>
+            <linearGradient id="silverRim3" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#E9EEF4"/>
+              <stop offset="50%" stop-color="#7B8595"/>
+              <stop offset="100%" stop-color="#3C4654"/>
+            </linearGradient>
+          </defs>
+          <path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z"
+                fill="none" stroke="#2B5F8A" stroke-width="3.2" stroke-linejoin="round"/>
+          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
+                fill="url(#silverBody3)" stroke="url(#silverRim3)" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
+                fill="url(#silverShine3)"/>
+          <path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 22.5 Z"
+                fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/>
+          <path d="M16 38 Q50 44 84 38" fill="none" stroke="#2B5F8A" stroke-width="0.8" stroke-opacity="0.55"/>
+          <text x="50" y="74" text-anchor="middle"
+                font-family="'Source Serif 4', serif" font-size="42" font-weight="600"
+                fill="#0B1220">III</text>
+          <circle cx="50" cy="88" r="2.4" fill="#2B5F8A"/>
+        </svg>
+      </div>
+      <div class="shield-caption">Moderate · Tier III</div>
+      <div class="band">Periodic review</div>
+    </div>
+
+    <!-- TIER 4 — Strong -->
+    <div class="tier-card strong">
+      <div class="score">780<sup>/1000</sup></div>
+      <div class="shield-wrap">
+        <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" role="img">
+          <defs>
+            <linearGradient id="silverBody4" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#F5F7FA"/>
+              <stop offset="32%" stop-color="#C9D2DC"/>
+              <stop offset="52%" stop-color="#8B95A4"/>
+              <stop offset="74%" stop-color="#D6DEE8"/>
+              <stop offset="100%" stop-color="#6B7585"/>
+            </linearGradient>
+            <linearGradient id="silverShine4" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
+              <stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/>
+              <stop offset="100%" stop-color="#000000" stop-opacity="0.18"/>
+            </linearGradient>
+            <linearGradient id="silverRim4" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#E9EEF4"/>
+              <stop offset="50%" stop-color="#7B8595"/>
+              <stop offset="100%" stop-color="#3C4654"/>
+            </linearGradient>
+          </defs>
+          <path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z"
+                fill="none" stroke="#3B7A57" stroke-width="3.2" stroke-linejoin="round"/>
+          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
+                fill="url(#silverBody4)" stroke="url(#silverRim4)" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
+                fill="url(#silverShine4)"/>
+          <path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 22.5 Z"
+                fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/>
+          <path d="M16 38 Q50 44 84 38" fill="none" stroke="#3B7A57" stroke-width="0.8" stroke-opacity="0.55"/>
+          <text x="50" y="74" text-anchor="middle"
+                font-family="'Source Serif 4', serif" font-size="42" font-weight="600"
+                fill="#0B1220">IV</text>
+          <circle cx="50" cy="88" r="2.4" fill="#3B7A57"/>
+        </svg>
+      </div>
+      <div class="shield-caption">Strong · Tier IV</div>
+      <div class="band">Maintain posture</div>
+    </div>
+
+    <!-- TIER 5 — Exceptional -->
+    <div class="tier-card exceptional">
+      <div class="score">930<sup>/1000</sup></div>
+      <div class="shield-wrap">
+        <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" role="img">
+          <defs>
+            <linearGradient id="silverBody5" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#F5F7FA"/>
+              <stop offset="32%" stop-color="#C9D2DC"/>
+              <stop offset="52%" stop-color="#8B95A4"/>
+              <stop offset="74%" stop-color="#D6DEE8"/>
+              <stop offset="100%" stop-color="#6B7585"/>
+            </linearGradient>
+            <linearGradient id="silverShine5" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
+              <stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/>
+              <stop offset="100%" stop-color="#000000" stop-opacity="0.18"/>
+            </linearGradient>
+            <linearGradient id="silverRim5" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#E9EEF4"/>
+              <stop offset="50%" stop-color="#7B8595"/>
+              <stop offset="100%" stop-color="#3C4654"/>
+            </linearGradient>
+          </defs>
+          <path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z"
+                fill="none" stroke="#5B4B8A" stroke-width="3.2" stroke-linejoin="round"/>
+          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
+                fill="url(#silverBody5)" stroke="url(#silverRim5)" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
+                fill="url(#silverShine5)"/>
+          <path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 22.5 Z"
+                fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/>
+          <path d="M16 38 Q50 44 84 38" fill="none" stroke="#5B4B8A" stroke-width="0.8" stroke-opacity="0.55"/>
+          <text x="50" y="74" text-anchor="middle"
+                font-family="'Source Serif 4', serif" font-size="42" font-weight="600"
+                fill="#0B1220">V</text>
+          <circle cx="50" cy="88" r="2.4" fill="#5B4B8A"/>
+        </svg>
+      </div>
+      <div class="shield-caption">Exceptional · Tier V</div>
+      <div class="band">Exemplary posture</div>
+    </div>
+
+  </div>
+
+  <div class="legend">
+    <p>The shield body uses the same chrome-silver gradient for every tier — only the <strong>accent ring</strong>,
+    the <strong>divider band</strong>, and the <strong>dot beneath the numeral</strong> take the tier color.
+    Tier boundaries: I &lt;400 · II 400–549 · III 550–699 · IV 700–849 · V 850–1000.</p>
+  </div>
+</body>
+</html>

@@ -26,7 +26,7 @@ def test_shield_boundaries(score, expected_tier):
 
 def test_outlook_first_full_report():
     result = outlook_for_score(850, 4, None, is_first_full_report=True)
-    assert result.outlook == "Baseline · Insufficient History"
+    assert result.outlook == "MYETREND: available after 90 days"
 
 
 def test_outlook_positive_momentum():

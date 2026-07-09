@@ -22,6 +22,7 @@
     --high-bg:#F8EFE3;
     --good:#3B7A57;
     --good-bg:#E9F2EC;
+    --violet:#5B4B8A;
   }
 
   *{box-sizing:border-box; margin:0; padding:0;}
@@ -81,14 +82,14 @@
     border-radius:50%;
   }
   .brand-name{
-    font-size:15px;
+    font-size:16px;
     letter-spacing:0.14em;
     font-weight:600;
   }
   .brand-name b{ font-weight:800; }
   .doc-type{
     text-align:right;
-    font-size:10.5px;
+    font-size:11.5px;
     letter-spacing:0.12em;
     color:var(--slate-light);
     text-transform:uppercase;
@@ -103,17 +104,17 @@
   }
   .entity-name{
     font-family:'Source Serif 4', serif;
-    font-size:28px;
+    font-size:32px;
     font-weight:500;
   }
   .entity-sub{
-    font-size:12.5px;
+    font-size:14px;
     color:var(--slate-light);
-    margin-top:4px;
+    margin-top:5px;
   }
   .meta-tags{
     text-align:right;
-    font-size:11px;
+    font-size:12.5px;
     color:var(--slate-light);
     line-height:1.8;
   }
@@ -125,7 +126,7 @@
     border-bottom:1px solid var(--hairline);
   }
   .score-eyebrow{
-    font-size:10.5px;
+    font-size:12px;
     letter-spacing:0.18em;
     text-transform:uppercase;
     color:var(--slate);
@@ -162,33 +163,59 @@
   }
   .score-bar-labels{
     max-width:360px;
-    margin:6px auto 0;
+    margin:8px auto 0;
     display:flex;
     justify-content:space-between;
-    font-size:9.5px;
+    font-size:11px;
     letter-spacing:0.1em;
     color:var(--slate-light);
   }
 
   .plate-row{
-    margin-top:38px;
+    margin-top:42px;
     display:flex;
     justify-content:center;
     gap:64px;
   }
-  .plate-stat{ text-align:center; }
-  .plate-stat .num{
-    font-family:'Source Serif 4', serif;
-    font-size:30px;
-    font-weight:500;
-    color:var(--signal);
+
+  /* ===== SILVER SHIELD ===== */
+  .shield-wrap{
+    margin:30px auto 6px;
+    width:150px;
+    height:178px;
+    display:block;
   }
-  .plate-stat .lbl{
-    font-size:10px;
+  .shield-wrap svg{ width:100%; height:100%; display:block; }
+  .shield-caption{
+    text-align:center;
+    font-size:13px;
     letter-spacing:0.1em;
     text-transform:uppercase;
     color:var(--slate);
-    margin-top:6px;
+    font-weight:600;
+    margin-top:4px;
+  }
+  .plate-stat{ text-align:center; }
+  .plate-stat .num{
+    font-family:'Source Serif 4', serif;
+    font-size:34px;
+    font-weight:500;
+    color:var(--signal);
+  }
+  .plate-stat.is-text .num{
+    font-family:'Inter', sans-serif;
+    font-size:15px;
+    font-weight:600;
+    color:var(--ink-soft);
+    line-height:1.35;
+    max-width:220px;
+  }
+  .plate-stat .lbl{
+    font-size:11.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--slate);
+    margin-top:7px;
   }
   .plate-divider{
     width:1px;
@@ -199,11 +226,11 @@
     display:inline-flex;
     align-items:center;
     gap:8px;
-    margin-top:30px;
-    padding:8px 18px;
+    margin-top:34px;
+    padding:9px 20px;
     border:1px solid var(--hairline);
     border-radius:30px;
-    font-size:11.5px;
+    font-size:13px;
     letter-spacing:0.06em;
   }
   .tier-badge .roman{
@@ -225,18 +252,18 @@
     border-bottom:1px solid var(--hairline);
   }
   .section-label{
-    font-size:10.5px;
+    font-size:12px;
     letter-spacing:0.16em;
     text-transform:uppercase;
     color:var(--slate);
     font-weight:600;
-    margin-bottom:18px;
+    margin-bottom:20px;
   }
   .section-label span{ color:var(--slate-light); font-weight:400; }
 
   .exec-summary p{
     font-family:'Source Serif 4', serif;
-    font-size:18px;
+    font-size:19px;
     line-height:1.65;
     color:var(--ink-soft);
     max-width:760px;
@@ -255,33 +282,33 @@
     padding:24px 26px;
   }
   .percentile-card .lbl{
-    font-size:10.5px;
+    font-size:11.5px;
     letter-spacing:0.08em;
     text-transform:uppercase;
     color:var(--slate);
   }
   .percentile-card .val{
     font-family:'Source Serif 4', serif;
-    font-size:38px;
+    font-size:42px;
     color:var(--ink);
     margin-top:8px;
   }
   .percentile-card .val span{
-    font-size:16px;
+    font-size:18px;
     color:var(--good);
     font-weight:600;
     vertical-align:2px;
     margin-right:4px;
   }
   .percentile-card .sub{
-    font-size:12px;
+    font-size:13px;
     color:var(--slate);
-    margin-top:4px;
+    margin-top:5px;
   }
   .percentile-card .tag{
     display:inline-block;
     margin-top:12px;
-    font-size:10px;
+    font-size:11px;
     letter-spacing:0.08em;
     color:var(--good);
     background:var(--good-bg);
@@ -308,11 +335,11 @@
     min-width:20px;
   }
   .sev{
-    font-size:9.5px;
+    font-size:10.5px;
     letter-spacing:0.09em;
     text-transform:uppercase;
     font-weight:700;
-    padding:3px 9px;
+    padding:4px 10px;
     border-radius:4px;
   }
   .sev-critical{ color:var(--critical); background:var(--critical-bg); }
@@ -320,13 +347,13 @@
   .sev-medium{ color:var(--signal); background:var(--signal-light); }
   .sev-low{ color:var(--slate); background:var(--paper-alt); }
   .risk-title{
-    font-size:17px;
+    font-size:18.5px;
     font-weight:600;
   }
 
   .risk-body{ padding-left:34px; }
   .risk-body .obs{
-    font-size:14px;
+    font-size:15px;
     color:var(--ink-soft);
     line-height:1.65;
     max-width:640px;
@@ -338,7 +365,7 @@
     margin-top:18px;
   }
   .risk-block .h{
-    font-size:9.5px;
+    font-size:10.5px;
     letter-spacing:0.1em;
     text-transform:uppercase;
     color:var(--slate);
@@ -346,7 +373,7 @@
     margin-bottom:6px;
   }
   .risk-block p{
-    font-size:13px;
+    font-size:14px;
     line-height:1.6;
     color:var(--slate);
   }
@@ -357,7 +384,7 @@
     margin-top:6px;
   }
   .stakeholders span{
-    font-size:10.5px;
+    font-size:11.5px;
     color:var(--ink-soft);
     background:var(--paper-alt);
     border:1px solid var(--hairline);
@@ -370,7 +397,7 @@
     background:var(--signal-light);
     border-left:2px solid var(--signal);
     border-radius:0 6px 6px 0;
-    font-size:13px;
+    font-size:14px;
     color:var(--ink-soft);
     line-height:1.55;
   }
@@ -403,8 +430,8 @@
   .mark-ok{ background:var(--good-bg); color:var(--good); }
   .mark-watch{ background:var(--high-bg); color:var(--high); }
   .mark-info{ background:var(--signal-light); color:var(--signal); }
-  .hygiene-item .t{ font-size:13.5px; font-weight:600; }
-  .hygiene-item .d{ font-size:12px; color:var(--slate); margin-top:2px; }
+  .hygiene-item .t{ font-size:14.5px; font-weight:600; }
+  .hygiene-item .d{ font-size:13px; color:var(--slate); margin-top:2px; }
 
   /* ===== ENTITY INTELLIGENCE ===== */
   .entity-grid{
@@ -422,18 +449,18 @@
   }
   .entity-stat .num{
     font-family:'Source Serif 4', serif;
-    font-size:26px;
+    font-size:30px;
     color:var(--signal);
   }
   .entity-stat .lbl{
-    font-size:10px;
+    font-size:11px;
     letter-spacing:0.05em;
     color:var(--slate);
     margin-top:8px;
     line-height:1.4;
   }
   .entity-note p{
-    font-size:13.5px;
+    font-size:14.5px;
     line-height:1.7;
     color:var(--slate);
     max-width:680px;
@@ -452,25 +479,25 @@
     border-radius:8px;
   }
   .reg-card .code{
-    font-size:10px;
+    font-size:11px;
     letter-spacing:0.1em;
     color:var(--signal);
     font-weight:700;
   }
   .reg-card .title{
-    font-size:14px;
+    font-size:15px;
     font-weight:600;
     margin-top:6px;
     line-height:1.3;
   }
   .reg-card .body{
-    font-size:12.5px;
+    font-size:13.5px;
     color:var(--slate);
     line-height:1.6;
     margin-top:10px;
   }
   .reg-disclaimer{
-    font-size:11.5px;
+    font-size:12.5px;
     color:var(--slate-light);
     margin-top:22px;
     line-height:1.6;
@@ -485,7 +512,7 @@
   }
   .conclusion p{
     font-family:'Source Serif 4', serif;
-    font-size:18px;
+    font-size:19px;
     line-height:1.7;
     color:#D7DCE5;
     max-width:720px;
@@ -497,7 +524,7 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
-    font-size:11px;
+    font-size:12px;
     letter-spacing:0.06em;
     color:var(--slate-light);
     text-transform:uppercase;
@@ -507,7 +534,7 @@
   .colophon{
     text-align:center;
     padding:26px;
-    font-size:10.5px;
+    font-size:11.5px;
     letter-spacing:0.08em;
     color:var(--slate-light);
     text-transform:uppercase;
@@ -563,13 +590,65 @@
     <div class="score-bar-track"><div class="score-bar-fill" style="width:{{ (score.overall / 1000 * 100)|round(1) }}%"></div></div>
     <div class="score-bar-labels"><span>I</span><span>II</span><span>III</span><span>IV</span><span>V</span></div>
 
+    {% set tier_colors = ['#A83226', '#9A5B14', '#2B5F8A', '#3B7A57', '#5B4B8A'] %}
+    {% set tier_romans = ['I', 'II', 'III', 'IV', 'V'] %}
+    {% set tier_names = ['Critical', 'Elevated', 'Moderate', 'Strong', 'Exceptional'] %}
+    {% set ti = (score.tier - 1) if score.tier else 2 %}
+    {% set tier_color = tier_colors[ti] %}
+    {% set tier_roman = tier_romans[ti] %}
+    {% set tier_name = tier_names[ti] %}
+    <div class="shield-wrap" aria-label="Shield tier {{ tier_roman }} — {{ tier_name }}">
+      <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" role="img">
+        <defs>
+          <linearGradient id="silverBody" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#F5F7FA"/>
+            <stop offset="32%" stop-color="#C9D2DC"/>
+            <stop offset="52%" stop-color="#8B95A4"/>
+            <stop offset="74%" stop-color="#D6DEE8"/>
+            <stop offset="100%" stop-color="#6B7585"/>
+          </linearGradient>
+          <linearGradient id="silverShine" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
+            <stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/>
+            <stop offset="100%" stop-color="#000000" stop-opacity="0.18"/>
+          </linearGradient>
+          <linearGradient id="silverRim" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#E9EEF4"/>
+            <stop offset="50%" stop-color="#7B8595"/>
+            <stop offset="100%" stop-color="#3C4654"/>
+          </linearGradient>
+        </defs>
+        <!-- tier accent ring -->
+        <path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z"
+              fill="none" stroke="{{ tier_color }}" stroke-width="3.2" stroke-linejoin="round"/>
+        <!-- silver body -->
+        <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
+              fill="url(#silverBody)" stroke="url(#silverRim)" stroke-width="1.6" stroke-linejoin="round"/>
+        <!-- shine overlay -->
+        <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
+              fill="url(#silverShine)"/>
+        <!-- inner highlight ridge -->
+        <path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z"
+              fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/>
+        <!-- divider band -->
+        <path d="M16 38 Q50 44 84 38" fill="none" stroke="{{ tier_color }}" stroke-width="0.8" stroke-opacity="0.55"/>
+        <!-- tier numeral -->
+        <text x="50" y="74" text-anchor="middle"
+              font-family="'Source Serif 4', serif" font-size="42" font-weight="600"
+              fill="#0B1220">{{ tier_roman }}</text>
+        <!-- tier accent dot under numeral -->
+        <circle cx="50" cy="88" r="2.4" fill="{{ tier_color }}"/>
+      </svg>
+    </div>
+    <div class="shield-caption">{{ tier_name }} · Shield Tier {{ tier_roman }}</div>
+
     <div class="plate-row">
       <div class="plate-stat">
-        <div class="num">{% if score.tier == 5 %}V{% elif score.tier == 4 %}IV{% elif score.tier == 3 %}III{% elif score.tier == 2 %}II{% else %}I{% endif %}</div>
+        <div class="num">{{ tier_name }}</div>
         <div class="lbl">Shield Tier</div>
       </div>
       <div class="plate-divider"></div>
-      <div class="plate-stat">
+      <div class="plate-stat is-text">
         <div class="num">{{ score.outlook }}</div>
         <div class="lbl">Trust Outlook</div>
       </div>

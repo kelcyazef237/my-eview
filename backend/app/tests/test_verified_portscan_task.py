@@ -119,7 +119,7 @@ def test_rescore_scan_run_publishes_complete_score():
     assert result["status"] == "complete"
     assert result["overall_score"] == 1000
     assert result["shield_tier"] == 5
-    assert result["outlook"] == "Baseline · Insufficient History"
+    assert result["outlook"] == "MYETREND: available after 90 days"
 
     # Verify category scores were added.
     assert db.add.call_count > 0

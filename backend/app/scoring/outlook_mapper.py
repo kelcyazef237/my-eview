@@ -27,7 +27,7 @@ def outlook_for_score(
 ) -> OutlookResult:
     if is_first_full_report:
         return OutlookResult(
-            outlook="Baseline · Insufficient History",
+            outlook="MYETREND: available after 90 days",
             delta=None,
             is_first_full_report=True,
         )
