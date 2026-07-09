@@ -178,14 +178,19 @@
     gap:64px;
   }
 
-  /* ===== SILVER SHIELD ===== */
-  .shield-wrap{
-    margin:30px auto 6px;
-    width:150px;
-    height:178px;
+  /* ===== SILVER SHIELD ROW ===== */
+  .shield-row{
+    display:flex;
+    justify-content:center;
+    align-items:flex-end;
+    gap:10px;
+    margin:28px auto 6px;
+  }
+  .tier-shield{
+    width:72px;
+    height:86px;
     display:block;
   }
-  .shield-wrap svg{ width:100%; height:100%; display:block; }
   .shield-caption{
     text-align:center;
     font-size:13px;
@@ -193,7 +198,7 @@
     text-transform:uppercase;
     color:var(--slate);
     font-weight:600;
-    margin-top:4px;
+    margin-top:8px;
   }
   .plate-stat{ text-align:center; }
   .plate-stat .num{
@@ -552,8 +557,9 @@
     .score-number{ font-size:104px; }
     .score-number sup{ font-size:28px; top:-46px; }
     .score-bar-track{ margin-top:16px; }
-    .shield-wrap{ width:116px; height:138px; margin:16px auto 4px; }
-    .shield-caption{ font-size:11.5px; margin-top:2px; }
+    .shield-row{ margin:16px auto 4px; gap:8px; }
+    .tier-shield{ width:58px; height:70px; }
+    .shield-caption{ font-size:11.5px; margin-top:4px; }
     .plate-row{ margin-top:26px; gap:52px; }
     .plate-stat .num{ font-size:28px; }
     .plate-stat.is-text .num{ font-size:13px; }
@@ -604,28 +610,28 @@
     <div class="score-bar-labels"><span>I</span><span>II</span><span>III</span><span>IV</span><span>V</span></div>
 
     {% set tier_colors = ['#A83226', '#9A5B14', '#2B5F8A', '#3B7A57', '#5B4B8A'] %}
-    {% set tier_romans = ['I', 'II', 'III', 'IV', 'V'] %}
     {% set tier_names = ['Critical', 'Elevated', 'Moderate', 'Strong', 'Exceptional'] %}
     {% set ti = (score.tier - 1) if score.tier else 2 %}
     {% set tier_color = tier_colors[ti] %}
-    {% set tier_roman = tier_romans[ti] %}
     {% set tier_name = tier_names[ti] %}
-    <div class="shield-wrap" aria-label="Shield tier {{ tier_roman }} — {{ tier_name }}">
-      <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" role="img">
+    {% set shield_count = score.tier if score.tier else 1 %}
+    <div class="shield-row" aria-label="{{ shield_count }} shield{{ '' if shield_count == 1 else 's' }} - {{ tier_name }} tier">
+      {% for i in range(shield_count) %}
+      <svg class="tier-shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" role="img">
         <defs>
-          <linearGradient id="silverBody" x1="0" y1="0" x2="1" y2="1">
+          <linearGradient id="sb{{ loop.index }}" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stop-color="#F5F7FA"/>
             <stop offset="32%" stop-color="#C9D2DC"/>
             <stop offset="52%" stop-color="#8B95A4"/>
             <stop offset="74%" stop-color="#D6DEE8"/>
             <stop offset="100%" stop-color="#6B7585"/>
           </linearGradient>
-          <linearGradient id="silverShine" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="ss{{ loop.index }}" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
             <stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/>
             <stop offset="100%" stop-color="#000000" stop-opacity="0.18"/>
           </linearGradient>
-          <linearGradient id="silverRim" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="sr{{ loop.index }}" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#E9EEF4"/>
             <stop offset="50%" stop-color="#7B8595"/>
             <stop offset="100%" stop-color="#3C4654"/>
@@ -636,24 +642,34 @@
               fill="none" stroke="{{ tier_color }}" stroke-width="3.2" stroke-linejoin="round"/>
         <!-- silver body -->
         <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
-              fill="url(#silverBody)" stroke="url(#silverRim)" stroke-width="1.6" stroke-linejoin="round"/>
+              fill="url(#sb{{ loop.index }})" stroke="url(#sr{{ loop.index }})" stroke-width="1.6" stroke-linejoin="round"/>
         <!-- shine overlay -->
         <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
-              fill="url(#silverShine)"/>
+              fill="url(#ss{{ loop.index }})"/>
         <!-- inner highlight ridge -->
         <path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z"
               fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/>
         <!-- divider band -->
         <path d="M16 38 Q50 44 84 38" fill="none" stroke="{{ tier_color }}" stroke-width="0.8" stroke-opacity="0.55"/>
-        <!-- tier numeral -->
-        <text x="50" y="74" text-anchor="middle"
-              font-family="'Source Serif 4', serif" font-size="42" font-weight="600"
-              fill="#0B1220">{{ tier_roman }}</text>
-        <!-- tier accent dot under numeral -->
-        <circle cx="50" cy="88" r="2.4" fill="{{ tier_color }}"/>
+        <!-- tier-dependent damage: cracks on low tiers, pristine on high -->
+        {% if score.tier == 1 %}
+        <path d="M50 16 L45 30 L54 42 L47 56 L53 68 L48 82 L51 96" stroke="#1B1620" stroke-width="1.6" fill="none" opacity="0.72" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M47 42 L39 48 M53 56 L61 62 M48 68 L41 74 M52 82 L58 86" stroke="#1B1620" stroke-width="0.9" fill="none" opacity="0.5" stroke-linecap="round"/>
+        <path d="M84 38 L79 44 L86 46 L82 50" stroke="#1B1620" stroke-width="0.8" fill="none" opacity="0.5" stroke-linecap="round"/>
+        {% elif score.tier == 2 %}
+        <path d="M50 22 L46 36 L53 50 L48 64 L51 80" stroke="#262030" stroke-width="1.2" fill="none" opacity="0.55" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M48 50 L41 56" stroke="#262030" stroke-width="0.8" fill="none" opacity="0.45" stroke-linecap="round"/>
+        {% elif score.tier == 3 %}
+        <path d="M84 44 L80 48 L85 50" stroke="#4A4452" stroke-width="0.7" fill="none" opacity="0.4" stroke-linecap="round"/>
+        {% endif %}
+        {% if score.tier == 5 %}
+        <path d="M38 22 Q50 26 62 22" stroke="#FFFFFF" stroke-width="1" fill="none" opacity="0.55" stroke-linecap="round"/>
+        <path d="M42 30 Q50 33 58 30" stroke="#FFFFFF" stroke-width="0.6" fill="none" opacity="0.35" stroke-linecap="round"/>
+        {% endif %}
       </svg>
+      {% endfor %}
     </div>
-    <div class="shield-caption">{{ tier_name }} · Shield Tier {{ tier_roman }}</div>
+    <div class="shield-caption">{{ tier_name }} · {{ shield_count }} Shield{{ '' if shield_count == 1 else 's' }}</div>
 
     <div class="plate-row">
       <div class="plate-stat">

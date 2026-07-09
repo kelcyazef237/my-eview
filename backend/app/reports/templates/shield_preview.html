@@ -6,299 +6,106 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  body{
-    background:#FAFAF7;
-    font-family:'Inter', sans-serif;
-    color:#0B1220;
-    margin:0; padding:48px;
+  :root{
+    --paper:#FAFAF7; --paper-alt:#F1EFE9; --hairline:#DEDACD;
+    --slate:#5B6474; --ink:#0B1220;
   }
+  body{ background:var(--paper); font-family:'Inter', sans-serif; color:var(--ink); margin:0; padding:48px; }
   h1{ font-family:'Source Serif 4', serif; font-weight:500; font-size:28px; margin:0 0 8px; }
-  p.sub{ color:#5B6474; font-size:14px; margin:0 0 40px; }
-  .row{
-    display:grid;
-    grid-template-columns:repeat(5, 1fr);
-    gap:32px;
-    max-width:1100px;
-    margin:0 auto;
-  }
+  p.sub{ color:var(--slate); font-size:14px; margin:0 0 40px; max-width:760px; line-height:1.6; }
   .tier-card{
+    max-width:760px; margin:0 auto 32px; padding:32px 40px;
+    background:var(--paper-alt); border:1px solid var(--hairline); border-radius:10px;
     text-align:center;
-    padding:28px 16px;
-    background:#F1EFE9;
-    border:1px solid #DEDACD;
-    border-radius:10px;
   }
   .tier-card .score{
-    font-family:'Source Serif 4', serif;
-    font-size:30px;
-    font-weight:500;
-    color:#0B1220;
+    font-family:'Source Serif 4', serif; font-size:36px; font-weight:500; color:var(--ink);
   }
-  .tier-card .score sup{ font-size:13px; color:#8B90A0; }
-  .shield-wrap{
-    margin:18px auto 8px;
-    width:150px;
-    height:178px;
-    display:block;
+  .tier-card .score sup{ font-size:15px; color:#8B90A0; }
+  .shield-row{
+    display:flex; justify-content:center; align-items:flex-end; gap:10px; margin:22px auto 8px;
   }
-  .shield-wrap svg{ width:100%; height:100%; display:block; }
+  .tier-shield{ width:72px; height:86px; display:block; }
   .shield-caption{
-    font-size:13px;
-    letter-spacing:0.1em;
-    text-transform:uppercase;
-    color:#5B6474;
-    font-weight:600;
-    margin-top:6px;
+    font-size:13px; letter-spacing:0.1em; text-transform:uppercase; color:var(--slate); font-weight:600; margin-top:10px;
   }
-  .tier-card .band{
-    margin-top:14px;
-    font-size:12px;
-    letter-spacing:0.08em;
-    text-transform:uppercase;
-    color:#5B6474;
-  }
-  .tier-card.critical .band{ color:#A83226; }
-  .tier-card.elevated .band{ color:#9A5B14; }
-  .tier-card.moderate .band{ color:#2B5F8A; }
-  .tier-card.strong .band{ color:#3B7A57; }
-  .tier-card.exceptional .band{ color:#5B4B8A; }
-  .legend{
-    max-width:1100px;
-    margin:48px auto 0;
-    font-size:13px;
-    color:#5B6474;
-    line-height:1.6;
-  }
-  .legend code{ background:#F1EFE9; padding:2px 6px; border-radius:4px; font-size:12px; }
+  .tier-card .note{ font-size:12px; color:var(--slate); margin-top:10px; }
+  .t1 .shield-caption{ color:#A83226; }
+  .t2 .shield-caption{ color:#9A5B14; }
+  .t3 .shield-caption{ color:#2B5F8A; }
+  .t4 .shield-caption{ color:#3B7A57; }
+  .t5 .shield-caption{ color:#5B4B8A; }
+  .legend{ max-width:760px; margin:40px auto 0; font-size:13px; color:var(--slate); line-height:1.6; }
+  .legend b{ color:var(--ink); }
 </style>
 </head>
 <body>
   <h1>MYEVIEW Shield Tier Preview</h1>
-  <p class="sub">The silver metallic shield rendered for each tier (I–V). Accent ring + dot color shifts with the tier; the chrome body stays consistent.</p>
+  <p class="sub">Each tier now renders <b>that many shields</b> in a centered row — 1 shield for tier I, 2 for tier II, ... up to 5 for tier V. Low tiers show cracks and fractures (warning); high tiers are pristine, with a gleam on tier V.</p>
 
-  <div class="row">
-
-    <!-- TIER 1 — Critical -->
-    <div class="tier-card critical">
-      <div class="score">320<sup>/1000</sup></div>
-      <div class="shield-wrap">
-        <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" role="img">
-          <defs>
-            <linearGradient id="silverBody1" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#F5F7FA"/>
-              <stop offset="32%" stop-color="#C9D2DC"/>
-              <stop offset="52%" stop-color="#8B95A4"/>
-              <stop offset="74%" stop-color="#D6DEE8"/>
-              <stop offset="100%" stop-color="#6B7585"/>
-            </linearGradient>
-            <linearGradient id="silverShine1" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
-              <stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/>
-              <stop offset="100%" stop-color="#000000" stop-opacity="0.18"/>
-            </linearGradient>
-            <linearGradient id="silverRim1" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#E9EEF4"/>
-              <stop offset="50%" stop-color="#7B8595"/>
-              <stop offset="100%" stop-color="#3C4654"/>
-            </linearGradient>
-          </defs>
-          <path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z"
-                fill="none" stroke="#A83226" stroke-width="3.2" stroke-linejoin="round"/>
-          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
-                fill="url(#silverBody1)" stroke="url(#silverRim1)" stroke-width="1.6" stroke-linejoin="round"/>
-          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
-                fill="url(#silverShine1)"/>
-          <path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 22.5 Z"
-                fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/>
-          <path d="M16 38 Q50 44 84 38" fill="none" stroke="#A83226" stroke-width="0.8" stroke-opacity="0.55"/>
-          <text x="50" y="74" text-anchor="middle"
-                font-family="'Source Serif 4', serif" font-size="42" font-weight="600"
-                fill="#0B1220">I</text>
-          <circle cx="50" cy="88" r="2.4" fill="#A83226"/>
-        </svg>
-      </div>
-      <div class="shield-caption">Critical · Tier I</div>
-      <div class="band">Action Required</div>
+  <!-- TIER 1 -->
+  <div class="tier-card t1">
+    <div class="score">320<sup>/1000</sup></div>
+    <div class="shield-row">
+      <svg class="tier-shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5F7FA"/><stop offset="32%" stop-color="#C9D2DC"/><stop offset="52%" stop-color="#8B95A4"/><stop offset="74%" stop-color="#D6DEE8"/><stop offset="100%" stop-color="#6B7585"/></linearGradient><linearGradient id="s1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/><stop offset="100%" stop-color="#000000" stop-opacity="0.18"/></linearGradient><linearGradient id="r1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E9EEF4"/><stop offset="50%" stop-color="#7B8595"/><stop offset="100%" stop-color="#3C4654"/></linearGradient></defs><path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z" fill="none" stroke="#A83226" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#b1)" stroke="url(#r1)" stroke-width="1.6" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#s1)"/><path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z" fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/><path d="M16 38 Q50 44 84 38" fill="none" stroke="#A83226" stroke-width="0.8" stroke-opacity="0.55"/><path d="M50 16 L45 30 L54 42 L47 56 L53 68 L48 82 L51 96" stroke="#1B1620" stroke-width="1.6" fill="none" opacity="0.72" stroke-linecap="round" stroke-linejoin="round"/><path d="M47 42 L39 48 M53 56 L61 62 M48 68 L41 74 M52 82 L58 86" stroke="#1B1620" stroke-width="0.9" fill="none" opacity="0.5" stroke-linecap="round"/><path d="M84 38 L79 44 L86 46 L82 50" stroke="#1B1620" stroke-width="0.8" fill="none" opacity="0.5" stroke-linecap="round"/></svg>
     </div>
+    <div class="shield-caption">Critical · 1 Shield</div>
+    <div class="note">Heavy cracks — action required</div>
+  </div>
 
-    <!-- TIER 2 — Elevated -->
-    <div class="tier-card elevated">
-      <div class="score">480<sup>/1000</sup></div>
-      <div class="shield-wrap">
-        <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" role="img">
-          <defs>
-            <linearGradient id="silverBody2" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#F5F7FA"/>
-              <stop offset="32%" stop-color="#C9D2DC"/>
-              <stop offset="52%" stop-color="#8B95A4"/>
-              <stop offset="74%" stop-color="#D6DEE8"/>
-              <stop offset="100%" stop-color="#6B7585"/>
-            </linearGradient>
-            <linearGradient id="silverShine2" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
-              <stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/>
-              <stop offset="100%" stop-color="#000000" stop-opacity="0.18"/>
-            </linearGradient>
-            <linearGradient id="silverRim2" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#E9EEF4"/>
-              <stop offset="50%" stop-color="#7B8595"/>
-              <stop offset="100%" stop-color="#3C4654"/>
-            </linearGradient>
-          </defs>
-          <path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z"
-                fill="none" stroke="#9A5B14" stroke-width="3.2" stroke-linejoin="round"/>
-          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
-                fill="url(#silverBody2)" stroke="url(#silverRim2)" stroke-width="1.6" stroke-linejoin="round"/>
-          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
-                fill="url(#silverShine2)"/>
-          <path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 22.5 Z"
-                fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/>
-          <path d="M16 38 Q50 44 84 38" fill="none" stroke="#9A5B14" stroke-width="0.8" stroke-opacity="0.55"/>
-          <text x="50" y="74" text-anchor="middle"
-                font-family="'Source Serif 4', serif" font-size="42" font-weight="600"
-                fill="#0B1220">II</text>
-          <circle cx="50" cy="88" r="2.4" fill="#9A5B14"/>
-        </svg>
-      </div>
-      <div class="shield-caption">Elevated · Tier II</div>
-      <div class="band">Monitoring recommended</div>
+  <!-- TIER 2 -->
+  <div class="tier-card t2">
+    <div class="score">480<sup>/1000</sup></div>
+    <div class="shield-row">
+      <svg class="tier-shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b2a" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5F7FA"/><stop offset="32%" stop-color="#C9D2DC"/><stop offset="52%" stop-color="#8B95A4"/><stop offset="74%" stop-color="#D6DEE8"/><stop offset="100%" stop-color="#6B7585"/></linearGradient><linearGradient id="s2a" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/><stop offset="100%" stop-color="#000000" stop-opacity="0.18"/></linearGradient><linearGradient id="r2a" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E9EEF4"/><stop offset="50%" stop-color="#7B8595"/><stop offset="100%" stop-color="#3C4654"/></linearGradient></defs><path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z" fill="none" stroke="#9A5B14" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#b2a)" stroke="url(#r2a)" stroke-width="1.6" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#s2a)"/><path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z" fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/><path d="M16 38 Q50 44 84 38" fill="none" stroke="#9A5B14" stroke-width="0.8" stroke-opacity="0.55"/><path d="M50 22 L46 36 L53 50 L48 64 L51 80" stroke="#262030" stroke-width="1.2" fill="none" opacity="0.55" stroke-linecap="round" stroke-linejoin="round"/><path d="M48 50 L41 56" stroke="#262030" stroke-width="0.8" fill="none" opacity="0.45" stroke-linecap="round"/></svg>
+      <svg class="tier-shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b2b" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5F7FA"/><stop offset="32%" stop-color="#C9D2DC"/><stop offset="52%" stop-color="#8B95A4"/><stop offset="74%" stop-color="#D6DEE8"/><stop offset="100%" stop-color="#6B7585"/></linearGradient><linearGradient id="s2b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/><stop offset="100%" stop-color="#000000" stop-opacity="0.18"/></linearGradient><linearGradient id="r2b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E9EEF4"/><stop offset="50%" stop-color="#7B8595"/><stop offset="100%" stop-color="#3C4654"/></linearGradient></defs><path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z" fill="none" stroke="#9A5B14" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#b2b)" stroke="url(#r2b)" stroke-width="1.6" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#s2b)"/><path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z" fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/><path d="M16 38 Q50 44 84 38" fill="none" stroke="#9A5B14" stroke-width="0.8" stroke-opacity="0.55"/><path d="M50 22 L46 36 L53 50 L48 64 L51 80" stroke="#262030" stroke-width="1.2" fill="none" opacity="0.55" stroke-linecap="round" stroke-linejoin="round"/><path d="M48 50 L41 56" stroke="#262030" stroke-width="0.8" fill="none" opacity="0.45" stroke-linecap="round"/></svg>
     </div>
+    <div class="shield-caption">Elevated · 2 Shields</div>
+    <div class="note">Moderate crack — monitoring recommended</div>
+  </div>
 
-    <!-- TIER 3 — Moderate -->
-    <div class="tier-card moderate">
-      <div class="score">620<sup>/1000</sup></div>
-      <div class="shield-wrap">
-        <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" role="img">
-          <defs>
-            <linearGradient id="silverBody3" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#F5F7FA"/>
-              <stop offset="32%" stop-color="#C9D2DC"/>
-              <stop offset="52%" stop-color="#8B95A4"/>
-              <stop offset="74%" stop-color="#D6DEE8"/>
-              <stop offset="100%" stop-color="#6B7585"/>
-            </linearGradient>
-            <linearGradient id="silverShine3" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
-              <stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/>
-              <stop offset="100%" stop-color="#000000" stop-opacity="0.18"/>
-            </linearGradient>
-            <linearGradient id="silverRim3" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#E9EEF4"/>
-              <stop offset="50%" stop-color="#7B8595"/>
-              <stop offset="100%" stop-color="#3C4654"/>
-            </linearGradient>
-          </defs>
-          <path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z"
-                fill="none" stroke="#2B5F8A" stroke-width="3.2" stroke-linejoin="round"/>
-          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
-                fill="url(#silverBody3)" stroke="url(#silverRim3)" stroke-width="1.6" stroke-linejoin="round"/>
-          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
-                fill="url(#silverShine3)"/>
-          <path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 22.5 Z"
-                fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/>
-          <path d="M16 38 Q50 44 84 38" fill="none" stroke="#2B5F8A" stroke-width="0.8" stroke-opacity="0.55"/>
-          <text x="50" y="74" text-anchor="middle"
-                font-family="'Source Serif 4', serif" font-size="42" font-weight="600"
-                fill="#0B1220">III</text>
-          <circle cx="50" cy="88" r="2.4" fill="#2B5F8A"/>
-        </svg>
-      </div>
-      <div class="shield-caption">Moderate · Tier III</div>
-      <div class="band">Periodic review</div>
+  <!-- TIER 3 -->
+  <div class="tier-card t3">
+    <div class="score">620<sup>/1000</sup></div>
+    <div class="shield-row">
+      <svg class="tier-shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b3a" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5F7FA"/><stop offset="32%" stop-color="#C9D2DC"/><stop offset="52%" stop-color="#8B95A4"/><stop offset="74%" stop-color="#D6DEE8"/><stop offset="100%" stop-color="#6B7585"/></linearGradient><linearGradient id="s3a" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/><stop offset="100%" stop-color="#000000" stop-opacity="0.18"/></linearGradient><linearGradient id="r3a" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E9EEF4"/><stop offset="50%" stop-color="#7B8595"/><stop offset="100%" stop-color="#3C4654"/></linearGradient></defs><path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z" fill="none" stroke="#2B5F8A" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#b3a)" stroke="url(#r3a)" stroke-width="1.6" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#s3a)"/><path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z" fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/><path d="M16 38 Q50 44 84 38" fill="none" stroke="#2B5F8A" stroke-width="0.8" stroke-opacity="0.55"/><path d="M84 44 L80 48 L85 50" stroke="#4A4452" stroke-width="0.7" fill="none" opacity="0.4" stroke-linecap="round"/></svg>
+      <svg class="tier-shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b3b" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5F7FA"/><stop offset="32%" stop-color="#C9D2DC"/><stop offset="52%" stop-color="#8B95A4"/><stop offset="74%" stop-color="#D6DEE8"/><stop offset="100%" stop-color="#6B7585"/></linearGradient><linearGradient id="s3b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/><stop offset="100%" stop-color="#000000" stop-opacity="0.18"/></linearGradient><linearGradient id="r3b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E9EEF4"/><stop offset="50%" stop-color="#7B8595"/><stop offset="100%" stop-color="#3C4654"/></linearGradient></defs><path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z" fill="none" stroke="#2B5F8A" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#b3b)" stroke="url(#r3b)" stroke-width="1.6" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#s3b)"/><path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z" fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/><path d="M16 38 Q50 44 84 38" fill="none" stroke="#2B5F8A" stroke-width="0.8" stroke-opacity="0.55"/><path d="M84 44 L80 48 L85 50" stroke="#4A4452" stroke-width="0.7" fill="none" opacity="0.4" stroke-linecap="round"/></svg>
+      <svg class="tier-shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b3c" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5F7FA"/><stop offset="32%" stop-color="#C9D2DC"/><stop offset="52%" stop-color="#8B95A4"/><stop offset="74%" stop-color="#D6DEE8"/><stop offset="100%" stop-color="#6B7585"/></linearGradient><linearGradient id="s3c" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/><stop offset="100%" stop-color="#000000" stop-opacity="0.18"/></linearGradient><linearGradient id="r3c" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E9EEF4"/><stop offset="50%" stop-color="#7B8595"/><stop offset="100%" stop-color="#3C4654"/></linearGradient></defs><path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z" fill="none" stroke="#2B5F8A" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#b3c)" stroke="url(#r3c)" stroke-width="1.6" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#s3c)"/><path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z" fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/><path d="M16 38 Q50 44 84 38" fill="none" stroke="#2B5F8A" stroke-width="0.8" stroke-opacity="0.55"/><path d="M84 44 L80 48 L85 50" stroke="#4A4452" stroke-width="0.7" fill="none" opacity="0.4" stroke-linecap="round"/></svg>
     </div>
+    <div class="shield-caption">Moderate · 3 Shields</div>
+    <div class="note">Small edge chip — periodic review</div>
+  </div>
 
-    <!-- TIER 4 — Strong -->
-    <div class="tier-card strong">
-      <div class="score">780<sup>/1000</sup></div>
-      <div class="shield-wrap">
-        <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" role="img">
-          <defs>
-            <linearGradient id="silverBody4" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#F5F7FA"/>
-              <stop offset="32%" stop-color="#C9D2DC"/>
-              <stop offset="52%" stop-color="#8B95A4"/>
-              <stop offset="74%" stop-color="#D6DEE8"/>
-              <stop offset="100%" stop-color="#6B7585"/>
-            </linearGradient>
-            <linearGradient id="silverShine4" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
-              <stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/>
-              <stop offset="100%" stop-color="#000000" stop-opacity="0.18"/>
-            </linearGradient>
-            <linearGradient id="silverRim4" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#E9EEF4"/>
-              <stop offset="50%" stop-color="#7B8595"/>
-              <stop offset="100%" stop-color="#3C4654"/>
-            </linearGradient>
-          </defs>
-          <path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z"
-                fill="none" stroke="#3B7A57" stroke-width="3.2" stroke-linejoin="round"/>
-          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
-                fill="url(#silverBody4)" stroke="url(#silverRim4)" stroke-width="1.6" stroke-linejoin="round"/>
-          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
-                fill="url(#silverShine4)"/>
-          <path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 22.5 Z"
-                fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/>
-          <path d="M16 38 Q50 44 84 38" fill="none" stroke="#3B7A57" stroke-width="0.8" stroke-opacity="0.55"/>
-          <text x="50" y="74" text-anchor="middle"
-                font-family="'Source Serif 4', serif" font-size="42" font-weight="600"
-                fill="#0B1220">IV</text>
-          <circle cx="50" cy="88" r="2.4" fill="#3B7A57"/>
-        </svg>
-      </div>
-      <div class="shield-caption">Strong · Tier IV</div>
-      <div class="band">Maintain posture</div>
+  <!-- TIER 4 -->
+  <div class="tier-card t4">
+    <div class="score">780<sup>/1000</sup></div>
+    <div class="shield-row">
+      <svg class="tier-shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b4a" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5F7FA"/><stop offset="32%" stop-color="#C9D2DC"/><stop offset="52%" stop-color="#8B95A4"/><stop offset="74%" stop-color="#D6DEE8"/><stop offset="100%" stop-color="#6B7585"/></linearGradient><linearGradient id="s4a" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/><stop offset="100%" stop-color="#000000" stop-opacity="0.18"/></linearGradient><linearGradient id="r4a" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E9EEF4"/><stop offset="50%" stop-color="#7B8595"/><stop offset="100%" stop-color="#3C4654"/></linearGradient></defs><path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z" fill="none" stroke="#3B7A57" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#b4a)" stroke="url(#r4a)" stroke-width="1.6" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#s4a)"/><path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z" fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/><path d="M16 38 Q50 44 84 38" fill="none" stroke="#3B7A57" stroke-width="0.8" stroke-opacity="0.55"/></svg>
+      <svg class="tier-shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b4b" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5F7FA"/><stop offset="32%" stop-color="#C9D2DC"/><stop offset="52%" stop-color="#8B95A4"/><stop offset="74%" stop-color="#D6DEE8"/><stop offset="100%" stop-color="#6B7585"/></linearGradient><linearGradient id="s4b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/><stop offset="100%" stop-color="#000000" stop-opacity="0.18"/></linearGradient><linearGradient id="r4b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E9EEF4"/><stop offset="50%" stop-color="#7B8595"/><stop offset="100%" stop-color="#3C4654"/></linearGradient></defs><path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z" fill="none" stroke="#3B7A57" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#b4b)" stroke="url(#r4b)" stroke-width="1.6" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#s4b)"/><path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z" fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/><path d="M16 38 Q50 44 84 38" fill="none" stroke="#3B7A57" stroke-width="0.8" stroke-opacity="0.55"/></svg>
+      <svg class="tier-shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b4c" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5F7FA"/><stop offset="32%" stop-color="#C9D2DC"/><stop offset="52%" stop-color="#8B95A4"/><stop offset="74%" stop-color="#D6DEE8"/><stop offset="100%" stop-color="#6B7585"/></linearGradient><linearGradient id="s4c" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/><stop offset="100%" stop-color="#000000" stop-opacity="0.18"/></linearGradient><linearGradient id="r4c" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E9EEF4"/><stop offset="50%" stop-color="#7B8595"/><stop offset="100%" stop-color="#3C4654"/></linearGradient></defs><path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z" fill="none" stroke="#3B7A57" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#b4c)" stroke="url(#r4c)" stroke-width="1.6" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#s4c)"/><path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z" fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/><path d="M16 38 Q50 44 84 38" fill="none" stroke="#3B7A57" stroke-width="0.8" stroke-opacity="0.55"/></svg>
+      <svg class="tier-shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b4d" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5F7FA"/><stop offset="32%" stop-color="#C9D2DC"/><stop offset="52%" stop-color="#8B95A4"/><stop offset="74%" stop-color="#D6DEE8"/><stop offset="100%" stop-color="#6B7585"/></linearGradient><linearGradient id="s4d" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/><stop offset="100%" stop-color="#000000" stop-opacity="0.18"/></linearGradient><linearGradient id="r4d" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E9EEF4"/><stop offset="50%" stop-color="#7B8595"/><stop offset="100%" stop-color="#3C4654"/></linearGradient></defs><path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z" fill="none" stroke="#3B7A57" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#b4d)" stroke="url(#r4d)" stroke-width="1.6" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#s4d)"/><path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z" fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/><path d="M16 38 Q50 44 84 38" fill="none" stroke="#3B7A57" stroke-width="0.8" stroke-opacity="0.55"/></svg>
     </div>
+    <div class="shield-caption">Strong · 4 Shields</div>
+    <div class="note">Clean — maintain posture</div>
+  </div>
 
-    <!-- TIER 5 — Exceptional -->
-    <div class="tier-card exceptional">
-      <div class="score">930<sup>/1000</sup></div>
-      <div class="shield-wrap">
-        <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" role="img">
-          <defs>
-            <linearGradient id="silverBody5" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#F5F7FA"/>
-              <stop offset="32%" stop-color="#C9D2DC"/>
-              <stop offset="52%" stop-color="#8B95A4"/>
-              <stop offset="74%" stop-color="#D6DEE8"/>
-              <stop offset="100%" stop-color="#6B7585"/>
-            </linearGradient>
-            <linearGradient id="silverShine5" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
-              <stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/>
-              <stop offset="100%" stop-color="#000000" stop-opacity="0.18"/>
-            </linearGradient>
-            <linearGradient id="silverRim5" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#E9EEF4"/>
-              <stop offset="50%" stop-color="#7B8595"/>
-              <stop offset="100%" stop-color="#3C4654"/>
-            </linearGradient>
-          </defs>
-          <path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z"
-                fill="none" stroke="#5B4B8A" stroke-width="3.2" stroke-linejoin="round"/>
-          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
-                fill="url(#silverBody5)" stroke="url(#silverRim5)" stroke-width="1.6" stroke-linejoin="round"/>
-          <path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z"
-                fill="url(#silverShine5)"/>
-          <path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 22.5 Z"
-                fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/>
-          <path d="M16 38 Q50 44 84 38" fill="none" stroke="#5B4B8A" stroke-width="0.8" stroke-opacity="0.55"/>
-          <text x="50" y="74" text-anchor="middle"
-                font-family="'Source Serif 4', serif" font-size="42" font-weight="600"
-                fill="#0B1220">V</text>
-          <circle cx="50" cy="88" r="2.4" fill="#5B4B8A"/>
-        </svg>
-      </div>
-      <div class="shield-caption">Exceptional · Tier V</div>
-      <div class="band">Exemplary posture</div>
+  <!-- TIER 5 -->
+  <div class="tier-card t5">
+    <div class="score">930<sup>/1000</sup></div>
+    <div class="shield-row">
+      <svg class="tier-shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b5a" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5F7FA"/><stop offset="32%" stop-color="#C9D2DC"/><stop offset="52%" stop-color="#8B95A4"/><stop offset="74%" stop-color="#D6DEE8"/><stop offset="100%" stop-color="#6B7585"/></linearGradient><linearGradient id="s5a" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/><stop offset="100%" stop-color="#000000" stop-opacity="0.18"/></linearGradient><linearGradient id="r5a" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E9EEF4"/><stop offset="50%" stop-color="#7B8595"/><stop offset="100%" stop-color="#3C4654"/></linearGradient></defs><path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z" fill="none" stroke="#5B4B8A" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#b5a)" stroke="url(#r5a)" stroke-width="1.6" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#s5a)"/><path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z" fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/><path d="M16 38 Q50 44 84 38" fill="none" stroke="#5B4B8A" stroke-width="0.8" stroke-opacity="0.55"/><path d="M38 22 Q50 26 62 22" stroke="#FFFFFF" stroke-width="1" fill="none" opacity="0.55" stroke-linecap="round"/><path d="M42 30 Q50 33 58 30" stroke="#FFFFFF" stroke-width="0.6" fill="none" opacity="0.35" stroke-linecap="round"/></svg>
+      <svg class="tier-shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b5b" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5F7FA"/><stop offset="32%" stop-color="#C9D2DC"/><stop offset="52%" stop-color="#8B95A4"/><stop offset="74%" stop-color="#D6DEE8"/><stop offset="100%" stop-color="#6B7585"/></linearGradient><linearGradient id="s5b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/><stop offset="100%" stop-color="#000000" stop-opacity="0.18"/></linearGradient><linearGradient id="r5b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E9EEF4"/><stop offset="50%" stop-color="#7B8595"/><stop offset="100%" stop-color="#3C4654"/></linearGradient></defs><path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z" fill="none" stroke="#5B4B8A" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#b5b)" stroke="url(#r5b)" stroke-width="1.6" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#s5b)"/><path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z" fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/><path d="M16 38 Q50 44 84 38" fill="none" stroke="#5B4B8A" stroke-width="0.8" stroke-opacity="0.55"/><path d="M38 22 Q50 26 62 22" stroke="#FFFFFF" stroke-width="1" fill="none" opacity="0.55" stroke-linecap="round"/><path d="M42 30 Q50 33 58 30" stroke="#FFFFFF" stroke-width="0.6" fill="none" opacity="0.35" stroke-linecap="round"/></svg>
+      <svg class="tier-shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b5c" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5F7FA"/><stop offset="32%" stop-color="#C9D2DC"/><stop offset="52%" stop-color="#8B95A4"/><stop offset="74%" stop-color="#D6DEE8"/><stop offset="100%" stop-color="#6B7585"/></linearGradient><linearGradient id="s5c" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/><stop offset="100%" stop-color="#000000" stop-opacity="0.18"/></linearGradient><linearGradient id="r5c" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E9EEF4"/><stop offset="50%" stop-color="#7B8595"/><stop offset="100%" stop-color="#3C4654"/></linearGradient></defs><path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z" fill="none" stroke="#5B4B8A" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#b5c)" stroke="url(#r5c)" stroke-width="1.6" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#s5c)"/><path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z" fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/><path d="M16 38 Q50 44 84 38" fill="none" stroke="#5B4B8A" stroke-width="0.8" stroke-opacity="0.55"/><path d="M38 22 Q50 26 62 22" stroke="#FFFFFF" stroke-width="1" fill="none" opacity="0.55" stroke-linecap="round"/><path d="M42 30 Q50 33 58 30" stroke="#FFFFFF" stroke-width="0.6" fill="none" opacity="0.35" stroke-linecap="round"/></svg>
+      <svg class="tier-shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b5d" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5F7FA"/><stop offset="32%" stop-color="#C9D2DC"/><stop offset="52%" stop-color="#8B95A4"/><stop offset="74%" stop-color="#D6DEE8"/><stop offset="100%" stop-color="#6B7585"/></linearGradient><linearGradient id="s5d" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/><stop offset="100%" stop-color="#000000" stop-opacity="0.18"/></linearGradient><linearGradient id="r5d" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E9EEF4"/><stop offset="50%" stop-color="#7B8595"/><stop offset="100%" stop-color="#3C4654"/></linearGradient></defs><path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z" fill="none" stroke="#5B4B8A" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#b5d)" stroke="url(#r5d)" stroke-width="1.6" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#s5d)"/><path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z" fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/><path d="M16 38 Q50 44 84 38" fill="none" stroke="#5B4B8A" stroke-width="0.8" stroke-opacity="0.55"/><path d="M38 22 Q50 26 62 22" stroke="#FFFFFF" stroke-width="1" fill="none" opacity="0.55" stroke-linecap="round"/><path d="M42 30 Q50 33 58 30" stroke="#FFFFFF" stroke-width="0.6" fill="none" opacity="0.35" stroke-linecap="round"/></svg>
+      <svg class="tier-shield" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b5e" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5F7FA"/><stop offset="32%" stop-color="#C9D2DC"/><stop offset="52%" stop-color="#8B95A4"/><stop offset="74%" stop-color="#D6DEE8"/><stop offset="100%" stop-color="#6B7585"/></linearGradient><linearGradient id="s5e" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.04"/><stop offset="100%" stop-color="#000000" stop-opacity="0.18"/></linearGradient><linearGradient id="r5e" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E9EEF4"/><stop offset="50%" stop-color="#7B8595"/><stop offset="100%" stop-color="#3C4654"/></linearGradient></defs><path d="M50 3 L93 17 L93 60 Q93 93 50 117 Q7 93 7 60 L7 17 Z" fill="none" stroke="#5B4B8A" stroke-width="3.2" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#b5e)" stroke="url(#r5e)" stroke-width="1.6" stroke-linejoin="round"/><path d="M50 7 L88.5 19.5 L88.5 60 Q88.5 90 50 112.5 Q11.5 90 11.5 60 L11.5 19.5 Z" fill="url(#s5e)"/><path d="M50 12 L84 22.5 L84 60 Q84 87 50 107.5 Q16 87 16 60 L16 22.5 Z" fill="none" stroke="#FFFFFF" stroke-width="0.6" stroke-opacity="0.35" stroke-linejoin="round"/><path d="M16 38 Q50 44 84 38" fill="none" stroke="#5B4B8A" stroke-width="0.8" stroke-opacity="0.55"/><path d="M38 22 Q50 26 62 22" stroke="#FFFFFF" stroke-width="1" fill="none" opacity="0.55" stroke-linecap="round"/><path d="M42 30 Q50 33 58 30" stroke="#FFFFFF" stroke-width="0.6" fill="none" opacity="0.35" stroke-linecap="round"/></svg>
     </div>
-
+    <div class="shield-caption">Exceptional · 5 Shields</div>
+    <div class="note">Pristine with gleam — exemplary posture</div>
   </div>
 
   <div class="legend">
-    <p>The shield body uses the same chrome-silver gradient for every tier — only the <strong>accent ring</strong>,
-    the <strong>divider band</strong>, and the <strong>dot beneath the numeral</strong> take the tier color.
-    Tier boundaries: I &lt;400 · II 400–549 · III 550–699 · IV 700–849 · V 850–1000.</p>
+    <p><b>Shield count = tier number.</b> One shield for tier I (Critical), five for tier V (Exceptional).
+    Low tiers show <b>cracks and fractures</b> (warning damage); tier III shows a small edge chip; tiers IV–V are <b>pristine</b>, with tier V carrying a white gleam accent. The chrome-silver body is identical across all tiers — only the accent ring color and damage state change.</p>
   </div>
 </body>
 </html>
