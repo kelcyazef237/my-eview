@@ -90,9 +90,12 @@ export function AdminDashboard() {
   const [orgQuery, setOrgQuery] = useState('')
   const [orgSearch, setOrgSearch] = useState('')
   const [orgLoading, setOrgLoading] = useState(false)
-  const ORG_LIMIT = 20
+  const [showAllOrgs, setShowAllOrgs] = useState(false)
+  const ORG_LIMIT = 5
+  const ORG_LIMIT_ALL = 100
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [scanRuns, setScanRuns] = useState<AdminScanRun[]>([])
+  const [showAllScans, setShowAllScans] = useState(false)
   const [loading, setLoading] = useState(true)
   const [actionError, setActionError] = useState('')
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -124,10 +127,10 @@ export function AdminDashboard() {
   }, [])
 
   const fetchOrgs = useCallback(
-    async (q: string, offset: number, append: boolean) => {
+    async (q: string, offset: number, append: boolean, limit?: number) => {
       setOrgLoading(true)
       try {
-        const page = await api.admin.orgs({ q: q || undefined, limit: ORG_LIMIT, offset })
+        const page = await api.admin.orgs({ q: q || undefined, limit: limit ?? ORG_LIMIT, offset })
         setOrgs((prev) => (append ? [...prev, ...page.items] : page.items))
         setOrgTotal(page.total)
       } catch (err) {
@@ -145,11 +148,22 @@ export function AdminDashboard() {
     fetchOrgs('', 0, false)
   }, [refreshAll, fetchOrgs])
 
+  const handleToggleAllOrgs = () => {
+    if (showAllOrgs) {
+      setShowAllOrgs(false)
+      fetchOrgs(orgSearch, 0, false, ORG_LIMIT)
+    } else {
+      setShowAllOrgs(true)
+      fetchOrgs(orgSearch, 0, false, ORG_LIMIT_ALL)
+    }
+  }
+
   useEffect(() => {
     if (searchDebounce.current) clearTimeout(searchDebounce.current)
     searchDebounce.current = setTimeout(() => {
       setOrgSearch(orgQuery)
-      fetchOrgs(orgQuery, 0, false)
+      setShowAllOrgs(false)
+      fetchOrgs(orgQuery, 0, false, ORG_LIMIT)
     }, 300)
     return () => {
       if (searchDebounce.current) clearTimeout(searchDebounce.current)
@@ -560,7 +574,7 @@ export function AdminDashboard() {
               <span className="dot dot-cyan" />
               <span>module :: organizations</span>
             </div>
-            <span className="num text-[var(--text-muted)]">▸ {orgs.length} / {orgTotal} shown</span>
+            <span className="num text-[var(--text-muted)]">▸ {Math.min(orgs.length, orgTotal)} / {orgTotal}</span>
           </div>
           <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border)]">
             <input
@@ -641,16 +655,16 @@ export function AdminDashboard() {
               </tbody>
             </table>
           </div>
-          {orgs.length < orgTotal && (
+          {orgTotal > ORG_LIMIT && (
             <div className="px-4 py-3 border-t border-[var(--border)] flex justify-center">
               <button
                 type="button"
-                onClick={() => fetchOrgs(orgSearch, orgs.length, true)}
+                onClick={handleToggleAllOrgs}
                 disabled={orgLoading}
                 className="btn-ghost"
               >
-                {orgLoading ? <Loader2 className="animate-spin" size={11} /> : <RefreshCw size={11} />}
-                Load more ({orgTotal - orgs.length} remaining)
+                {orgLoading ? <Loader2 className="animate-spin" size={11} /> : null}
+                {showAllOrgs ? 'Show Less' : `View All (${orgTotal})`}
               </button>
             </div>
           )}
@@ -662,7 +676,7 @@ export function AdminDashboard() {
               <span className="dot dot-magenta" />
               <span>module :: recent.scan-runs</span>
             </div>
-            <span className="num text-[var(--text-muted)]">last 50 · click row → dashboard</span>
+            <span className="num text-[var(--text-muted)]">▸ {showAllScans ? scanRuns.length : Math.min(5, scanRuns.length)} / {scanRuns.length}</span>
           </div>
           <div className="overflow-x-auto">
             <table className="hud-table">
@@ -679,7 +693,7 @@ export function AdminDashboard() {
                 {scanRuns.length === 0 ? (
                   <tr><td colSpan={5} className="px-5 py-8 text-center num text-[12px] uppercase tracking-[0.14em] text-[var(--text-muted)]">▸ no scans yet</td></tr>
                 ) : (
-                  scanRuns.map((r) => (
+                  (showAllScans ? scanRuns : scanRuns.slice(0, 5)).map((r) => (
                     <tr key={r.id} className="cursor-pointer" onClick={() => goToOrgDashboard(r.org_id)}>
                       <td className="font-medium text-white">{r.domain}</td>
                       <td>
@@ -738,6 +752,17 @@ export function AdminDashboard() {
               </tbody>
             </table>
           </div>
+          {scanRuns.length > 5 && (
+            <div className="px-4 py-3 border-t border-[var(--border)] flex justify-center">
+              <button
+                type="button"
+                onClick={() => setShowAllScans((v) => !v)}
+                className="btn-ghost"
+              >
+                {showAllScans ? 'Show Less' : `View All (${scanRuns.length})`}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
