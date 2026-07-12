@@ -31,6 +31,7 @@ from sqlalchemy.orm import Session
 from app.models.app_setting import AppSetting
 from app.models.scan_run import ScanRun
 from app.models.score import Score
+from app.sector_config import regulations_for_sector, sector_label
 
 logger = logging.getLogger("myeview.ai_report")
 
@@ -157,6 +158,11 @@ def build_scan_summary(db: Session, scan_run_id: str) -> dict[str, Any]:
             "name": org.name,
             "domain": org.primary_domain,
             "sector": org.sector,
+            "sector_label": sector_label(org.sector),
+            "applicable_regulations": [
+                {"short": r["short"], "title": r["title"], "tia_ref": r["tia_ref"]}
+                for r in regulations_for_sector(org.sector)
+            ],
         },
         "scan": {
             "id": str(run.id),
@@ -261,7 +267,16 @@ RULES:
 - Be SPECIFIC and TECHNICAL in technical_observation — quote the actual evidence (exact header values, TLS versions, DNS records). Be INSTITUTIONAL in business_impact and conclusion.
 - In recommended_action, provide CONCRETE fixes with actual config directives or DNS record formats, not vague advice.
 - scan_quality_notes: Be honest about what the scan couldn't determine. If a collector returned empty data, say so. This helps the reader understand the confidence level.
-- regulatory_relevance: Reference Cameroon laws specifically when applicable (ANTIC 2010/012 for cybersecurity, Law 2024/017 for data protection, COBAC for financial institutions).
+- regulatory_relevance: Reference Cameroon laws and sector-specific regulations based on the organization's sector. Always include the universal baseline (ANTIC 2010/012 for cybersecurity, Law 2024/017 for data protection). Additionally, when the sector is:
+  - "finance": also cite COBAC operational risk obligations and PCI DSS (Req 4 for transmission security, Req 6 for secure systems) if card data is handled.
+  - "fintech": also cite COBAC R-04/18 (payment services), PCI DSS SAQ-A (TLS on payment pages), and the MINFI 2024 e-payment decree (local hosting).
+  - "health": also cite HIPAA Security Rule §164.312 (transmission security, access control) and ISO 27799 (health information security) as global references.
+  - "education": also cite FERPA (student record protection) and ISO 27001/27002 Annex A (network security, cryptography) as global references.
+  - "telecom": also cite ITU-T X.805 (telecom security architecture) and ISO 27011 (subscriber data protection).
+  - "ecommerce": also cite PCI DSS (Req 4 transmission, Req 6 secure apps) and OWASP ASVS (V9 transport, V2 authentication).
+  - "government": also cite NIST SP 800-53 Rev 5 (SC-8 transmission, SC-7 boundary) and ISO 27001/27002 (A.5.12 classification, A.8.20 network security).
+  - "general": use only the universal baseline (ANTIC 2010/012, Law 2024/017).
+  Keep regulatory citations concise — 1-2 per finding, not exhaustive. If no sector regulation is directly relevant, state "Low".
 - Output ONLY the JSON. No markdown, no explanation, no text before or after."""
 
 

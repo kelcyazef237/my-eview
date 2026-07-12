@@ -137,7 +137,7 @@ export function ReportPage() {
           </div>
           <h1 className="display-title text-3xl gradient-text">Report Center</h1>
           <p className="num mt-1 text-[12px] uppercase tracking-[0.14em] text-[var(--text-secondary)]">
-            ▸ {data.org.name} <span className="text-[var(--neon-magenta)]">·</span> {data.org.domain}
+            ▸ {data.org.name} <span className="text-[var(--neon-magenta)]">·</span> {data.org.domain}{data.org.sector && data.org.sector !== 'general' ? <span className="text-[var(--neon-violet)]"> · {data.org.sector.replace('_', ' ')}</span> : null}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

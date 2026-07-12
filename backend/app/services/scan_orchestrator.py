@@ -334,7 +334,7 @@ async def run_scan(db: Session, domain: str, is_full_report: bool = False) -> Sc
         category_vector_states.setdefault(cat_key, {})[vec_key] = finding
 
     engine = TemplateEngine()
-    tia_results = engine.render_all(org.name, domain, category_vector_states)
+    tia_results = engine.render_all(org.name, domain, category_vector_states, sector=org.sector)
     for cat_key, tia in tia_results.items():
         cat_id = next(c["id"] for c in CATEGORY_ROWS if c["key"] == cat_key)
         db.add(TiaEntry(

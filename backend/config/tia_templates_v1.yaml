@@ -20,7 +20,7 @@ templates:
         <p>For a financial or cooperative institution, member trust is foundational; a single successful impersonation incident can materially damage that relationship and invite regulatory scrutiny.</p>
       stakeholders_affected: [Customers, Employees, Business Partners, Regulators]
       regulatory_relevance: |
-        Relevant to electronic communications security and cybersecurity audit expectations under ANTIC Law No. 2010/012 and COBAC operational risk management obligations. {{ regulatory_disclaimer }}
+        Relevant to electronic communications security and cybersecurity audit expectations under {{ sector_regulations }}. {{ regulatory_disclaimer }}
       recommended_action: |
         Ensure SPF and DKIM are correctly configured, then transition DMARC to p=reject after validating all legitimate mail sources.
     clean:
@@ -31,7 +31,7 @@ templates:
         <p>With SPF, DKIM, and DMARC correctly configured, the organization materially reduces the risk of email impersonation and protects customer, staff, and partner confidence in outbound communications.</p>
       stakeholders_affected: [Customers, Employees, Business Partners]
       regulatory_relevance: |
-        Consistent with electronic communications security expectations under ANTIC Law No. 2010/012. {{ regulatory_disclaimer }}
+        Consistent with electronic communications security expectations under {{ sector_regulations }}. {{ regulatory_disclaimer }}
       recommended_action: |
         Maintain DMARC at p=reject, monitor aggregate reports regularly, and keep SPF/DKIM alignments up to date as mail sources change.
 
@@ -50,7 +50,7 @@ templates:
         <p>Unrestricted zone transfers expose the complete DNS infrastructure map — every record, subdomain, and internal host — to anyone who asks, enabling targeted attacks against discovered services.</p>
       stakeholders_affected: [Customers, Business Partners, Regulators, IT Security Team]
       regulatory_relevance: |
-        Relevant to system integrity and continuity obligations under ANTIC Law No. 2010/012. {{ regulatory_disclaimer }}
+        Relevant to system integrity and continuity obligations under {{ sector_regulations }}. {{ regulatory_disclaimer }}
       recommended_action: |
         Renew the domain for the longest practical term, enable auto-renewal, and deploy DNSSEC with the registrar or DNS provider.
     clean:
@@ -61,7 +61,7 @@ templates:
         <p>A mature registration and healthy expiration horizon reduce the risk of identity loss or disruption, while DNSSEC helps protect visitors from DNS-based redirection attacks.</p>
       stakeholders_affected: [Customers, Business Partners]
       regulatory_relevance: |
-        Consistent with continuity and system integrity expectations under ANTIC Law No. 2010/012. {{ regulatory_disclaimer }}
+        Consistent with continuity and system integrity expectations under {{ sector_regulations }}. {{ regulatory_disclaimer }}
       recommended_action: |
         Keep auto-renewal enabled and monitor DNSSEC chain validity periodically.
 
@@ -80,7 +80,7 @@ templates:
         <p>These weaknesses are visible to any visitor and can trigger browser warnings that erode member and customer confidence.</p>
       stakeholders_affected: [Customers, Employees, Regulators]
       regulatory_relevance: |
-        Relevant to information system integrity and access-control expectations under COBAC operational risk management obligations and ANTIC Law No. 2010/012. {{ regulatory_disclaimer }}
+        Relevant to information system integrity and access-control expectations under {{ sector_regulations }}. {{ regulatory_disclaimer }}
       recommended_action: |
         Disable legacy TLS versions, renew or replace the certificate before expiry, add HSTS and CSP headers, and remove or restrict public access to administrative paths.
     clean:
@@ -91,7 +91,7 @@ templates:
         <p>Strong transport-layer defaults reduce the risk of interception, downgrade attacks, and unauthorized access to management interfaces.</p>
       stakeholders_affected: [Customers, Employees]
       regulatory_relevance: |
-        Consistent with access-control and system-integrity expectations under COBAC operational risk management obligations. {{ regulatory_disclaimer }}
+        Consistent with access-control and system-integrity expectations under {{ sector_regulations }}. {{ regulatory_disclaimer }}
       recommended_action: |
         Continue monitoring certificate expiry and header coverage on every deploy.
 
@@ -108,7 +108,7 @@ templates:
         <p>Legacy plaintext services expose credentials and commands to passive network observers and are disproportionately targeted by automated scans.</p>
       stakeholders_affected: [Employees, Customers, Regulators]
       regulatory_relevance: |
-        Relevant to technical and organizational security measures under Law No. 2024/017 (Data Protection), Arts. 22 and 27. {{ regulatory_disclaimer }}
+        Relevant to technical and organizational security measures under {{ sector_regulations }}. {{ regulatory_disclaimer }}
       recommended_action: |
         Upgrade or replace end-of-life components, apply current patches, and remove unencrypted remote-management services from the public perimeter.
     clean:
@@ -119,7 +119,7 @@ templates:
         <p>Running supported, reasonably current software reduces the window of exposure to known vulnerabilities and demonstrates operational discipline.</p>
       stakeholders_affected: [Employees, Customers]
       regulatory_relevance: |
-        Consistent with technical security expectations under Law No. 2024/017 (Data Protection). {{ regulatory_disclaimer }}
+        Consistent with technical security expectations under {{ sector_regulations }}. {{ regulatory_disclaimer }}
       recommended_action: |
         Maintain a patch-management cadence and review exposed services quarterly.
 
@@ -138,7 +138,7 @@ templates:
         <p>These signals directly affect email deliverability, brand trust, and the likelihood of customer-facing blocks by browsers and security products.</p>
       stakeholders_affected: [Customers, Business Partners, Regulators]
       regulatory_relevance: |
-        Relevant to cybersecurity incident and electronic communications security obligations under ANTIC Law No. 2010/012, Arts. 13, 14, and 32. {{ regulatory_disclaimer }}
+        Relevant to cybersecurity incident and electronic communications security obligations under {{ sector_regulations }}. {{ regulatory_disclaimer }}
       recommended_action: |
         Investigate each listing source, remediate the root cause, request delisting after confirming cleanup, and review mail and web hosting hygiene.
     clean:
@@ -149,7 +149,7 @@ templates:
         <p>A clean threat-intel profile reduces the probability that customers or partners will encounter security warnings or blocks when interacting with the organization online.</p>
       stakeholders_affected: [Customers, Business Partners]
       regulatory_relevance: |
-        Consistent with proactive threat-exposure management under ANTIC Law No. 2010/012. {{ regulatory_disclaimer }}
+        Consistent with proactive threat-exposure management under {{ sector_regulations }}. {{ regulatory_disclaimer }}
       recommended_action: |
         Continue periodic threat-feed monitoring and retain logs that support rapid investigation if a future signal appears.
 
@@ -166,7 +166,7 @@ templates:
         <p>Shadow assets are more likely to run outdated software, lack oversight, and become the path of least resistance for an attacker.</p>
       stakeholders_affected: [Employees, Customers, Regulators]
       regulatory_relevance: |
-        Relevant to information system governance and risk management expectations under COBAC operational risk management obligations. {{ regulatory_disclaimer }}
+        Relevant to information system governance and risk management expectations under {{ sector_regulations }}. {{ regulatory_disclaimer }}
       recommended_action: |
         Maintain an authoritative asset inventory, decommission unused subdomains, and apply the same patching and monitoring standards to all discovered assets.
     clean:
@@ -177,7 +177,7 @@ templates:
         <p>A contained and monitored external footprint reduces hidden entry points and simplifies incident response.</p>
       stakeholders_affected: [Employees, Regulators]
       regulatory_relevance: |
-        Consistent with perimeter governance expectations under COBAC operational risk management obligations. {{ regulatory_disclaimer }}
+        Consistent with perimeter governance expectations under {{ sector_regulations }}. {{ regulatory_disclaimer }}
       recommended_action: |
         Keep certificate and DNS monitoring in place and review the asset inventory quarterly.
 
@@ -192,7 +192,7 @@ templates:
         <p>This represents a supply-chain trust risk that may not announce itself until after an incident.</p>
       stakeholders_affected: [Customers, Business Partners, Regulators]
       regulatory_relevance: |
-        Relevant to third-party digital risk and technical security measures under Law No. 2024/017 (Data Protection), Arts. 22 and 27. {{ regulatory_disclaimer }}
+        Relevant to third-party digital risk and technical security measures under {{ sector_regulations }}. {{ regulatory_disclaimer }}
       recommended_action: |
         Add integrity attributes to every externally loaded script and stylesheet, audit third-party dependencies quarterly, and remove any that are unmaintained or unnecessary.
     clean:
@@ -203,6 +203,6 @@ templates:
         <p>Integrity validation prevents third-party or supply-chain compromises from silently altering the code delivered to members and visitors.</p>
       stakeholders_affected: [Customers, Business Partners]
       regulatory_relevance: |
-        Consistent with third-party risk management under Law No. 2024/017 (Data Protection). {{ regulatory_disclaimer }}
+        Consistent with third-party risk management under {{ sector_regulations }}. {{ regulatory_disclaimer }}
       recommended_action: |
         Re-verify integrity hashes whenever a third-party dependency is upgraded or replaced.

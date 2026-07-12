@@ -1,12 +1,24 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Building2, Globe, Loader2, Radar, AlertTriangle, ShieldCheck, ArrowLeft } from 'lucide-react'
+import { Building2, Globe, Loader2, Radar, AlertTriangle, ShieldCheck, ArrowLeft, Briefcase } from 'lucide-react'
 import { api } from '@/api/client'
+
+const SECTOR_OPTIONS = [
+  { code: 'general',    label: 'General / Unspecified' },
+  { code: 'finance',    label: 'Finance & Microfinance' },
+  { code: 'fintech',    label: 'Fintech & Payments' },
+  { code: 'health',     label: 'Health & Medical' },
+  { code: 'education',  label: 'Education & Research' },
+  { code: 'telecom',    label: 'Telecom & ISP' },
+  { code: 'ecommerce',  label: 'E-Commerce & Retail' },
+  { code: 'government', label: 'Government & Public Sector' },
+]
 
 export function AdminScanPage() {
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [domain, setDomain] = useState('')
+  const [sector, setSector] = useState('general')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<{ scan_run_id: string; org_id: string; name: string; domain: string } | null>(null)
@@ -21,7 +33,7 @@ export function AdminScanPage() {
     setError('')
     setResult(null)
     try {
-      const data = await api.admin.scan(name.trim(), domain.trim())
+      const data = await api.admin.scan(name.trim(), domain.trim(), sector)
       setResult({ scan_run_id: data.scan_run_id, org_id: data.org_id, name: data.name, domain: data.domain })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Scan trigger failed')
@@ -101,6 +113,29 @@ export function AdminScanPage() {
             </div>
             <p className="num mt-1 text-[11px] text-[var(--text-muted)]">
               The primary external domain to assess. Lowercased automatically.
+            </p>
+          </div>
+
+          <div>
+            <label className="eyebrow mb-2 block">
+              <span className="line" />
+              <span>sector.specialization</span>
+            </label>
+            <div className="relative">
+              <Briefcase size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--neon-cyan)]" />
+              <select
+                value={sector}
+                onChange={(e) => setSector(e.target.value)}
+                className="glass-input num w-full py-3 pl-9 pr-3 appearance-none"
+                disabled={loading}
+              >
+                {SECTOR_OPTIONS.map((s) => (
+                  <option key={s.code} value={s.code}>{s.label}</option>
+                ))}
+              </select>
+            </div>
+            <p className="num mt-1 text-[11px] text-[var(--text-muted)]">
+              Determines which sector-specific regulations are cited in the report.
             </p>
           </div>
 

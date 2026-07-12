@@ -198,11 +198,13 @@ export const api = {
       fetchJson<{ scan_run_id: string; status: string; domain: string }>(`/admin/rescan/${orgId}`, {
         method: 'POST',
       }),
-    scan: (name: string, domain: string) =>
-      fetchJson<{ scan_run_id: string; status: string; org_id: string; name: string; domain: string }>(
+    scan: (name: string, domain: string, sector?: string) =>
+      fetchJson<{ scan_run_id: string; status: string; org_id: string; name: string; domain: string; sector: string }>(
         `/admin/scan`,
-        { method: 'POST', body: JSON.stringify({ name, domain }) },
+        { method: 'POST', body: JSON.stringify({ name, domain, sector }) },
       ),
+    sectors: () =>
+      fetchJson<{ code: string; label: string }[]>('/admin/sectors'),
     getAISettings: () =>
       fetchJson<{ has_key: boolean; api_key_masked: string | null; provider: string; endpoint: string; model: string; providers: string[] }>(
         `/admin/ai-settings`,

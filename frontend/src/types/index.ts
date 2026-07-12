@@ -60,6 +60,7 @@ export interface OwnerDashboardData {
     id: string
     name: string
     domain: string
+    sector: string | null
     ownership_verified: boolean
   }
   score: {
@@ -154,6 +155,7 @@ export interface AdminOrg {
   id: string
   name: string
   domain: string
+  sector: string | null
   ownership_verified: boolean
   verified_portscan_authorized: boolean
   latest_score: number | null

@@ -107,6 +107,7 @@ async def dashboard(
             "id": str(score.organization.id),
             "name": score.organization.name,
             "domain": score.organization.primary_domain,
+            "sector": score.organization.sector,
             "ownership_verified": score.organization.ownership_verified,
         },
         "score": {

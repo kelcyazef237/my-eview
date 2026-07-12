@@ -7,6 +7,7 @@ import yaml
 from jinja2 import Environment, BaseLoader
 
 from app.constants import VectorState, REGULATORY_DISCLAIMER
+from app.sector_config import tia_regulatory_text, sector_label
 
 
 DEFAULT_TEMPLATES_PATH = Path(__file__).resolve().parent.parent.parent / "config" / "tia_templates_v1.yaml"
@@ -30,10 +31,19 @@ class TemplateEngine:
                 return True
         return False
 
-    def _build_context(self, org_name: str, domain: str, vector_states: dict[str, dict]) -> dict[str, Any]:
+    def _build_context(
+        self,
+        org_name: str,
+        domain: str,
+        vector_states: dict[str, dict],
+        sector: str | None = None,
+    ) -> dict[str, Any]:
         ctx = {
             "org_name": org_name,
             "domain": domain,
+            "sector": sector or "general",
+            "sector_label": sector_label(sector),
+            "sector_regulations": tia_regulatory_text(sector),
             "regulatory_disclaimer": REGULATORY_DISCLAIMER,
         }
         for vec_key, finding in vector_states.items():
@@ -47,6 +57,7 @@ class TemplateEngine:
         org_name: str,
         domain: str,
         vector_states: dict[str, dict],
+        sector: str | None = None,
     ) -> dict[str, Any]:
         cat_templates = self.templates.get(category_key)
         if not cat_templates:
@@ -65,7 +76,7 @@ class TemplateEngine:
         template = cat_templates.get(variant, cat_templates.get("dirty", {}))
         template_id = template.get("template_id", f"{category_key}_{variant}_v1")
 
-        ctx = self._build_context(org_name, domain, vector_states)
+        ctx = self._build_context(org_name, domain, vector_states, sector)
         rendered = {}
         for slot in ("technical_observation", "business_impact", "stakeholders_affected", "regulatory_relevance", "recommended_action"):
             raw = template.get(slot, "")
@@ -85,8 +96,9 @@ class TemplateEngine:
         org_name: str,
         domain: str,
         category_vector_states: dict[str, dict[str, dict]],
+        sector: str | None = None,
     ) -> dict[str, dict[str, Any]]:
         return {
-            cat_key: self.render_category(cat_key, org_name, domain, states)
+            cat_key: self.render_category(cat_key, org_name, domain, states, sector)
             for cat_key, states in category_vector_states.items()
         }

@@ -15,6 +15,7 @@ from app.models.score_history import ScoreHistory
 from app.models.tia_entry import TiaEntry
 from app.models.vector_finding import VectorFinding
 from app.scoring.shield_mapper import shield_for_score
+from app.sector_config import regulations_for_sector, sector_label
 
 logger = logging.getLogger("myeview.reports")
 
@@ -181,7 +182,10 @@ def build_report_context(
             "id": str(org.id),
             "name": org.name,
             "domain": org.primary_domain,
+            "sector": org.sector,
+            "sector_label": sector_label(org.sector),
         },
+        "regulations": regulations_for_sector(org.sector),
         "score": {
             "overall": score.overall_score,
             "tier": score.shield_tier,

@@ -927,23 +927,15 @@
 
   <!-- REGULATORY INTELLIGENCE -->
   <div class="section">
-    <div class="section-label">Regulatory Intelligence Overview</div>
+    <div class="section-label">Regulatory Intelligence Overview{% if org.sector and org.sector != 'general' %} — {{ org.sector_label }}{% endif %}</div>
     <div class="reg-grid">
+      {% for reg in regulations %}
       <div class="reg-card">
-        <div class="code">COBAC</div>
-        <div class="title">Operational Risk &amp; Information Systems</div>
-        <div class="body">Establishes expectations for information system integrity and access controls relevant to email authentication and third-party dependency observations.</div>
+        <div class="code">{{ reg.short }}</div>
+        <div class="title">{{ reg.title }}</div>
+        <div class="body">{{ reg.body }}</div>
       </div>
-      <div class="reg-card">
-        <div class="code">ANTIC</div>
-        <div class="title">Cybersecurity &amp; Electronic Communications</div>
-        <div class="body">Law No. 2010/012 establishes baseline obligations for system integrity and electronic communications security applicable to this report.</div>
-      </div>
-      <div class="reg-card">
-        <div class="code">Law No. 2024/017</div>
-        <div class="title">Data Protection — June 2026 Deadline</div>
-        <div class="body">Imposes cybersecurity and privacy protocol obligations on institutions processing member or customer data. Compliance deadline: 23 June 2026.</div>
-      </div>
+      {% endfor %}
     </div>
     <p class="reg-disclaimer">MYEVIEW identifies external exposure signals that may indicate areas warranting compliance review. This section does not constitute legal advice. All regulatory determinations should be made in consultation with qualified legal and compliance advisors.</p>
   </div>

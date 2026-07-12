@@ -601,7 +601,7 @@ export function AdminDashboard() {
                   <tr key={o.id} className="cursor-pointer" onClick={() => goToOrgDashboard(o.id)}>
                     <td>
                       <div className="font-medium text-[var(--text-primary)]">{o.domain}</div>
-                      <div className="num text-[10px] uppercase tracking-[0.12em] text-[var(--text-muted)]">{o.name}</div>
+                      <div className="num text-[10px] uppercase tracking-[0.12em] text-[var(--text-muted)]">{o.name}{o.sector && o.sector !== 'general' ? ` · ${o.sector.replace('_', ' ')}` : ''}</div>
                     </td>
                     <td onClick={(e) => e.stopPropagation()}>
                       {o.ownership_verified ? (

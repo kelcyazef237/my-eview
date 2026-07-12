@@ -28,6 +28,7 @@ from app.services.ai_report import (
     generate_ai_report,
     get_ai_config,
 )
+from app.sector_config import SECTORS, SECTOR_CODES
 from app.services.scan_orchestrator import run_scan
 
 router = APIRouter()
@@ -281,6 +282,7 @@ def list_orgs(
                 "id": str(o.id),
                 "name": o.name,
                 "domain": o.primary_domain,
+                "sector": o.sector,
                 "ownership_verified": o.ownership_verified,
                 "verified_portscan_authorized": o.verified_portscan_authorized,
                 "latest_score": latest_score.overall_score if latest_score else None,
@@ -368,6 +370,7 @@ async def admin_rescan(
 class AdminScanRequest(BaseModel):
     name: str
     domain: str
+    sector: str | None = "general"
 
 
 @router.post("/scan")
@@ -386,6 +389,9 @@ async def admin_scan(
     """
     domain = req.domain.lower().strip()
     name = req.name.strip()
+    sector = (req.sector or "general").strip()
+    if sector not in SECTOR_CODES:
+        sector = "general"
     if not domain or not name:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -396,10 +402,12 @@ async def admin_scan(
     if org:
         if org.name != name:
             org.name = name
-            db.commit()
-            db.refresh(org)
+        if org.sector != sector:
+            org.sector = sector
+        db.commit()
+        db.refresh(org)
     else:
-        org = Organization(name=name, primary_domain=domain, country="CM")
+        org = Organization(name=name, primary_domain=domain, country="CM", sector=sector)
         db.add(org)
         db.commit()
         db.refresh(org)
@@ -411,7 +419,14 @@ async def admin_scan(
         "org_id": str(org.id),
         "name": org.name,
         "domain": org.primary_domain,
+        "sector": org.sector,
     }
+
+
+@router.get("/sectors")
+def list_sectors(user: User = Depends(require_global_admin)):
+    """Return the sector catalogue for the admin scan form dropdown."""
+    return SECTORS
 
 
 class PortscanAuthRequest(BaseModel):
