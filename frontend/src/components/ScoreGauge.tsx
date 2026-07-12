@@ -10,6 +10,7 @@ import {
   Minus,
 } from 'lucide-react'
 import { Shield } from './Shield'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface ScoreGaugeProps {
   score: number
@@ -22,14 +23,6 @@ interface ScoreGaugeProps {
   /** Sector benchmark — when defined and below `score`, show
    *  "Above sector average" pill in green + bold. */
   sectorBenchmark?: number | null
-}
-
-const tierColors: Record<number, string> = {
-  1: '#ff3060',
-  2: '#ffb020',
-  3: '#00d4ff',
-  4: '#00ff9c',
-  5: '#b400ff',
 }
 
 const tierNames: Record<number, string> = {
@@ -81,10 +74,19 @@ export function ScoreGauge({
   categoryCount,
   sectorBenchmark,
 }: ScoreGaugeProps) {
+  const c = useThemeColors()
+  const tierColors: Record<number, string> = {
+    1: c.red,
+    2: c.amber,
+    3: c.cyan,
+    4: c.green,
+    5: c.violet,
+  }
+
   const radius = 70
   const stroke = 8
   const circumference = 2 * Math.PI * radius
-  const color = tierColors[tier] || '#4a5b80'
+  const color = tierColors[tier] || c.textMuted
   const targetOffset = circumference * (1 - score / 1000)
 
   const [offset, setOffset] = useState(circumference)
@@ -136,9 +138,9 @@ export function ScoreGauge({
             <svg width="180" height="180" className="-rotate-90 relative">
               <defs>
                 <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#00f0ff" />
-                  <stop offset="50%" stopColor="#b400ff" />
-                  <stop offset="100%" stopColor="#ff00d4" />
+                  <stop offset="0%" stopColor={c.cyan} />
+                  <stop offset="50%" stopColor={c.violet} />
+                  <stop offset="100%" stopColor={c.magenta} />
                 </linearGradient>
               </defs>
               <circle
@@ -146,7 +148,7 @@ export function ScoreGauge({
                 cy="90"
                 r={radius}
                 fill="none"
-                stroke="rgba(0,240,255,0.08)"
+                stroke={`${c.cyan}1a`}
                 strokeWidth={stroke}
               />
               {/* ticks */}
@@ -165,7 +167,7 @@ export function ScoreGauge({
                     y1={y1}
                     x2={x2}
                     y2={y2}
-                    stroke={i % 5 === 0 ? 'rgba(0,240,255,0.7)' : 'rgba(0,240,255,0.3)'}
+                    stroke={i % 5 === 0 ? `${c.cyan}b3` : `${c.cyan}4d`}
                     strokeWidth={i % 5 === 0 ? 1.2 : 0.6}
                   />
                 )
@@ -188,7 +190,8 @@ export function ScoreGauge({
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span
-                className="num text-4xl font-bold leading-none text-white glitch"
+                className="num text-4xl font-bold leading-none glitch"
+                style={{ color: c.textPrimary }}
                 data-text={String(score)}
               >
                 {score}
@@ -246,7 +249,7 @@ export function ScoreGauge({
                   className="above-sector-avg inline-flex items-center gap-1 rounded-sm border px-2 py-1 text-[12px]"
                   style={{
                     borderColor: 'var(--neon-green)',
-                    background: 'rgba(0,255,156,0.10)',
+                    background: 'rgba(var(--neon-green-rgb), 0.12)',
                   }}
                   title={`Score ${score} > sector benchmark ${sectorBenchmark}`}
                 >
@@ -269,7 +272,7 @@ export function ScoreGauge({
             )}
 
             {/* ==== Shield glyph row — actual number of shields based on tier ==== */}
-            <div className="mt-2 flex items-center gap-1.5 rounded-sm border border-[var(--glass-border-subtle)] bg-[rgba(0,0,0,0.25)] px-3 py-2">
+            <div className="mt-2 flex items-center gap-1.5 rounded-sm border border-[var(--glass-border-subtle)] terminal-surface-strong px-3 py-2">
               <span className="num text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">
                 shield.tier
               </span>

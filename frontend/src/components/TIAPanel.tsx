@@ -34,7 +34,7 @@ export function TIAPanel({ tia }: TIAPanelProps) {
       <div className="panel-body">
         <div className="mb-4 flex items-center gap-2">
           <Brain size={16} className="text-[var(--neon-cyan)]" />
-          <h3 className="display-title text-[14px] tracking-[0.08em] text-white">
+          <h3 className="display-title text-[14px] tracking-[0.08em] text-[var(--text-primary)]">
             {tia.category_key}
           </h3>
         </div>

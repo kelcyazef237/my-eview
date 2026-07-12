@@ -17,7 +17,7 @@ export function VerificationEmail({ email, sent, verified }: VerificationEmailPr
         <span>{email}</span>
       </div>
       <div className="panel-body">
-        <h3 className="display-title mb-2 text-[14px] tracking-[0.08em] text-white">
+        <h3 className="display-title mb-2 text-[14px] tracking-[0.08em] text-[var(--text-primary)]">
           Email Verification
         </h3>
         <p className="mb-4 num text-[12px] text-[var(--text-secondary)]">
@@ -25,7 +25,7 @@ export function VerificationEmail({ email, sent, verified }: VerificationEmailPr
           <span className="text-[var(--neon-cyan)]">{email}</span>. Click the link in that email to confirm ownership.
         </p>
 
-        <div className="rounded-sm border border-[var(--glass-border-subtle)] bg-black/40 p-3 num text-[12px]">
+        <div className="rounded-sm border border-[var(--glass-border-subtle)] terminal-surface p-3 num text-[12px]">
           <div className="text-[var(--neon-magenta)]">
             <Terminal size={11} className="mr-1 inline" />
             mail.queue.status :: {sent ? 'sent' : 'pending'}

@@ -17,6 +17,7 @@ import {
 import { LayoutGrid, Radar as RadarIcon, BarChart3 } from 'lucide-react'
 import { CategoryCard } from './CategoryCard'
 import type { CategoryScore } from '@/types'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface CategoryBreakdownProps {
   categories: CategoryScore[]
@@ -29,15 +30,16 @@ function shortName(name: string): string {
   return words.slice(0, 2).join(' ')
 }
 
-function barColor(remaining: number, total: number): string {
+function barColor(remaining: number, total: number, c: { green: string; amber: string; red: string }): string {
   const ratio = (total - remaining) / total
-  if (ratio === 0) return '#00ff9c'
-  if (ratio < 0.3) return '#ffb020'
-  return '#ff3060'
+  if (ratio === 0) return c.green
+  if (ratio < 0.3) return c.amber
+  return c.red
 }
 
 export function CategoryBreakdown({ categories, defaultView = 'cards' }: CategoryBreakdownProps) {
   const [view, setView] = useState<'cards' | 'radar' | 'bar'>(defaultView)
+  const c = useThemeColors()
 
   const scored = categories.filter((c) => c.points_total > 0)
   const maxPoints = Math.max(...scored.map((c) => c.points_total), 1)
@@ -53,6 +55,16 @@ export function CategoryBreakdown({ categories, defaultView = 'cards' }: Categor
     { mode: 'radar', icon: RadarIcon, label: 'Radar' },
     { mode: 'bar', icon: BarChart3, label: 'Bars' },
   ]
+
+  const tooltipStyle = {
+    background: c.bgElevated,
+    border: `1px solid ${c.border}`,
+    borderRadius: 6,
+    color: c.textPrimary,
+  } as const
+  const gridStroke = `${c.cyan}1a`
+  const tick = (size: number) => ({ fill: c.textMuted, fontSize: size })
+  const axisStroke = c.border
 
   return (
     <div className="animate-fade-up">
@@ -71,7 +83,7 @@ export function CategoryBreakdown({ categories, defaultView = 'cards' }: Categor
                   onClick={() => setView(mode)}
                   className={`flex items-center gap-1.5 rounded-sm px-2 py-1 text-[10px] uppercase tracking-[0.12em] transition-all ${
                     active
-                      ? 'border border-[var(--neon-cyan)] bg-[rgba(0,240,255,0.1)] text-[var(--neon-cyan)]'
+                      ? 'border border-[var(--neon-cyan)] bg-[rgba(var(--neon-cyan-rgb),0.10)] text-[var(--neon-cyan)]'
                       : 'text-[var(--text-muted)] hover:text-[var(--neon-cyan)]'
                   }`}
                   aria-label={label}
@@ -99,24 +111,17 @@ export function CategoryBreakdown({ categories, defaultView = 'cards' }: Categor
             <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={chartData} outerRadius="70%">
-                  <PolarGrid stroke="rgba(0,240,255,0.1)" />
-                  <PolarAngleAxis dataKey="shortName" tick={{ fill: '#8a9fc4', fontSize: 11 }} />
-                  <PolarRadiusAxis domain={[0, maxPoints]} tick={{ fill: '#4a5b80', fontSize: 10 }} />
+                  <PolarGrid stroke={gridStroke} />
+                  <PolarAngleAxis dataKey="shortName" tick={tick(11)} />
+                  <PolarRadiusAxis domain={[0, maxPoints]} tick={tick(10)} />
                   <Radar
                     dataKey="remaining"
-                    stroke="#00f0ff"
-                    fill="#00f0ff"
+                    stroke={c.cyan}
+                    fill={c.cyan}
                     fillOpacity={0.25}
                     strokeWidth={2}
                   />
-                  <RTooltip
-                    contentStyle={{
-                      background: '#0c1126',
-                      border: '1px solid #00f0ff',
-                      borderRadius: 3,
-                      color: '#e6f2ff',
-                    }}
-                  />
+                  <RTooltip contentStyle={tooltipStyle} />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
@@ -130,20 +135,13 @@ export function CategoryBreakdown({ categories, defaultView = 'cards' }: Categor
             <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} layout="vertical" margin={{ left: 20, right: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,240,255,0.08)" horizontal={false} />
-                  <XAxis type="number" domain={[0, maxPoints]} tick={{ fill: '#8a9fc4', fontSize: 11 }} stroke="#1a2342" />
-                  <YAxis type="category" dataKey="shortName" tick={{ fill: '#8a9fc4', fontSize: 11 }} stroke="#1a2342" width={100} />
-                  <RTooltip
-                    contentStyle={{
-                      background: '#0c1126',
-                      border: '1px solid #00f0ff',
-                      borderRadius: 3,
-                      color: '#e6f2ff',
-                    }}
-                  />
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} horizontal={false} />
+                  <XAxis type="number" domain={[0, maxPoints]} tick={tick(11)} stroke={axisStroke} />
+                  <YAxis type="category" dataKey="shortName" tick={tick(11)} stroke={axisStroke} width={100} />
+                  <RTooltip contentStyle={tooltipStyle} />
                   <Bar dataKey="remaining" radius={[0, 4, 4, 0]}>
                     {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={barColor(entry.remaining, entry.total)} />
+                      <Cell key={`cell-${index}`} fill={barColor(entry.remaining, entry.total, c)} />
                     ))}
                   </Bar>
                 </BarChart>

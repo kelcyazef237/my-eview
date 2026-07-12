@@ -24,7 +24,7 @@ export function WaitingPage() {
               background: 'var(--gradient-neon-soft)',
               border: '1px solid var(--neon-amber)',
               color: 'var(--neon-amber)',
-              boxShadow: '0 0 24px rgba(255,176,32,0.35)',
+              boxShadow: '0 0 24px rgba(var(--neon-amber-rgb),0.35)',
             }}
           >
             <Clock className="h-7 w-7 animate-pulse-soft" />
@@ -62,8 +62,8 @@ export function WaitingPage() {
                 style={{
                   color: 'var(--neon-cyan)',
                   borderColor: 'var(--neon-cyan)',
-                  background: 'rgba(0,240,255,0.08)',
-                  textShadow: '0 0 8px rgba(0,240,255,0.5)',
+                  background: 'rgba(var(--neon-cyan-rgb),0.08)',
+                  textShadow: '0 0 8px rgba(var(--neon-cyan-rgb),0.5)',
                 }}
               >
                 {username}
@@ -78,7 +78,7 @@ export function WaitingPage() {
             className="mb-6 flex items-center justify-center gap-2 rounded-sm border p-3 num text-[12px] uppercase tracking-[0.12em]"
             style={{
               borderColor: 'var(--neon-green)',
-              background: 'rgba(0,255,156,0.08)',
+              background: 'rgba(var(--neon-green-rgb),0.08)',
               color: 'var(--neon-green)',
             }}
           >

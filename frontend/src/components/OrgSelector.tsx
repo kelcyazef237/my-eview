@@ -33,7 +33,7 @@ export function OrgSelector({ orgId, onSelect }: OrgSelectorProps) {
       <select
         value={orgId ?? ''}
         onChange={(e) => onSelect(e.target.value)}
-        className="glass-input appearance-none rounded-sm py-2 pl-9 pr-9 text-[12px] uppercase tracking-[0.12em] font-semibold transition-colors hover:bg-[rgba(0,240,255,0.06)]"
+        className="glass-input appearance-none rounded-sm py-2 pl-9 pr-9 text-[12px] uppercase tracking-[0.12em] font-semibold transition-colors hover:bg-[rgba(var(--neon-cyan-rgb),0.06)]"
         style={{ fontFamily: 'var(--font-display)' }}
         title="Select organization"
       >

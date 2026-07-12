@@ -25,14 +25,14 @@ export function EntityIntelligence({ entity }: EntityIntelligenceProps) {
         <div className="panel glass-card-hover p-5">
           <div className="mb-3 flex items-center gap-2">
             <Globe size={16} className="text-[var(--neon-cyan)]" />
-            <span className="display-title text-[12px] tracking-[0.08em] text-white">
+            <span className="display-title text-[12px] tracking-[0.08em] text-[var(--text-primary)]">
               related.domains
             </span>
           </div>
           <div
             className="num text-3xl font-bold leading-none glitch"
             data-text={String(entity.related_domains.count)}
-            style={{ color: 'var(--neon-cyan)', textShadow: '0 0 12px rgba(0,240,255,0.5)' }}
+            style={{ color: 'var(--neon-cyan)', textShadow: '0 0 12px rgba(var(--neon-cyan-rgb),0.5)' }}
           >
             {entity.related_domains.count}
           </div>
@@ -40,7 +40,7 @@ export function EntityIntelligence({ entity }: EntityIntelligenceProps) {
             ▸ discovered subdomains
           </div>
           {entity.related_domains.items.length > 0 && (
-            <ul className="mt-4 max-h-32 space-y-1 overflow-y-auto rounded-sm border border-[var(--glass-border-subtle)] bg-black/30 p-2 num text-[12px] text-[var(--text-muted)]">
+            <ul className="mt-4 max-h-32 space-y-1 overflow-y-auto rounded-sm border border-[var(--glass-border-subtle)] terminal-surface-strong p-2 num text-[12px] text-[var(--text-muted)]">
               {entity.related_domains.items.map((d) => (
                 <li key={d} className="truncate">▸ {d}</li>
               ))}
@@ -51,7 +51,7 @@ export function EntityIntelligence({ entity }: EntityIntelligenceProps) {
         <div className="panel glass-card-hover p-5">
           <div className="mb-3 flex items-center gap-2">
             <Server size={16} className="text-[var(--neon-violet)]" />
-            <span className="display-title text-[12px] tracking-[0.08em] text-white">
+            <span className="display-title text-[12px] tracking-[0.08em] text-[var(--text-primary)]">
               shared.infrastructure
             </span>
           </div>
@@ -68,7 +68,7 @@ export function EntityIntelligence({ entity }: EntityIntelligenceProps) {
             </span>
           </div>
           {entity.shared_infrastructure.name_servers.length > 0 && (
-            <ul className="mt-4 max-h-32 space-y-1 overflow-y-auto rounded-sm border border-[var(--glass-border-subtle)] bg-black/30 p-2 num text-[12px] text-[var(--text-muted)]">
+            <ul className="mt-4 max-h-32 space-y-1 overflow-y-auto rounded-sm border border-[var(--glass-border-subtle)] terminal-surface-strong p-2 num text-[12px] text-[var(--text-muted)]">
               {entity.shared_infrastructure.name_servers.map((ns) => (
                 <li key={ns} className="truncate">▸ {ns}</li>
               ))}

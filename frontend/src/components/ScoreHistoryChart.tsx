@@ -15,6 +15,7 @@ import {
   ReferenceLine,
 } from 'recharts'
 import { LineChart as LineChartIcon, AreaChart as AreaChartIcon, BarChart3 } from 'lucide-react'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface Point {
   computed_at: string
@@ -28,16 +29,17 @@ interface ScoreHistoryChartProps {
 
 type ViewMode = 'line' | 'area' | 'bar'
 
-function scoreColor(score: number): string {
-  if (score >= 900) return '#b400ff'
-  if (score >= 750) return '#00ff9c'
-  if (score >= 600) return '#00f0ff'
-  if (score >= 400) return '#ffb020'
-  return '#ff3060'
+function scoreColor(score: number, c: { violet: string; green: string; cyan: string; amber: string; red: string }): string {
+  if (score >= 900) return c.violet
+  if (score >= 750) return c.green
+  if (score >= 600) return c.cyan
+  if (score >= 400) return c.amber
+  return c.red
 }
 
 export function ScoreHistoryChart({ data }: ScoreHistoryChartProps) {
   const [view, setView] = useState<ViewMode>('line')
+  const c = useThemeColors()
 
   const sorted = [...data].sort(
     (a, b) => new Date(a.computed_at).getTime() - new Date(b.computed_at).getTime(),
@@ -56,13 +58,18 @@ export function ScoreHistoryChart({ data }: ScoreHistoryChartProps) {
   ]
 
   const tooltipStyle = {
-    backgroundColor: '#0c1126',
-    border: '1px solid #00f0ff',
-    borderRadius: 3,
-    color: '#e6f2ff',
+    backgroundColor: c.bgElevated,
+    border: `1px solid ${c.border}`,
+    borderRadius: 6,
+    color: c.textPrimary,
+    boxShadow: '0 8px 24px rgba(15,23,42,0.10)',
     fontFamily: 'var(--font-mono)',
     fontSize: 12,
   } as const
+
+  const gridStroke = `${c.cyan}1a`
+  const tick = { fill: c.textMuted, fontSize: 12 }
+  const axisStroke = c.border
 
   return (
     <div className="panel-terminal glass-card animate-fade-up">
@@ -80,7 +87,7 @@ export function ScoreHistoryChart({ data }: ScoreHistoryChartProps) {
                 onClick={() => setView(mode)}
                 className={`flex items-center gap-1.5 rounded-sm px-2 py-1 text-[10px] uppercase tracking-[0.12em] transition-all ${
                   active
-                    ? 'border border-[var(--neon-cyan)] bg-[rgba(0,240,255,0.1)] text-[var(--neon-cyan)]'
+                    ? 'border border-[var(--neon-cyan)] bg-[rgba(var(--neon-cyan-rgb),0.10)] text-[var(--neon-cyan)]'
                     : 'text-[var(--text-muted)] hover:text-[var(--neon-cyan)]'
                 }`}
                 aria-label={label}
@@ -97,47 +104,47 @@ export function ScoreHistoryChart({ data }: ScoreHistoryChartProps) {
           <ResponsiveContainer width="100%" height="100%">
             {view === 'line' ? (
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,240,255,0.08)" />
-                <XAxis dataKey="date" tick={{ fill: '#8a9fc4', fontSize: 12 }} stroke="#1a2342" />
-                <YAxis domain={[0, 1000]} tick={{ fill: '#8a9fc4', fontSize: 12 }} stroke="#1a2342" />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                <XAxis dataKey="date" tick={tick} stroke={axisStroke} />
+                <YAxis domain={[0, 1000]} tick={tick} stroke={axisStroke} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <ReferenceLine y={900} stroke="#b400ff" strokeDasharray="4 4" />
-                <ReferenceLine y={750} stroke="#00ff9c" strokeDasharray="4 4" />
-                <ReferenceLine y={600} stroke="#00f0ff" strokeDasharray="4 4" />
-                <ReferenceLine y={400} stroke="#ffb020" strokeDasharray="4 4" />
-                <Line type="monotone" dataKey="score" stroke="#00f0ff" strokeWidth={2.5} dot={{ r: 4, fill: '#00f0ff', stroke: '#b400ff', strokeWidth: 1 }} activeDot={{ r: 6, fill: '#ff00d4' }} />
+                <ReferenceLine y={900} stroke={c.violet} strokeDasharray="4 4" />
+                <ReferenceLine y={750} stroke={c.green} strokeDasharray="4 4" />
+                <ReferenceLine y={600} stroke={c.cyan} strokeDasharray="4 4" />
+                <ReferenceLine y={400} stroke={c.amber} strokeDasharray="4 4" />
+                <Line type="monotone" dataKey="score" stroke={c.cyan} strokeWidth={2.5} dot={{ r: 4, fill: c.cyan, stroke: c.violet, strokeWidth: 1 }} activeDot={{ r: 6, fill: c.magenta }} />
               </LineChart>
             ) : view === 'area' ? (
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#00f0ff" stopOpacity={0.55} />
-                    <stop offset="100%" stopColor="#00f0ff" stopOpacity={0.02} />
+                    <stop offset="0%" stopColor={c.cyan} stopOpacity={0.55} />
+                    <stop offset="100%" stopColor={c.cyan} stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,240,255,0.08)" />
-                <XAxis dataKey="date" tick={{ fill: '#8a9fc4', fontSize: 12 }} stroke="#1a2342" />
-                <YAxis domain={[0, 1000]} tick={{ fill: '#8a9fc4', fontSize: 12 }} stroke="#1a2342" />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                <XAxis dataKey="date" tick={tick} stroke={axisStroke} />
+                <YAxis domain={[0, 1000]} tick={tick} stroke={axisStroke} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <ReferenceLine y={900} stroke="#b400ff" strokeDasharray="4 4" />
-                <ReferenceLine y={750} stroke="#00ff9c" strokeDasharray="4 4" />
-                <ReferenceLine y={600} stroke="#00f0ff" strokeDasharray="4 4" />
-                <ReferenceLine y={400} stroke="#ffb020" strokeDasharray="4 4" />
-                <Area type="monotone" dataKey="score" stroke="#00f0ff" fill="url(#scoreGradient)" strokeWidth={2.5} dot={{ r: 4, fill: '#00f0ff' }} activeDot={{ r: 6, fill: '#ff00d4' }} />
+                <ReferenceLine y={900} stroke={c.violet} strokeDasharray="4 4" />
+                <ReferenceLine y={750} stroke={c.green} strokeDasharray="4 4" />
+                <ReferenceLine y={600} stroke={c.cyan} strokeDasharray="4 4" />
+                <ReferenceLine y={400} stroke={c.amber} strokeDasharray="4 4" />
+                <Area type="monotone" dataKey="score" stroke={c.cyan} fill="url(#scoreGradient)" strokeWidth={2.5} dot={{ r: 4, fill: c.cyan }} activeDot={{ r: 6, fill: c.magenta }} />
               </AreaChart>
             ) : (
               <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,240,255,0.08)" />
-                <XAxis dataKey="date" tick={{ fill: '#8a9fc4', fontSize: 12 }} stroke="#1a2342" />
-                <YAxis domain={[0, 1000]} tick={{ fill: '#8a9fc4', fontSize: 12 }} stroke="#1a2342" />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                <XAxis dataKey="date" tick={tick} stroke={axisStroke} />
+                <YAxis domain={[0, 1000]} tick={tick} stroke={axisStroke} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <ReferenceLine y={900} stroke="#b400ff" strokeDasharray="4 4" />
-                <ReferenceLine y={750} stroke="#00ff9c" strokeDasharray="4 4" />
-                <ReferenceLine y={600} stroke="#00f0ff" strokeDasharray="4 4" />
-                <ReferenceLine y={400} stroke="#ffb020" strokeDasharray="4 4" />
+                <ReferenceLine y={900} stroke={c.violet} strokeDasharray="4 4" />
+                <ReferenceLine y={750} stroke={c.green} strokeDasharray="4 4" />
+                <ReferenceLine y={600} stroke={c.cyan} strokeDasharray="4 4" />
+                <ReferenceLine y={400} stroke={c.amber} strokeDasharray="4 4" />
                 <Bar dataKey="score" radius={[4, 4, 0, 0]}>
                   {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={scoreColor(entry.score)} />
+                    <Cell key={`cell-${index}`} fill={scoreColor(entry.score, c)} />
                   ))}
                 </Bar>
               </BarChart>

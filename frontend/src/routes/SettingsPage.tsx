@@ -159,7 +159,7 @@ export function SettingsPage() {
         <div className="panel-body">
           <div className="mb-2 flex items-center gap-2">
             <Zap size={14} className="text-[var(--neon-magenta)]" />
-            <span className="display-title text-[12px] tracking-[0.08em] text-white">
+            <span className="display-title text-[12px] tracking-[0.08em] text-[var(--text-primary)]">
               Verified Port Scan
             </span>
           </div>
@@ -204,7 +204,7 @@ export function SettingsPage() {
           <div className="panel-body">
             <div className="mb-2 flex items-center gap-2">
               <Sparkles size={14} className="text-[var(--neon-violet)]" />
-              <span className="display-title text-[12px] tracking-[0.08em] text-white">
+              <span className="display-title text-[12px] tracking-[0.08em] text-[var(--text-primary)]">
                 AI Report Configuration
               </span>
             </div>
@@ -321,7 +321,7 @@ export function SettingsPage() {
           <div className="panel-body">
             <div className="mb-2 flex items-center gap-2">
               <AlertTriangle size={14} className="text-[var(--neon-red)]" />
-              <span className="display-title text-[12px] tracking-[0.08em] text-white">
+              <span className="display-title text-[12px] tracking-[0.08em] text-[var(--text-primary)]">
                 Wipe All Scan Data & Organizations
               </span>
             </div>
@@ -340,7 +340,7 @@ export function SettingsPage() {
                 onChange={(e) => setWipeConfirm(e.target.value)}
                 placeholder="WIPE"
                 className="num w-full mt-1 bg-transparent border border-[var(--neon-red)] px-3 py-1.5 text-[12px] uppercase tracking-[0.12em] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none"
-                style={{ background: 'rgba(255,48,96,0.05)' }}
+                style={{ background: 'rgba(var(--neon-red-rgb),0.05)' }}
                 disabled={wipeLoading}
               />
             </div>
@@ -396,7 +396,7 @@ export function SettingsPage() {
           className="panel mt-6 p-4 num text-[12px] uppercase tracking-[0.12em]"
           style={{
             borderColor: 'var(--neon-red)',
-            background: 'rgba(255,48,96,0.08)',
+            background: 'rgba(var(--neon-red-rgb),0.08)',
             color: 'var(--neon-red)',
           }}
         >

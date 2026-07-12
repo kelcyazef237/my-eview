@@ -371,7 +371,7 @@ export function AdminDashboard() {
           className="panel p-3 num text-[12px] uppercase tracking-[0.12em]"
           style={{
             borderColor: 'var(--neon-red)',
-            background: 'rgba(255,48,96,0.08)',
+            background: 'rgba(var(--neon-red-rgb),0.08)',
             color: 'var(--neon-red)',
           }}
         >
@@ -418,7 +418,7 @@ export function AdminDashboard() {
               <tbody>
                 {pending.map((reg) => (
                   <tr key={reg.id}>
-                    <td className="font-medium text-white">{reg.full_name}</td>
+                    <td className="font-medium text-[var(--text-primary)]">{reg.full_name}</td>
                     <td className="text-[var(--text-secondary)]">{reg.organization_domain}</td>
                     <td className="mono text-[var(--neon-cyan)]">{reg.username}</td>
                     <td className="text-[var(--text-muted)]">{new Date(reg.created_at).toLocaleDateString()}</td>
@@ -492,7 +492,7 @@ export function AdminDashboard() {
                       </div>
                     ) : (
                       <>
-                        <div className="font-medium text-white">{u.full_name || u.username || u.email || 'Unnamed'}</div>
+                        <div className="font-medium text-[var(--text-primary)]">{u.full_name || u.username || u.email || 'Unnamed'}</div>
                         <div className="num text-[10px] uppercase tracking-[0.12em] text-[var(--text-muted)]">
                           {u.email ? `${u.email}` : u.username ? `@${u.username}` : ''}
                         </div>
@@ -600,7 +600,7 @@ export function AdminDashboard() {
                 {orgs.map((o) => (
                   <tr key={o.id} className="cursor-pointer" onClick={() => goToOrgDashboard(o.id)}>
                     <td>
-                      <div className="font-medium text-white">{o.domain}</div>
+                      <div className="font-medium text-[var(--text-primary)]">{o.domain}</div>
                       <div className="num text-[10px] uppercase tracking-[0.12em] text-[var(--text-muted)]">{o.name}</div>
                     </td>
                     <td onClick={(e) => e.stopPropagation()}>
@@ -695,7 +695,7 @@ export function AdminDashboard() {
                 ) : (
                   (showAllScans ? scanRuns : scanRuns.slice(0, 5)).map((r) => (
                     <tr key={r.id} className="cursor-pointer" onClick={() => goToOrgDashboard(r.org_id)}>
-                      <td className="font-medium text-white">{r.domain}</td>
+                      <td className="font-medium text-[var(--text-primary)]">{r.domain}</td>
                       <td>
                         <span
                           className={

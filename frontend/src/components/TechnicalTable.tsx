@@ -62,7 +62,7 @@ export function TechnicalTable({ vectors }: TechnicalTableProps) {
             style={{
               borderColor: color,
               color,
-              background: 'rgba(0,0,0,0.3)',
+              background: 'var(--glass-bg)',
               boxShadow: `inset 0 0 12px ${color}25, 0 0 8px ${color}30`,
             }}
           >
@@ -96,7 +96,7 @@ export function TechnicalTable({ vectors }: TechnicalTableProps) {
             <tbody>
               {vectors.map((vf) => (
                 <tr key={vf.vector_key}>
-                  <td className="font-medium text-white">{vf.vector_name}</td>
+                  <td className="font-medium text-[var(--text-primary)]">{vf.vector_name}</td>
                   <td className="num text-[var(--text-secondary)]">{vf.category_key}</td>
                   <td>
                     <span

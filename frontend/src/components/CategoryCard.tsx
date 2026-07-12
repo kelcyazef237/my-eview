@@ -1,17 +1,19 @@
 import type { CategoryScore } from '@/types'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface CategoryCardProps {
   category: CategoryScore
 }
 
 export function CategoryCard({ category }: CategoryCardProps) {
+  const c = useThemeColors()
   const lostRatio = category.points_lost / category.points_total
   const statusColor =
     lostRatio === 0
-      ? '#00ff9c'
+      ? c.green
       : lostRatio < 0.3
-        ? '#ffb020'
-        : '#ff3060'
+        ? c.amber
+        : c.red
 
   const remainingPct = (category.points_remaining / category.points_total) * 100
 
@@ -22,7 +24,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
           <div className="num text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">
             ▸ {category.parent_group}
           </div>
-          <h3 className="mt-0.5 truncate display-title text-[13px] tracking-[0.04em] text-white">
+          <h3 className="mt-0.5 truncate display-title text-[13px] tracking-[0.04em] text-[var(--text-primary)]">
             {category.category_name}
           </h3>
         </div>
@@ -40,7 +42,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
         </div>
       </div>
 
-      <div className="relative h-2 w-full overflow-hidden rounded-sm bg-[rgba(0,240,255,0.06)]">
+      <div className="relative h-2 w-full overflow-hidden rounded-sm bg-[rgba(var(--neon-cyan-rgb),0.06)]">
         <div
           className="absolute left-0 top-0 h-full"
           style={{
@@ -53,7 +55,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
         {Array.from({ length: 10 }).map((_, i) => (
           <div
             key={i}
-            className="absolute top-0 h-full w-px bg-[rgba(0,0,0,0.5)]"
+            className="absolute top-0 h-full w-px bg-[var(--glass-border-subtle)]"
             style={{ left: `${(i + 1) * 10}%` }}
           />
         ))}

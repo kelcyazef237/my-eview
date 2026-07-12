@@ -7,6 +7,8 @@ import { useEffect, useRef } from 'react'
  *   - radial cyan / violet glows via CSS orbs
  *
  * Performance: capped at ~30fps, paused when document is hidden.
+ * Theme-aware: reads --neon-cyan-rgb / --neon-violet-rgb from :root and
+ * tones down opacity in light mode so the lattice stays subtle on white.
  */
 export function ParticleBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -26,6 +28,19 @@ export function ParticleBackground() {
     const hexSize = 28
     let connectDistance = 130
     let visible = !document.hidden
+
+    // Theme state — refreshed from CSS vars each frame batch
+    let cyanRgb = '0, 240, 255'
+    let violetRgb = '180, 0, 255'
+    let intensity = 1 // 1 in dark, ~0.35 in light
+    function readTheme() {
+      const cs = getComputedStyle(document.documentElement)
+      const v = (n: string, f: string) => cs.getPropertyValue(n).trim() || f
+      cyanRgb = v('--neon-cyan-rgb', '0, 240, 255')
+      violetRgb = v('--neon-violet-rgb', '180, 0, 255')
+      intensity = document.documentElement.classList.contains('dark') ? 1 : 0.35
+    }
+    readTheme()
 
     function resize() {
       width = canvas!.width = window.innerWidth
@@ -54,7 +69,7 @@ export function ParticleBackground() {
         else ctx!.lineTo(hx, hy)
       }
       ctx!.closePath()
-      ctx!.strokeStyle = `rgba(0, 240, 255, ${alpha})`
+      ctx!.strokeStyle = `rgba(${cyanRgb}, ${alpha})`
       ctx!.lineWidth = 0.6
       ctx!.stroke()
     }
@@ -92,7 +107,7 @@ export function ParticleBackground() {
             if (d < nearest) nearest = d
           }
           if (nearest < 220) {
-            const a = 0.18 * (1 - nearest / 220)
+            const a = 0.18 * (1 - nearest / 220) * intensity
             drawHex(x, y, hexSize / 2.4, a)
           }
         }
@@ -106,7 +121,7 @@ export function ParticleBackground() {
           const dist = Math.sqrt(dx * dx + dy * dy)
           if (dist < connectDistance) {
             const t = dist / connectDistance
-            const stroke = `rgba(0, 240, 255, ${(1 - t) * 0.18})`
+            const stroke = `rgba(${cyanRgb}, ${(1 - t) * 0.18 * intensity})`
             ctx!.strokeStyle = stroke
             ctx!.lineWidth = 0.6
             ctx!.beginPath()
@@ -121,14 +136,14 @@ export function ParticleBackground() {
       for (const n of nodes) {
         ctx!.beginPath()
         ctx!.arc(n.x, n.y, n.r, 0, Math.PI * 2)
-        ctx!.fillStyle = 'rgba(0, 240, 255, 0.7)'
+        ctx!.fillStyle = `rgba(${cyanRgb}, ${0.7 * intensity})`
         ctx!.fill()
         // Glow
         ctx!.beginPath()
         ctx!.arc(n.x, n.y, n.r * 3, 0, Math.PI * 2)
         const grad = ctx!.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 3)
-        grad.addColorStop(0, 'rgba(180, 0, 255, 0.32)')
-        grad.addColorStop(1, 'rgba(180, 0, 255, 0)')
+        grad.addColorStop(0, `rgba(${violetRgb}, ${0.32 * intensity})`)
+        grad.addColorStop(1, `rgba(${violetRgb}, 0)`)
         ctx!.fillStyle = grad
         ctx!.fill()
       }
@@ -144,6 +159,10 @@ export function ParticleBackground() {
       resizeTimer = window.setTimeout(resize, 200)
     }
 
+    // Re-read theme when the `dark` class flips on <html>
+    const themeObserver = new MutationObserver(readTheme)
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+
     resize()
     animationId = requestAnimationFrame(animate)
     window.addEventListener('resize', debouncedResize)
@@ -154,6 +173,7 @@ export function ParticleBackground() {
       window.removeEventListener('resize', debouncedResize)
       document.removeEventListener('visibilitychange', onVisibility)
       clearTimeout(resizeTimer)
+      themeObserver.disconnect()
     }
   }, [])
 
@@ -164,12 +184,6 @@ export function ParticleBackground() {
         className="fixed inset-0 -z-10 pointer-events-none"
         aria-hidden="true"
       />
-      {/* Glow orbs (CSS animated) + scanline overlays on top */}
-      <div className="bg-orbs" aria-hidden="true">
-        <div className="orb orb-1" />
-        <div className="orb orb-2" />
-        <div className="orb orb-3" />
-      </div>
     </>
   )
 }

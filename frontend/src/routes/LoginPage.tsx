@@ -101,7 +101,7 @@ export function LoginPage() {
               className="rounded-sm border p-3 num text-[12px] uppercase tracking-[0.08em]"
               style={{
                 borderColor: 'var(--neon-red)',
-                background: 'rgba(255,48,96,0.1)',
+                background: 'rgba(var(--neon-red-rgb),0.1)',
                 color: 'var(--neon-red)',
               }}
             >

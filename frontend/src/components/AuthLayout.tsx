@@ -179,7 +179,7 @@ export function AuthLayout({ title, subtitle, icon, children, footer }: AuthLayo
               style={{
                 background:
                   'linear-gradient(180deg, transparent, var(--neon-cyan) 30%, var(--neon-violet) 70%, transparent)',
-                boxShadow: '0 0 12px rgba(0,240,255,0.4)',
+                boxShadow: '0 0 12px rgba(var(--neon-cyan-rgb),0.4)',
               }}
             />
 
@@ -190,7 +190,7 @@ export function AuthLayout({ title, subtitle, icon, children, footer }: AuthLayo
               style={{
                 background: 'var(--gradient-neon-soft)',
                 border: '1px solid var(--neon-cyan)',
-                boxShadow: '0 0 20px rgba(0,240,255,0.35), inset 0 0 12px rgba(0,240,255,0.2)',
+                boxShadow: '0 0 20px rgba(var(--neon-cyan-rgb),0.35), inset 0 0 12px rgba(var(--neon-cyan-rgb),0.2)',
                 color: 'var(--neon-cyan)',
               }}
             >
@@ -211,7 +211,7 @@ export function AuthLayout({ title, subtitle, icon, children, footer }: AuthLayo
           <p className="mb-6 text-sm text-[var(--text-secondary)]">{subtitle}</p>
 
           {/* terminal "ready" line */}
-          <div className="mb-6 rounded-sm border border-[var(--glass-border-subtle)] bg-black/40 px-3 py-2 num text-[12px] text-[var(--neon-green)]">
+          <div className="mb-6 rounded-sm border border-[var(--glass-border-subtle)] terminal-surface px-3 py-2 num text-[12px] text-[var(--neon-green)]">
             <span className="prompt-prefix">$</span>
             <span>trust-os --ready</span>
             <span className="ml-2 text-[var(--text-muted)]">{`// awaiting credentials`}</span>
@@ -232,7 +232,7 @@ export function AuthLayout({ title, subtitle, icon, children, footer }: AuthLayo
                 <div className="relative flex h-14 w-14 items-center justify-center rounded-sm text-black"
                   style={{
                     background: 'var(--gradient-neon)',
-                    boxShadow: '0 0 30px rgba(0,240,255,0.5), 0 0 30px rgba(180,0,255,0.4)',
+                    boxShadow: '0 0 30px rgba(var(--neon-cyan-rgb),0.5), 0 0 30px rgba(var(--neon-violet-rgb),0.4)',
                   }}
                 >
                   <ShieldCheck size={28} />
@@ -266,7 +266,7 @@ export function AuthLayout({ title, subtitle, icon, children, footer }: AuthLayo
               </div>
 
               {/* terminal scroll lines */}
-              <div className="rounded-sm border border-[var(--glass-border-subtle)] bg-black/40 p-3 num text-[12px]">
+              <div className="rounded-sm border border-[var(--glass-border-subtle)] terminal-surface p-3 num text-[12px]">
                 {TERMINAL_LINES.map((line, i) => {
                   const isLast = i === TERMINAL_LINES.length - 1
                   return (
@@ -314,7 +314,7 @@ export function AuthLayout({ title, subtitle, icon, children, footer }: AuthLayo
                         <Icon size={14} />
                       </div>
                       <div>
-                        <div className="display-title text-[12px] tracking-[0.08em] text-white">
+                        <div className="display-title text-[12px] tracking-[0.08em] text-[var(--text-primary)]">
                           {f.title}
                         </div>
                         <div className="text-[12px] text-[var(--text-muted)]">{f.desc}</div>
@@ -325,7 +325,7 @@ export function AuthLayout({ title, subtitle, icon, children, footer }: AuthLayo
               </div>
 
               {/* status bar */}
-              <div className="mt-auto flex items-center justify-between rounded-sm border border-[var(--glass-border-subtle)] bg-black/30 px-3 py-2 num text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">
+              <div className="mt-auto flex items-center justify-between rounded-sm border border-[var(--glass-border-subtle)] terminal-surface-strong px-3 py-2 num text-[10px] uppercase tracking-[0.18em] text-[var(--text-muted)]">
                 <div className="flex items-center gap-2">
                   <span className="dot dot-green animate-pulse-soft" />
                   <span>node.cm-01</span>

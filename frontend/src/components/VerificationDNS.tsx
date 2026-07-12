@@ -30,14 +30,14 @@ export function VerificationDNS({ domain, token, verified }: VerificationDNSProp
         </div>
       </div>
       <div className="panel-body">
-        <h3 className="display-title mb-2 text-[14px] tracking-[0.08em] text-white">
+        <h3 className="display-title mb-2 text-[14px] tracking-[0.08em] text-[var(--text-primary)]">
           DNS TXT Verification
         </h3>
         <p className="mb-4 num text-[12px] text-[var(--text-secondary)]">
           ▸ Add the following TXT record to <span className="text-[var(--neon-cyan)]">{domain}</span>, then click <span className="text-[var(--neon-magenta)]">Check Status</span>.
         </p>
 
-        <div className="mb-4 flex items-center justify-between rounded-sm border border-[var(--glass-border-subtle)] bg-black/40 p-3 num text-[12px] text-[var(--neon-green)]">
+        <div className="mb-4 flex items-center justify-between rounded-sm border border-[var(--glass-border-subtle)] terminal-surface p-3 num text-[12px] text-[var(--neon-green)]">
           <code className="flex-1 break-all">
             <span className="prompt-prefix">$</span> dig +short TXT {domain}{' '}
             <span style={{ color: 'var(--neon-cyan)' }}>| grep</span> "myeview-verify="
@@ -56,7 +56,7 @@ export function VerificationDNS({ domain, token, verified }: VerificationDNSProp
           </button>
         </div>
 
-        <div className="rounded-sm border border-[var(--glass-border-subtle)] bg-black/40 p-3 num text-[12px]">
+        <div className="rounded-sm border border-[var(--glass-border-subtle)] terminal-surface p-3 num text-[12px]">
           <div className="text-[var(--text-muted)]">record ::</div>
           <div className="mt-1 break-all text-[var(--neon-cyan)]">
             <Terminal size={11} className="mr-1 inline" />

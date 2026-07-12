@@ -210,7 +210,7 @@ export function ReportPage() {
           color="var(--neon-cyan)"
           label="score"
           value={
-            <div className="num text-3xl font-bold glitch" data-text={String(data.score.overall)} style={{ color: 'var(--neon-cyan)', textShadow: '0 0 12px rgba(0,240,255,0.5)' }}>
+            <div className="num text-3xl font-bold glitch" data-text={String(data.score.overall)} style={{ color: 'var(--neon-cyan)', textShadow: '0 0 12px rgba(var(--neon-cyan-rgb),0.5)' }}>
               {data.score.overall}
               <span className="ml-1 text-[12px] text-[var(--text-muted)]"> / 1000</span>
             </div>

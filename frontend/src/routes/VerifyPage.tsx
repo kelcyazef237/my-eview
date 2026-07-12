@@ -56,7 +56,7 @@ export function VerifyPage() {
       {status?.ownership_verified && (
         <div
           className="panel mb-6 flex items-center gap-3 p-4"
-          style={{ borderColor: 'var(--neon-green)', boxShadow: '0 0 30px rgba(0,255,156,0.15)' }}
+          style={{ borderColor: 'var(--neon-green)', boxShadow: '0 0 30px rgba(var(--neon-green-rgb),0.15)' }}
         >
           <ShieldCheck size={18} className="text-[var(--neon-green)]" />
           <div className="num text-[13px] text-[var(--neon-green)]">
@@ -108,7 +108,7 @@ export function VerifyPage() {
           style={{
             borderColor: 'var(--neon-red)',
             color: 'var(--neon-red)',
-            boxShadow: '0 0 20px rgba(255,48,96,0.15)',
+            boxShadow: '0 0 20px rgba(var(--neon-red-rgb),0.15)',
           }}
         >
           <span className="prompt-prefix">!</span>

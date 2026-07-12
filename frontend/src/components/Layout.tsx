@@ -1,9 +1,10 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Moon, Shield, Menu, X, LogIn, LogOut, UserPlus, Power } from 'lucide-react'
+import { Moon, Sun, Shield, Menu, X, LogIn, LogOut, UserPlus, Power } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { api } from '@/api/client'
 import type { User } from '@/types'
 import { ParticleBackground } from './ParticleBackground'
+import { useTheme } from '@/hooks/useTheme'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -26,6 +27,7 @@ export function Layout({ children }: LayoutProps) {
   const token = localStorage.getItem('myeview_token')
   const isPublic = !token
   const clock = useClock()
+  const { theme, toggle } = useTheme()
 
   useEffect(() => {
     if (token) {
@@ -70,7 +72,7 @@ export function Layout({ children }: LayoutProps) {
           className="relative border-b border-[var(--glass-border)] backdrop-blur-xl"
           style={{
             background:
-              'linear-gradient(180deg, rgba(2, 4, 16, 0.85), rgba(2, 4, 16, 0.55))',
+              'var(--glass-bg-strong)',
           }}
         >
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
@@ -80,16 +82,16 @@ export function Layout({ children }: LayoutProps) {
                 className="flex h-9 w-9 items-center justify-center rounded-sm"
                 style={{
                   background:
-                    'linear-gradient(135deg, rgba(0,240,255,0.2), rgba(180,0,255,0.2))',
+                    'linear-gradient(135deg, rgba(var(--neon-cyan-rgb),0.2), rgba(var(--neon-violet-rgb),0.2))',
                   border: '1px solid var(--neon-cyan)',
-                  boxShadow: '0 0 16px rgba(0,240,255,0.4)',
+                  boxShadow: '0 0 16px rgba(var(--neon-cyan-rgb),0.4)',
                 }}
               >
                 <Shield className="h-5 w-5 text-[var(--neon-cyan)]" />
               </div>
               <div className="flex flex-col leading-tight">
                 <span
-                  className="display-title text-base text-white glitch"
+                  className="display-title text-base text-[var(--text-primary)] glitch"
                   data-text="MYEVIEW"
                 >
                   MYEVIEW
@@ -110,8 +112,8 @@ export function Layout({ children }: LayoutProps) {
                     to={item.path}
                     className={`relative rounded-sm px-3 py-1.5 font-[var(--font-display)] text-[12px] uppercase tracking-[0.14em] transition-all ${
                       active
-                        ? 'border border-[var(--neon-cyan)] bg-[rgba(0,240,255,0.08)] text-[var(--neon-cyan)] shadow-[0_0_16px_rgba(0,240,255,0.25)]'
-                        : 'text-[var(--text-secondary)] hover:bg-[rgba(0,240,255,0.06)] hover:text-[var(--text-primary)]'
+                        ? 'border border-[var(--neon-cyan)] bg-[rgba(var(--neon-cyan-rgb),0.08)] text-[var(--neon-cyan)] shadow-[0_0_16px_rgba(var(--neon-cyan-rgb),0.25)]'
+                        : 'text-[var(--text-secondary)] hover:bg-[rgba(var(--neon-cyan-rgb),0.06)] hover:text-[var(--text-primary)]'
                     }`}
                   >
                     {active && (
@@ -134,14 +136,14 @@ export function Layout({ children }: LayoutProps) {
                 <>
                   <Link
                     to="/register"
-                    className="hidden items-center gap-1.5 rounded-sm border border-[var(--glass-border)] px-3 py-1.5 text-[12px] font-medium uppercase tracking-[0.12em] text-[var(--text-secondary)] transition-colors hover:bg-[rgba(0,240,255,0.08)] hover:text-[var(--text-primary)] md:flex"
+                    className="hidden items-center gap-1.5 rounded-sm border border-[var(--glass-border)] px-3 py-1.5 text-[12px] font-medium uppercase tracking-[0.12em] text-[var(--text-secondary)] transition-colors hover:bg-[rgba(var(--neon-cyan-rgb),0.08)] hover:text-[var(--text-primary)] md:flex"
                   >
                     <UserPlus size={14} /> Register
                   </Link>
                   <Link
                     to="/login"
                     className="hidden items-center gap-1.5 rounded-sm px-3 py-1.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-black transition-all md:flex"
-                    style={{ background: 'var(--gradient-neon)', boxShadow: '0 0 18px rgba(0,240,255,0.35)' }}
+                    style={{ background: 'var(--gradient-neon)', boxShadow: '0 0 18px rgba(var(--neon-cyan-rgb),0.35)' }}
                   >
                     <LogIn size={14} /> Login
                   </Link>
@@ -149,26 +151,18 @@ export function Layout({ children }: LayoutProps) {
               ) : (
                 <button
                   onClick={handleLogout}
-                  className="hidden items-center gap-1.5 rounded-sm border border-[var(--glass-border)] px-3 py-1.5 text-[12px] font-medium uppercase tracking-[0.12em] text-[var(--text-secondary)] transition-colors hover:bg-[rgba(0,240,255,0.08)] hover:text-[var(--text-primary)] md:flex"
+                  className="hidden items-center gap-1.5 rounded-sm border border-[var(--glass-border)] px-3 py-1.5 text-[12px] font-medium uppercase tracking-[0.12em] text-[var(--text-secondary)] transition-colors hover:bg-[rgba(var(--neon-cyan-rgb),0.08)] hover:text-[var(--text-primary)] md:flex"
                 >
                   <LogOut size={14} /> Logout
                 </button>
               )}
               <button
-                onClick={() => {
-                  document.documentElement.classList.toggle('dark')
-                  localStorage.setItem(
-                    'myeview_theme',
-                    document.documentElement.classList.contains('dark')
-                      ? 'dark'
-                      : 'light',
-                  )
-                }}
-                className="rounded-sm border border-[var(--glass-border)] p-2 text-[var(--text-secondary)] transition-colors hover:bg-[rgba(0,240,255,0.08)] hover:text-[var(--neon-cyan)]"
-                aria-label="Toggle theme (locked to dark)"
-                title="Theme locked"
+                onClick={toggle}
+                className="rounded-sm border border-[var(--glass-border)] p-2 text-[var(--text-secondary)] transition-colors hover:bg-[rgba(var(--neon-cyan-rgb),0.08)] hover:text-[var(--neon-cyan)]"
+                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                title={`Theme: ${theme}`}
               >
-                <Moon size={16} />
+                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
               </button>
               <button
                 className="rounded-sm border border-[var(--glass-border)] p-2 text-[var(--text-secondary)] md:hidden"
@@ -184,7 +178,7 @@ export function Layout({ children }: LayoutProps) {
           {mobileOpen && (
             <nav
               className="border-t border-[var(--glass-border)] px-4 py-3 md:hidden"
-              style={{ background: 'rgba(2,4,16,0.95)' }}
+              style={{ background: 'var(--glass-bg-strong)' }}
             >
               {navItems.map((item) => (
                 <Link
@@ -230,7 +224,7 @@ export function Layout({ children }: LayoutProps) {
             style={{
               background:
                 'linear-gradient(90deg, transparent, var(--neon-cyan) 30%, var(--neon-violet) 60%, var(--neon-magenta) 90%, transparent)',
-              boxShadow: '0 0 12px rgba(0, 240, 255, 0.4)',
+              boxShadow: '0 0 12px rgba(var(--neon-cyan-rgb), 0.4)',
             }}
           />
         </div>

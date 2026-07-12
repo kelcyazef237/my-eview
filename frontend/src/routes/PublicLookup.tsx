@@ -182,7 +182,7 @@ export function PublicLookup() {
       {error && (
         <div
           className="panel mb-6 p-4 flex items-center justify-between gap-3"
-          style={{ borderColor: 'var(--neon-red)', boxShadow: '0 0 30px rgba(255,48,96,0.15)' }}
+          style={{ borderColor: 'var(--neon-red)', boxShadow: '0 0 30px rgba(var(--neon-red-rgb),0.15)' }}
         >
           <div className="flex items-center gap-2 num text-[13px]" style={{ color: 'var(--neon-red)' }}>
             <AlertTriangle size={14} /> {error}
@@ -219,7 +219,7 @@ export function PublicLookup() {
                     <span>domain</span>
                   </div>
                   <div
-                    className="num truncate text-xl font-semibold text-white glitch"
+                    className="num truncate text-xl font-semibold text-[var(--text-primary)] glitch"
                     data-text={score.domain}
                   >
                     {score.domain}
@@ -230,7 +230,7 @@ export function PublicLookup() {
                     <span className="line" />
                     <span>organization</span>
                   </div>
-                  <div className="num truncate text-xl font-semibold text-white">
+                  <div className="num truncate text-xl font-semibold text-[var(--text-primary)]">
                     {score.org_name}
                   </div>
                 </div>
@@ -299,7 +299,7 @@ function DataCell({
 
   return (
     <div
-      className="rounded-sm border bg-black/30 p-3"
+      className="rounded-sm border terminal-surface-strong p-3"
       style={{ borderColor: colorVar }}
     >
       <div className="num text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">

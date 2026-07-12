@@ -1,5 +1,5 @@
 /* =========================================================
-   MYEVIEW — HACK-OS DARK CANVAS
+   MYEVIEW — TRUST CANVAS (light default + dark variant)
    ========================================================= */
 
 @tailwind base;
@@ -7,14 +7,92 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+     Light theme is the canonical default on :root.
+     The dark "hack-OS" variant is layered under :root.dark so the existing
+     useTheme hook (which toggles the `dark` class on <html>) just works.
+  */
   :root {
-    /* Dark canvas — the single canonical theme. The light variant is
-       intentionally a darker "matrix" variant of the same palette. */
+    /* Soft, modern light canvas — calm off-white with a cool undertone */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f6f8fc;
+    --bg-elevated: #ffffff;
+    --bg-canvas: #eef1f7;
+
+    /* Refined, non-aggressive accents — the same cyan → violet → magenta
+       identity, toned down so it reads clean on white. */
+    --neon-cyan: #0e9bb4;
+    --neon-violet: #7c3aed;
+    --neon-magenta: #db2777;
+    --neon-green: #059669;
+    --neon-amber: #d97706;
+    --neon-red: #dc2626;
+
+    --neon-cyan-rgb: 14, 155, 180;
+    --neon-violet-rgb: 124, 58, 237;
+    --neon-magenta-rgb: 219, 39, 119;
+    --neon-green-rgb: 5, 150, 105;
+    --neon-amber-rgb: 217, 119, 6;
+    --neon-red-rgb: 220, 38, 38;
+
+    /* Slate text ramp — high contrast yet soft */
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+
+    --accent: var(--neon-cyan);
+    --accent-rgb: var(--neon-cyan-rgb);
+    --danger: var(--neon-red);
+    --warning: var(--neon-amber);
+    --success: var(--neon-green);
+
+    --border-color: #e2e8f0;
+
+    /* Glass = translucent white with crisp, subtle borders + soft shadows
+       (no neon haze — light mode favours elevation over glow) */
+    --glass-bg: rgba(255, 255, 255, 0.72);
+    --glass-bg-strong: rgba(255, 255, 255, 0.88);
+    --glass-bg-panel: rgba(255, 255, 255, 0.82);
+    --glass-border: rgba(15, 23, 42, 0.10);
+    --glass-border-strong: rgba(124, 58, 237, 0.30);
+    --glass-border-subtle: rgba(15, 23, 42, 0.06);
+    --glass-blur: 14px;
+    --glass-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 8px 24px rgba(15, 23, 42, 0.06);
+    --glass-shadow-hover:
+      0 2px 6px rgba(15, 23, 42, 0.06),
+      0 16px 40px rgba(15, 23, 42, 0.10);
+
+    /* Signature gradient — softened for light */
+    --gradient-neon: linear-gradient(135deg, #0e9bb4 0%, #7c3aed 55%, #db2777 100%);
+    --gradient-neon-soft: linear-gradient(135deg, rgba(14, 155, 180, 0.10) 0%, rgba(124, 58, 237, 0.06) 50%, rgba(219, 39, 119, 0.05) 100%);
+    --gradient-accent: var(--gradient-neon);
+    --gradient-accent-soft: var(--gradient-neon-soft);
+
+    /* Clean flat background — no cloudy orbs in either theme */
+    --bg-canvas: #eef1f7;
+
+    /* Fonts */
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-display: 'Outfit', 'Inter', system-ui, sans-serif;
+    --font-mono: 'Share Tech Mono', 'JetBrains Mono', ui-monospace, monospace;
+
+    /* Shield tier colors — refined for light */
+    --tier-1: #dc2626;
+    --tier-2: #d97706;
+    --tier-3: #0e9bb4;
+    --tier-4: #059669;
+    --tier-5: #7c3aed;
+  }
+
+  /* ---- Dark variant: the original neon "hack-OS" canvas ---- */
+  :root.dark {
     --bg-primary: #02030a;
     --bg-secondary: #070a17;
     --bg-elevated: #0c1126;
+    --bg-canvas: #02030a;
 
-    /* Neon tri-color palette: cyan → violet → magenta */
     --neon-cyan: #00f0ff;
     --neon-violet: #b400ff;
     --neon-magenta: #ff00d4;
@@ -26,20 +104,15 @@
     --neon-violet-rgb: 180, 0, 255;
     --neon-magenta-rgb: 255, 0, 212;
     --neon-green-rgb: 0, 255, 156;
+    --neon-amber-rgb: 255, 176, 32;
+    --neon-red-rgb: 255, 48, 96;
 
     --text-primary: #e6f2ff;
     --text-secondary: #8a9fc4;
     --text-muted: #4a5b80;
 
-    --accent: var(--neon-cyan);
-    --accent-rgb: var(--neon-cyan-rgb);
-    --danger: var(--neon-red);
-    --warning: var(--neon-amber);
-    --success: var(--neon-green);
-
     --border-color: #1a2342;
 
-    /* Glass tokens — strong dark glass with neon edge */
     --glass-bg: rgba(8, 12, 30, 0.55);
     --glass-bg-strong: rgba(12, 18, 42, 0.72);
     --glass-bg-panel: rgba(10, 16, 36, 0.82);
@@ -56,25 +129,9 @@
       0 14px 50px rgba(0, 0, 0, 0.65),
       0 0 40px rgba(180, 0, 255, 0.12);
 
-    /* Signature gradient: cyan → violet → magenta */
     --gradient-neon: linear-gradient(135deg, #00f0ff 0%, #b400ff 55%, #ff00d4 100%);
     --gradient-neon-soft: linear-gradient(135deg, rgba(0, 240, 255, 0.12) 0%, rgba(180, 0, 255, 0.08) 50%, rgba(255, 0, 212, 0.06) 100%);
-    --gradient-accent: var(--gradient-neon);
-    --gradient-accent-soft: var(--gradient-neon-soft);
 
-    /* Animated, layered background */
-    --bg-canvas:
-      radial-gradient(ellipse 70% 50% at 15% 0%, rgba(0, 240, 255, 0.10), transparent 60%),
-      radial-gradient(ellipse 60% 50% at 85% 20%, rgba(180, 0, 255, 0.10), transparent 60%),
-      radial-gradient(ellipse 80% 60% at 50% 100%, rgba(255, 0, 212, 0.07), transparent 65%),
-      #02030a;
-
-    /* Fonts — share tech mono for numbers, outfit for headings */
-    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-    --font-display: 'Outfit', 'Inter', system-ui, sans-serif;
-    --font-mono: 'Share Tech Mono', 'JetBrains Mono', ui-monospace, monospace;
-
-    /* Shield tier colors — neon-aligned */
     --tier-1: #ff3060;
     --tier-2: #ffb020;
     --tier-3: #00d4ff;
@@ -98,32 +155,36 @@
 
   /* Selection accent */
   ::selection {
-    background: rgba(0, 240, 255, 0.4);
-    color: #fff;
+    background: rgba(var(--neon-cyan-rgb), 0.30);
+    color: var(--text-primary);
   }
 
-  /* Scrollbar — thin & neon */
+  /* Scrollbar — thin & on-brand */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   ::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.04);
+  }
+  :root.dark ::-webkit-scrollbar-track {
     background: rgba(8, 12, 30, 0.4);
   }
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, rgba(0, 240, 255, 0.4), rgba(180, 0, 255, 0.4));
+    background: linear-gradient(180deg, rgba(var(--neon-cyan-rgb), 0.45), rgba(var(--neon-violet-rgb), 0.45));
     border-radius: 8px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, rgba(0, 240, 255, 0.7), rgba(180, 0, 255, 0.7));
+    background: linear-gradient(180deg, rgba(var(--neon-cyan-rgb), 0.7), rgba(var(--neon-violet-rgb), 0.7));
   }
 }
 
 /* =========================================================
-   LAYERED BACKGROUND: hex grid + scanlines + radial glows
+   LAYERED BACKGROUND: hex grid + scanlines (dark only)
+   Light mode keeps the canvas clean — no overlay noise.
    ========================================================= */
 
-.hack-canvas::before {
+:root.dark .hack-canvas::before {
   /* hex grid overlay */
   content: '';
   position: fixed;
@@ -141,7 +202,7 @@
   mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
 }
 
-.hack-canvas::after {
+:root.dark .hack-canvas::after {
   /* scanlines */
   content: '';
   position: fixed;
@@ -160,33 +221,9 @@
   mix-blend-mode: overlay;
 }
 
-/* Big drifting glow orbs */
-.hack-canvas > .bg-orbs {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.bg-orbs .orb {
-  position: absolute;
-  width: 600px;
-  height: 600px;
-  border-radius: 50%;
-  filter: blur(120px);
-  opacity: 0.45;
-  animation: orb-float 30s ease-in-out infinite;
-}
-.bg-orbs .orb-1 { top: -200px; left: -150px; background: #00f0ff; }
-.bg-orbs .orb-2 { bottom: -200px; right: -150px; background: #ff00d4; animation-delay: -10s; }
-.bg-orbs .orb-3 { top: 40%; left: 50%; background: #b400ff; animation-delay: -20s; opacity: 0.25; }
-
-@keyframes orb-float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(60px, -40px) scale(1.1); }
-  66% { transform: translate(-40px, 60px) scale(0.9); }
-}
+/* Big drifting glow orbs — removed. Kept no-op so any stale markup is harmless. */
+.hack-canvas > .bg-orbs { display: none; }
+.bg-orbs .orb { display: none; }
 
 /* =========================================================
    PANEL: HUD glassmorphism with corner brackets
@@ -222,14 +259,14 @@
     left: -1px;
     border-top: 2px solid var(--neon-cyan);
     border-left: 2px solid var(--neon-cyan);
-    box-shadow: -2px 0 12px rgba(0, 240, 255, 0.6);
+    box-shadow: -2px 0 12px rgba(var(--neon-cyan-rgb), 0.6);
   }
   .panel::after {
     bottom: -1px;
     right: -1px;
     border-bottom: 2px solid var(--neon-magenta);
     border-right: 2px solid var(--neon-magenta);
-    box-shadow: 2px 0 12px rgba(255, 0, 212, 0.6);
+    box-shadow: 2px 0 12px rgba(var(--neon-magenta-rgb), 0.6);
   }
   .panel:hover {
     border-color: var(--glass-border-strong);
@@ -276,11 +313,17 @@
     border: 1px solid var(--glass-border-strong);
     border-radius: 8px;
     box-shadow:
+      0 0 0 1px rgba(var(--neon-violet-rgb), 0.08),
+      0 30px 80px rgba(0, 0, 0, 0.18),
+      0 0 80px rgba(var(--neon-cyan-rgb), 0.05);
+    position: relative;
+    overflow: hidden;
+  }
+  :root.dark .glass-card-hero {
+    box-shadow:
       0 0 0 1px rgba(180, 0, 255, 0.08),
       0 30px 80px rgba(0, 0, 0, 0.6),
       0 0 80px rgba(0, 240, 255, 0.06);
-    position: relative;
-    overflow: hidden;
   }
 
   /* HUD terminal panel — header strip with mono metadata */
@@ -293,7 +336,7 @@
     justify-content: space-between;
     gap: 8px;
     padding: 8px 12px;
-    background: linear-gradient(90deg, rgba(0, 240, 255, 0.06), rgba(180, 0, 255, 0.04));
+    background: linear-gradient(90deg, rgba(var(--neon-cyan-rgb), 0.06), rgba(var(--neon-violet-rgb), 0.04));
     border-bottom: 1px solid var(--glass-border-subtle);
     font-family: var(--font-mono);
     font-size: 11px;
@@ -324,7 +367,7 @@
   input.glass-input,
   select.glass-input,
   textarea.glass-input {
-    background: rgba(2, 4, 16, 0.7);
+    background: rgba(15, 23, 42, 0.04);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border: 1px solid var(--glass-border-subtle);
@@ -334,6 +377,12 @@
     font-family: var(--font-sans);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
+  :root.dark .glass-input,
+  :root.dark input.glass-input,
+  :root.dark select.glass-input,
+  :root.dark textarea.glass-input {
+    background: rgba(2, 4, 16, 0.7);
+  }
   .glass-input::placeholder { color: var(--text-muted); }
   .glass-input:focus,
   input.glass-input:focus {
@@ -341,8 +390,8 @@
     border-color: var(--neon-cyan);
     border-left-color: var(--neon-violet);
     box-shadow:
-      0 0 0 1px rgba(0, 240, 255, 0.3),
-      0 0 20px rgba(0, 240, 255, 0.18);
+      0 0 0 1px rgba(var(--neon-cyan-rgb), 0.3),
+      0 0 20px rgba(var(--neon-cyan-rgb), 0.18);
   }
 
   select.glass-input option {
@@ -358,7 +407,7 @@
     letter-spacing: 0.18em;
     font-size: 0.7rem;
     color: var(--neon-cyan);
-    text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+    text-shadow: 0 0 8px rgba(var(--neon-cyan-rgb), 0.25);
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -383,7 +432,7 @@
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
-    text-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+    text-shadow: 0 0 30px rgba(var(--neon-cyan-rgb), 0.2);
   }
   .gradient-soft { background: var(--gradient-neon-soft); }
   .gradient-surface { background: var(--gradient-neon-soft); }
@@ -400,14 +449,15 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     border: 1px solid currentColor;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(15, 23, 42, 0.04);
   }
-  .badge-pass    { color: var(--neon-green);  background: rgba(0, 255, 156, 0.1); }
-  .badge-warn    { color: var(--neon-amber);  background: rgba(255, 176, 32, 0.1); }
-  .badge-fail    { color: var(--neon-red);    background: rgba(255, 48, 96, 0.1); }
-  .badge-neutral { color: var(--text-secondary); background: rgba(74, 91, 128, 0.15); }
-  .badge-info    { color: var(--neon-cyan);   background: rgba(0, 240, 255, 0.1); }
-  .badge-violet  { color: var(--neon-violet); background: rgba(180, 0, 255, 0.1); }
+  :root.dark .badge { background: rgba(0, 0, 0, 0.3); }
+  .badge-pass    { color: var(--neon-green);  background: rgba(var(--neon-green-rgb), 0.12); }
+  .badge-warn    { color: var(--neon-amber);  background: rgba(217, 119, 6, 0.12); }
+  .badge-fail    { color: var(--neon-red);    background: rgba(220, 38, 38, 0.12); }
+  .badge-neutral { color: var(--text-secondary); background: rgba(74, 91, 128, 0.12); }
+  .badge-info    { color: var(--neon-cyan);   background: rgba(var(--neon-cyan-rgb), 0.12); }
+  .badge-violet  { color: var(--neon-violet); background: rgba(var(--neon-violet-rgb), 0.12); }
 
   /* Above sector average callout — green + bold */
   .above-sector-avg {
@@ -416,7 +466,7 @@
     font-family: var(--font-display);
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    text-shadow: 0 0 10px rgba(0, 255, 156, 0.5);
+    text-shadow: 0 0 10px rgba(var(--neon-green-rgb), 0.4);
   }
 
   /* =========================================================
@@ -433,7 +483,7 @@
     padding: 10px 18px;
     border: 1px solid var(--neon-cyan);
     border-radius: 3px;
-    background: rgba(0, 240, 255, 0.05);
+    background: rgba(var(--neon-cyan-rgb), 0.06);
     color: var(--text-primary);
     font-family: var(--font-display);
     font-weight: 600;
@@ -443,14 +493,14 @@
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow:
-      inset 0 0 12px rgba(0, 240, 255, 0.1),
-      0 0 20px rgba(0, 240, 255, 0.15);
+      inset 0 0 12px rgba(var(--neon-cyan-rgb), 0.08),
+      0 0 20px rgba(var(--neon-cyan-rgb), 0.12);
   }
   .btn-neon:hover:not(:disabled) {
-    background: rgba(0, 240, 255, 0.12);
+    background: rgba(var(--neon-cyan-rgb), 0.12);
     box-shadow:
-      inset 0 0 16px rgba(0, 240, 255, 0.18),
-      0 0 30px rgba(0, 240, 255, 0.4);
+      inset 0 0 16px rgba(var(--neon-cyan-rgb), 0.16),
+      0 0 30px rgba(var(--neon-cyan-rgb), 0.30);
     transform: translateY(-1px);
   }
   .btn-neon:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -467,7 +517,7 @@
     border-radius: 3px;
     background: var(--gradient-neon);
     background-size: 200% 200%;
-    color: #04060f;
+    color: #ffffff;
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 13px;
@@ -476,9 +526,10 @@
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow:
-      0 0 24px rgba(0, 240, 255, 0.4),
-      0 0 24px rgba(180, 0, 255, 0.2);
+      0 0 24px rgba(var(--neon-cyan-rgb), 0.30),
+      0 0 24px rgba(var(--neon-violet-rgb), 0.18);
   }
+  :root.dark .btn-gradient { color: #04060f; }
   .btn-gradient::before {
     /* shimmer sweep */
     content: '';
@@ -497,8 +548,8 @@
     background-position: 100% 0;
     transform: translateY(-1px);
     box-shadow:
-      0 0 36px rgba(0, 240, 255, 0.6),
-      0 0 36px rgba(255, 0, 212, 0.4);
+      0 0 36px rgba(var(--neon-cyan-rgb), 0.45),
+      0 0 36px rgba(var(--neon-magenta-rgb), 0.30);
   }
   .btn-gradient:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -510,7 +561,7 @@
     padding: 8px 14px;
     border: 1px solid var(--glass-border);
     border-radius: 3px;
-    background: rgba(8, 12, 30, 0.4);
+    background: rgba(15, 23, 42, 0.03);
     color: var(--text-secondary);
     font-family: var(--font-display);
     font-weight: 500;
@@ -520,20 +571,21 @@
     cursor: pointer;
     transition: all 0.2s ease;
   }
+  :root.dark .btn-ghost { background: rgba(8, 12, 30, 0.4); }
   .btn-ghost:hover {
     border-color: var(--neon-cyan);
     color: var(--text-primary);
-    background: rgba(0, 240, 255, 0.08);
+    background: rgba(var(--neon-cyan-rgb), 0.08);
   }
 
   /* Danger / success / warn compact buttons */
   .btn-danger {
-    background: rgba(255, 48, 96, 0.12);
+    background: rgba(220, 38, 38, 0.10);
     border: 1px solid var(--neon-red);
     color: var(--neon-red);
   }
   .btn-success {
-    background: rgba(0, 255, 156, 0.12);
+    background: rgba(var(--neon-green-rgb), 0.10);
     border: 1px solid var(--neon-green);
     color: var(--neon-green);
   }
@@ -557,7 +609,7 @@
     text-align: left;
     padding: 10px 12px;
     border-bottom: 1px solid var(--glass-border);
-    background: rgba(0, 240, 255, 0.04);
+    background: rgba(var(--neon-cyan-rgb), 0.05);
   }
   .hud-table tbody td {
     padding: 10px 12px;
@@ -569,7 +621,7 @@
     transition: background 0.15s ease;
   }
   .hud-table tbody tr:hover {
-    background: rgba(0, 240, 255, 0.05);
+    background: rgba(var(--neon-cyan-rgb), 0.06);
     box-shadow: inset 2px 0 0 var(--neon-cyan);
   }
   .hud-table tbody tr:hover td {
@@ -660,7 +712,7 @@
     left: -30%;
     width: 30%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.45), transparent);
+    background: linear-gradient(90deg, transparent, rgba(var(--neon-cyan-rgb), 0.45), transparent);
     animation: scan-sweep 2.4s ease-in-out infinite;
   }
   @keyframes scan-sweep {
@@ -743,8 +795,8 @@
   @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes pulseSoft { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
   @keyframes glowPulse {
-    0%, 100% { box-shadow: 0 0 20px rgba(0, 240, 255, 0.18); }
-    50% { box-shadow: 0 0 40px rgba(180, 0, 255, 0.35); }
+    0%, 100% { box-shadow: 0 0 20px rgba(var(--neon-cyan-rgb), 0.18); }
+    50% { box-shadow: 0 0 40px rgba(var(--neon-violet-rgb), 0.30); }
   }
   @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes countUp { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
@@ -780,26 +832,47 @@
   /* Faint grid background for big hero areas */
   .bg-grid {
     background-image:
-      linear-gradient(rgba(0, 240, 255, 0.08) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 240, 255, 0.08) 1px, transparent 1px);
+      linear-gradient(rgba(var(--neon-cyan-rgb), 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--neon-cyan-rgb), 0.08) 1px, transparent 1px);
     background-size: 24px 24px;
+  }
+
+  /* Terminal surface — the small "console" boxes used around the app.
+     Dark mode keeps the inky black; light mode uses a tinted slate so the
+     terminal aesthetic still reads without a jarring black box. */
+  .terminal-surface {
+    background: rgba(15, 23, 42, 0.04);
+  }
+  :root.dark .terminal-surface {
+    background: rgba(0, 0, 0, 0.40);
+  }
+  .terminal-surface-strong {
+    background: rgba(15, 23, 42, 0.06);
+  }
+  :root.dark .terminal-surface-strong {
+    background: rgba(0, 0, 0, 0.30);
   }
 }
 
 /* =========================================================
-   RECHARTS OVERRIDES — make them readable on dark
+   RECHARTS OVERRIDES — theme-aware
    ========================================================= */
 .recharts-cartesian-grid line,
 .recharts-polar-grid-angle line,
 .recharts-polar-grid-concentric circle {
-  stroke: rgba(0, 240, 255, 0.08) !important;
+  stroke: rgba(var(--neon-cyan-rgb), 0.10) !important;
 }
 .recharts-text { fill: var(--text-muted) !important; font-family: var(--font-mono) !important; font-size: 11px !important; }
 .recharts-tooltip-wrapper .recharts-default-tooltip {
   background: var(--bg-elevated) !important;
-  border: 1px solid var(--neon-cyan) !important;
-  border-radius: 3px !important;
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.2) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 6px !important;
+  box-shadow: var(--glass-shadow) !important;
+  color: var(--text-primary) !important;
   font-family: var(--font-mono) !important;
   font-size: 12px !important;
+}
+:root.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
+  border: 1px solid var(--neon-cyan) !important;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.2) !important;
 }

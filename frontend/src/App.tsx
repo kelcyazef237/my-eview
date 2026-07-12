@@ -53,7 +53,7 @@ function RoleRoute({ requiredRole, children }: { requiredRole: string; children:
           <span className="num text-[var(--neon-cyan)]">verifying token</span>
           <span className="caret" />
         </div>
-        <div className="mt-2 h-1 w-48 overflow-hidden bg-[rgba(0,240,255,0.08)]">
+        <div className="mt-2 h-1 w-48 overflow-hidden bg-[rgba(var(--neon-cyan-rgb),0.08)]">
           <div
             className="h-full w-1/3"
             style={{

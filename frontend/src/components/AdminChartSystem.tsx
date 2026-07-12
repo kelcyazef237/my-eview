@@ -18,28 +18,12 @@ import {
 import { Loader2, ArrowRight } from 'lucide-react'
 import { api } from '@/api/client'
 import type { AdminOrg, CategoryScore } from '@/types'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface AdminChartSystemProps {
   orgs: AdminOrg[]
   onSelectOrg: (orgId: string) => void
 }
-
-const tierColors: Record<number, string> = {
-  1: '#ff3060',
-  2: '#ffb020',
-  3: '#00d4ff',
-  4: '#00ff9c',
-  5: '#b400ff',
-}
-
-const tooltipStyle = {
-  backgroundColor: '#0c1126',
-  border: '1px solid #00f0ff',
-  borderRadius: 3,
-  color: '#e6f2ff',
-  fontFamily: 'var(--font-mono)',
-  fontSize: 12,
-} as const
 
 function shortName(name: string): string {
   const words = name.split(' ')
@@ -51,6 +35,24 @@ export function AdminChartSystem({ orgs, onSelectOrg }: AdminChartSystemProps) {
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null)
   const [categories, setCategories] = useState<CategoryScore[] | null>(null)
   const [loading, setLoading] = useState(false)
+  const c = useThemeColors()
+
+  const tierColors: Record<number, string> = {
+    1: c.red,
+    2: c.amber,
+    3: c.cyan,
+    4: c.green,
+    5: c.violet,
+  }
+
+  const tooltipStyle = {
+    backgroundColor: c.bgElevated,
+    border: `1px solid ${c.border}`,
+    borderRadius: 6,
+    color: c.textPrimary,
+    fontFamily: 'var(--font-mono)',
+    fontSize: 12,
+  } as const
 
   const orgsWithScores = orgs.filter((o) => o.latest_score !== null)
 
@@ -106,13 +108,13 @@ export function AdminChartSystem({ orgs, onSelectOrg }: AdminChartSystemProps) {
             <span className="line" />
             <span>organization.scores</span>
           </div>
-          <div className="h-72 w-full rounded-sm bg-black/20 p-2">
+          <div className="h-72 w-full rounded-sm terminal-surface p-2">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barData} layout="vertical" margin={{ left: 10, right: 20, top: 5, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,240,255,0.08)" horizontal={false} />
-                <XAxis type="number" domain={[0, 1000]} tick={{ fill: '#8a9fc4', fontSize: 11 }} stroke="#1a2342" />
-                <YAxis type="category" dataKey="domain" tick={{ fill: '#8a9fc4', fontSize: 10 }} stroke="#1a2342" width={120} />
-                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(0,240,255,0.06)' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={`${c.cyan}1a`} horizontal={false} />
+                <XAxis type="number" domain={[0, 1000]} tick={{ fill: c.textMuted, fontSize: 11 }} stroke={c.border} />
+                <YAxis type="category" dataKey="domain" tick={{ fill: c.textMuted, fontSize: 10 }} stroke={c.border} width={120} />
+                <Tooltip contentStyle={tooltipStyle} cursor={{ fill: `${c.cyan}10` }} />
                 <Bar
                   dataKey="score"
                   radius={[0, 4, 4, 0]}
@@ -124,7 +126,7 @@ export function AdminChartSystem({ orgs, onSelectOrg }: AdminChartSystemProps) {
                   {barData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={entry.hasScore ? (tierColors[entry.tier] || '#4a5b80') : '#4a5b80'}
+                      fill={entry.hasScore ? (tierColors[entry.tier] || c.textMuted) : c.textMuted}
                       opacity={entry.orgId === selectedOrgId ? 1 : 0.55}
                     />
                   ))}
@@ -150,7 +152,7 @@ export function AdminChartSystem({ orgs, onSelectOrg }: AdminChartSystemProps) {
               </button>
             )}
           </div>
-          <div className="h-72 w-full rounded-sm bg-black/20 p-2">
+          <div className="h-72 w-full rounded-sm terminal-surface p-2">
             {loading ? (
               <div className="flex h-full items-center justify-center gap-2 num text-[12px] text-[var(--text-muted)]">
                 <Loader2 className="animate-spin text-[var(--neon-cyan)]" size={18} />
@@ -159,10 +161,10 @@ export function AdminChartSystem({ orgs, onSelectOrg }: AdminChartSystemProps) {
             ) : radarData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={radarData} outerRadius="65%">
-                  <PolarGrid stroke="rgba(0,240,255,0.1)" />
-                  <PolarAngleAxis dataKey="shortName" tick={{ fill: '#8a9fc4', fontSize: 10 }} />
-                  <PolarRadiusAxis domain={[0, maxPoints]} tick={{ fill: '#4a5b80', fontSize: 9 }} />
-                  <Radar dataKey="remaining" stroke="#00f0ff" fill="#00f0ff" fillOpacity={0.3} strokeWidth={2} />
+                  <PolarGrid stroke={`${c.cyan}1a`} />
+                  <PolarAngleAxis dataKey="shortName" tick={{ fill: c.textMuted, fontSize: 10 }} />
+                  <PolarRadiusAxis domain={[0, maxPoints]} tick={{ fill: c.textMuted, fontSize: 9 }} />
+                  <Radar dataKey="remaining" stroke={c.cyan} fill={c.cyan} fillOpacity={0.3} strokeWidth={2} />
                   <RTooltip contentStyle={tooltipStyle} />
                 </RadarChart>
               </ResponsiveContainer>

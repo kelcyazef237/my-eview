@@ -48,11 +48,14 @@ logs/
 
 # Celery beat schedule
 backend/celerybeat-schedule
-backend/celerybeat-schedule.*
+backend/celerybeat-schedule*
+backend/celerybeat.pid
 
 # Build artifacts
 frontend/.next/
+frontend/next/
 frontend/dist/
+frontend/logs
 frontend.zip
 *.zip
 

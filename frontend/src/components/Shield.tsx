@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { useThemeColors } from '@/hooks/useThemeColors'
 
 interface ShieldProps {
   tier: number
@@ -21,13 +22,14 @@ const sizeStyle: Record<NonNullable<ShieldProps['size']>, { w: number; h: number
  */
 export function Shield({ tier, size = 'md', active = true, className }: ShieldProps) {
   const dims = sizeStyle[size]
+  const c = useThemeColors()
   const tierColor =
-    tier === 1 ? '#ff3060'
-    : tier === 2 ? '#ffb020'
-    : tier === 3 ? '#00d4ff'
-    : tier === 4 ? '#00ff9c'
-    : tier === 5 ? '#b400ff'
-    : '#4a5b80'
+    tier === 1 ? c.red
+    : tier === 2 ? c.amber
+    : tier === 3 ? c.cyan
+    : tier === 4 ? c.green
+    : tier === 5 ? c.violet
+    : c.textMuted
 
   const opacity = active ? 1 : 0.18
   const glow = active ? `drop-shadow(0 0 6px ${tierColor})` : 'none'
@@ -81,20 +83,21 @@ export function Shield({ tier, size = 'md', active = true, className }: ShieldPr
 
 /**
  * Tier color helper (kept for back-compat consumers).
+ * Returns the CSS variable reference so it tracks the active theme.
  */
 export function shieldColor(tier: number): string {
   switch (tier) {
     case 1:
-      return '#ff3060'
+      return 'var(--tier-1)'
     case 2:
-      return '#ffb020'
+      return 'var(--tier-2)'
     case 3:
-      return '#00d4ff'
+      return 'var(--tier-3)'
     case 4:
-      return '#00ff9c'
+      return 'var(--tier-4)'
     case 5:
-      return '#b400ff'
+      return 'var(--tier-5)'
     default:
-      return '#4a5b80'
+      return 'var(--text-muted)'
   }
 }
