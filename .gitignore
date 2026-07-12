@@ -45,3 +45,17 @@ backend/.setup_complete
 
 # Service logs
 logs/
+
+# Celery beat schedule
+backend/celerybeat-schedule
+backend/celerybeat-schedule.*
+
+# Build artifacts
+frontend/.next/
+frontend/dist/
+frontend.zip
+*.zip
+
+# Scrap / debug files
+new format.html
+frontend/*_ips.txt
